@@ -127,6 +127,7 @@
 
 
         <div class="fc-cart__main__content fc-container__grid">
+            <div class="ukc-cart__notice ukc-small" aria-live="polite"></div>
             <div class="ukc-items">
             <div data-fc-id="block-cart-errors">
             {% block cart_errors %}
@@ -147,7 +148,6 @@
 
             <div data-fc-id="block-cart-items-divs">
             {% block cart_items_divs %}
-            <div class="ukc-cart__notice ukc-small" aria-live="polite"></div>
             {% set checkout_sub_cancel = (context == 'checkout' and is_subscription_cancel) %}
             <div class="fc-cart__items {% if has_product_images %}fc-cart__items--with-images{% else %} fc-cart__items--without-images{% endif %}">
 

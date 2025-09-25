@@ -72,3 +72,189 @@ a:hover{ text-decoration: underline }
 /* Images */
 .ukc-img{ width:100%; height:100%; object-fit:cover; border-radius:8px; display:block }
 .ukc-img--thumb{ width:80px; height:80px }
+
+/* ---- Foxy core element theming (non-destructive) ---- */
+/* Headings inside Foxy (checkout sections etc.) */
+.fc-heading,
+.fc-section__title,
+.fc-checkout__section-title,
+.fc-subheading,
+h1, h2, h3 {
+  color: var(--brand-blue);
+}
+
+/* Inputs / selects / textareas */
+.fc-input,
+.fc-select,
+.fc-textarea,
+input, select, textarea {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+}
+.fc-input:focus,
+.fc-select:focus,
+.fc-textarea:focus,
+input:focus, select:focus, textarea:focus {
+  outline: 2px solid var(--brand-yellow);
+  outline-offset: 2px;
+}
+
+/* Buttons: primary = brand yellow with blue text; secondary = blue with white */
+.fc-button,
+button[type=submit] {
+  border-radius: 10px;
+  font-weight: 600;
+}
+.fc-button--primary,
+.fc-button.fc-button--action,
+.fc-actions .fc-button--checkout,
+.fc-actions .fc-button--submit {
+  background: var(--brand-yellow) !important;
+  color: var(--brand-blue) !important;
+  border: none !important;
+}
+.fc-button--secondary,
+.fc-button--muted {
+  background: var(--brand-blue) !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+/* Quantity controls */
+.fc-quantity,
+.fc-quantity__control,
+.fc-quantity input {
+  border-radius: 10px;
+  border-color: var(--border);
+}
+
+/* Sidecart panel look */
+.fc-sidecart__panel,
+.fc-sidecart__container {
+  border-left: 1px solid var(--border);
+  box-shadow: -8px 0 24px rgba(0,0,0,.08);
+}
+.fc-sidecart__header {
+  border-bottom: 1px solid var(--border);
+}
+.fc-sidecart__title {
+  color: var(--brand-blue);
+  font-weight: 700;
+}
+
+/* Cart (full page) summary header */
+.ukc-summary .fc-sidebar__header,
+.ukc-summary .fc-sidebar__title {
+  color: var(--brand-blue);
+  font-weight: 700;
+}
+
+/* Notice/alert slot styling */
+.ukc-cart__notice {
+  background: var(--brand-yellow-soft);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 8px 0 16px;
+  color: var(--brand-blue);
+}
+
+/* Payment buttons spacing inside summary */
+.ukc-summary .fc-payment-methods,
+.ukc-summary .fc-express-checkout {
+  margin-top: 12px;
+}
+
+/* ---- Foxy core element theming (non-destructive) ---- */
+/* Headings inside Foxy (checkout sections etc.) */
+.fc-heading,
+.fc-section__title,
+.fc-checkout__section-title,
+.fc-subheading,
+h1, h2, h3 {
+  color: var(--brand-blue);
+}
+
+/* Inputs / selects / textareas */
+.fc-input,
+.fc-select,
+.fc-textarea,
+input, select, textarea {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+}
+.fc-input:focus,
+.fc-select:focus,
+.fc-textarea:focus,
+input:focus, select:focus, textarea:focus {
+  outline: 2px solid var(--brand-yellow);
+  outline-offset: 2px;
+}
+
+/* Buttons: primary = brand yellow with blue text; secondary = blue with white */
+.fc-button,
+button[type=submit] {
+  border-radius: 10px;
+  font-weight: 600;
+}
+.fc-button--primary,
+.fc-button.fc-button--action,
+.fc-actions .fc-button--checkout,
+.fc-actions .fc-button--submit {
+  background: var(--brand-yellow) !important;
+  color: var(--brand-blue) !important;
+  border: none !important;
+}
+.fc-button--secondary,
+.fc-button--muted {
+  background: var(--brand-blue) !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+/* Quantity controls */
+.fc-quantity,
+.fc-quantity__control,
+.fc-quantity input {
+  border-radius: 10px;
+  border-color: var(--border);
+}
+
+/* Sidecart panel look */
+.fc-sidecart__panel,
+.fc-sidecart__container {
+  border-left: 1px solid var(--border);
+  box-shadow: -8px 0 24px rgba(0,0,0,.08);
+}
+.fc-sidecart__header {
+  border-bottom: 1px solid var(--border);
+}
+.fc-sidecart__title {
+  color: var(--brand-blue);
+  font-weight: 700;
+}
+
+/* Cart (full page) summary header */
+.ukc-summary .fc-sidebar__header,
+.ukc-summary .fc-sidebar__title {
+  color: var(--brand-blue);
+  font-weight: 700;
+}
+
+/* Notice/alert slot styling */
+.ukc-cart__notice {
+  background: var(--brand-yellow-soft);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 8px 0 16px;
+  color: var(--brand-blue);
+}
+
+/* Payment buttons spacing inside summary */
+.ukc-summary .fc-payment-methods,
+.ukc-summary .fc-express-checkout {
+  margin-top: 12px;
+}
