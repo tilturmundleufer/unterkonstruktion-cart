@@ -1,0 +1,74 @@
+/* Brand tokens (Unterkonstruktion) */
+.ukc-cart{
+  --brand-blue:#072544;
+  --brand-yellow:#ffb101;
+  --brand-yellow-soft:#fffdfa;
+  --text:#0b1220;
+  --bg:#ffffff;
+  --muted:var(--brand-yellow-soft);
+  --border:#e6eaf0;
+}
+
+.ukc-cart__container {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Two-column layout: items (left) + summary (right) */
+.ukc-cart__grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 24px;
+}
+@media (max-width: 960px){
+  .ukc-cart__grid { grid-template-columns: 1fr; }
+}
+
+/* Example row hooks: attach to existing Foxy nodes by adding class names in future customizations if needed */
+.ukc-row { display: grid; grid-template-columns: 80px 1fr auto auto; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.ukc-row__thumb img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; background: var(--muted); }
+.ukc-row__title { font-weight: 600; }
+.ukc-row__meta { font-size: 14px; opacity: .8; }
+.ukc-row__qty input { width: 72px; }
+.ukc-row__price, .ukc-row__total { text-align: right; white-space: nowrap; }
+
+/* Bridge selectors for Foxy classes */
+.fc-button:focus,
+.fc-link:focus,
+.fc-quantity__control:focus { outline:2px solid var(--brand-yellow); outline-offset:2px; }
+
+@media (min-width: 961px){
+  .ukc-summary { position: sticky; top: 24px; }
+}
+
+.ukc-items > * + * { border-top: 1px solid var(--border); }
+
+/* Summary card */
+.ukc-summary { border: 1px solid var(--border); border-radius: 12px; padding: 16px; background: #fff; transition:box-shadow .2s }
+.ukc-summary__line { display: flex; justify-content: space-between; padding: 8px 0; }
+.ukc-summary__total { font-weight: 700; font-size: 18px; padding-top: 8px; border-top: 1px dashed var(--border); }
+.ukc-summary:hover{ box-shadow:0 4px 18px rgba(0,0,0,.06) }
+
+/* Buttons */
+.ukc-btn { display: inline-flex; align-items: center; justify-content: center; padding: 12px 16px; border-radius: 10px; border: 0; cursor: pointer; }
+.ukc-btn--primary { background: var(--brand-blue); color: #fff; }
+.ukc-btn--alt { background: var(--brand-yellow); color: var(--brand-blue); }
+
+/* Links & focus (accessibility) */
+a{ color: var(--brand-blue) }
+a:hover{ text-decoration: underline }
+:where(button, [type=button],[type=submit],a,select,input):focus{ outline:2px solid var(--brand-yellow); outline-offset:2px }
+:where(button, [type=button],[type=submit],a,select,input):focus-visible{ outline:2px solid var(--brand-yellow); outline-offset:2px }
+
+/* Utilities */
+.ukc-space-s{ gap:8px }
+.ukc-space-m{ gap:16px }
+.ukc-space-l{ gap:24px }
+.ukc-h1{ font-size:24px; font-weight:700 }
+.ukc-h2{ font-size:18px; font-weight:600 }
+.ukc-small{ font-size:14px; opacity:.8 }
+
+/* Images */
+.ukc-img{ width:100%; height:100%; object-fit:cover; border-radius:8px; display:block }
+.ukc-img--thumb{ width:80px; height:80px }
