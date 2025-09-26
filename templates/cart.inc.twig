@@ -186,7 +186,7 @@
                 {% endif %}
 
                 {# bug in twig.js keeps us from just setting a variable. hopefully this is resolved eventually #}
-                <div data-fc-item-id="{{ item.id }}" class="fc-container__row fc-cart__item {% if item.parent_code %}fc-cart__item--child-product{% elseif item.is_parent %}fc-cart__item--parent-product{% endif %} {% if loop.last %}fc-cart__item--last{% endif %}" {% if item.code != '' %}data-item-code="{{ item.code|escape('html_attr') }}" {% endif %}>
+                <div data-fc-item-id="{{ item.id }}" class="fc-container__row fc-cart__item ukc-row {% if item.parent_code %}fc-cart__item--child-product{% elseif item.is_parent %}fc-cart__item--parent-product{% endif %} {% if loop.last %}fc-cart__item--last{% endif %}" {% if item.code != '' %}data-item-code="{{ item.code|escape('html_attr') }}" {% endif %}>
 
                 {% if loading_quantity %}
                     <div class="fc-cart__item--updating">
@@ -199,7 +199,7 @@
                 {% endif %}
                     <div class="fc-cart__item__details-and-image">
                         {% if has_product_images %}
-                        <div class="fc-cart__item__image">
+                        <div class="fc-cart__item__image ukc-row__thumb">
                             {% if item.url != '' and item.image != '' %}
                             <a href="{{ item.url }}" target="_top" alt="{{ item.alt_name }}">
                             {% endif %}
@@ -211,7 +211,7 @@
                             {% endif %}
                         </div>
                         {% endif %}
-                        <div class="fc-cart__item__details">
+                        <div class="fc-cart__item__details ukc-row__details">
                             <p class="fc-cart__item__name">{{ item.name }}</p>
                         {% block product_options %}
                             {% set show_product_options = true %}
@@ -301,7 +301,7 @@
                                 {% if with_controls and checkout_sub_cancel == false and (item.parent_code == '' or (item.parent_code != '' and item.quantity_min == 0)) %}
                                 <li class="fc-cart__item__actions">
                                     <ul class="fc-actions-container">
-                                        <li class="fc-cart__item__remove">
+                                        <li class="fc-cart__item__remove ukc-row__remove">
                                             <a href="#" title="{{ config.lang.cart_remove_item }}" data-fc-id="item-remove-link" data-fc-item-id="{{ item.id }}">{{ config.lang.cart_remove_item|raw }}</a>
                                         </li>
                                     </ul>
@@ -314,7 +314,7 @@
 
                     <div class="fc-cart__item__totals">
                         <div class="fc-container__row">
-                            <div class="fc-cart__item__total">
+                            <div class="fc-cart__item__total ukc-row__total">
                                 {% if has_inclusive_taxes %}
                                     {% if item.parent_code == '' or (item.parent_code != '' and item.price_with_tax > 0) %}
                                     <p>
@@ -330,7 +330,7 @@
                                 {% endif %}
                             </div>
 
-                            <div class="fc-cart__item__price">
+                            <div class="fc-cart__item__price ukc-row__price">
                                 {% if item.quantity != 1 %}
                                 <p class="fc-cart__item__price__each">
                                     {% if has_inclusive_taxes %}
@@ -345,7 +345,7 @@
                                 {% endif %}
                             </div>
 
-                            <div class="fc-cart__item__quantity">
+                            <div class="fc-cart__item__quantity ukc-row__qty">
                                 {% if context == 'receipt' %}
                                 <p class="text-center">{{ item.quantity }}</p>
                                 {% elseif item.parent_code == '' or (item.parent_code != '' and item.quantity_min == 0) %}
