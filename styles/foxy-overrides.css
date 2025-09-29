@@ -221,3 +221,39 @@ button[type=submit] {
 
 /* Flatten Foxy wrapper so thumb & details participate in our grid */
 .ukc-row .fc-cart__item__details-and-image{ display: contents; }
+/* --- Page shell (logos above/below) --- */
+.ukc-shell{
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.ukc-site-header,
+.ukc-site-footer{
+  padding: 18px 0;
+}
+.ukc-site-header .ukc-shell,
+.ukc-site-footer .ukc-shell{
+  display:flex; align-items:center; justify-content:flex-start;
+}
+.ukc-logo{ height:auto; display:block }
+
+.ukc-site-main{ padding: 12px 0 48px }
+
+/* Hide the sidecart fixed nav on the full cart page */
+.ukc-cart-page nav.fc-sidecart-only-fixed{ display:none !important; }
+
+/* Page background + type rhythm closer to CI */
+body.ukc-cart-page{
+  background:#fff;
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+/* Tighten headings on the cart page */
+.fc-cart__title__header,
+.ukc-h1{ color:var(--brand-blue); margin: 8px 0 4px; }
+.fc-order-quantity{ margin: 0 0 16px; }
+
+/* Give the main cart container some breathing room inside the shell */
+.ukc-cart__container{ padding: 8px 0 0; }

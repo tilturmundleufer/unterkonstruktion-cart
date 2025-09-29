@@ -1,5 +1,3 @@
-
-
 {#
   Cart Template (Unterkonstruktion)
   Purpose: render our custom include directly (no remote Webflow shell).
@@ -14,15 +12,24 @@
 
     {# Brand CSS (adjust the URL if you host it elsewhere) #}
     <link rel="stylesheet" href="https://unterkonstruktion-cart.vercel.app/styles/foxy-overrides.css">
-
-    {# Foxy base CSS already loads by default. We only add our overrides. #}
   </head>
   <body class="ukc-cart-page">
-    {#
-      Render the full cart UI from our include. This avoids the need for a
-      <div id="fc"> placeholder and sidesteps any DOM/script conflicts from
-      external site shells.
-    #}
-    {% include 'cart.inc.twig' %}
+    <header class="ukc-site-header">
+      <div class="ukc-shell">
+        <img class="ukc-logo" alt="Schneider" src="https://cdn.prod.website-files.com/68498852db79a6c114f111ef/68a715060ec3ecf5508ca480_Element%201.svg" width="180" height="26">
+      </div>
+    </header>
+
+    <main class="ukc-site-main">
+      <div class="ukc-shell">
+        {% include 'cart.inc.twig' %}
+      </div>
+    </main>
+
+    <footer class="ukc-site-footer">
+      <div class="ukc-shell">
+        <img class="ukc-logo" alt="Schneider" src="https://cdn.prod.website-files.com/68498852db79a6c114f111ef/68a715060ec3ecf5508ca480_Element%201.svg" width="180" height="26">
+      </div>
+    </footer>
   </body>
 </html>
