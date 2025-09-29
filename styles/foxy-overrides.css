@@ -218,3 +218,6 @@ button[type=submit] {
 
 /* Slight hover to match cards */
 .ukc-row:hover{ box-shadow:0 4px 18px rgba(0,0,0,.06) }
+
+/* Flatten Foxy wrapper so thumb & details participate in our grid */
+.ukc-row .fc-cart__item__details-and-image{ display: contents; }

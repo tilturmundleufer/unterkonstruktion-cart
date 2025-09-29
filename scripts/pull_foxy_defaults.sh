@@ -11,3 +11,4 @@ curl -fsSL "$BASE/receipt.inc.twig"  -o "./templates/_ref.receipt.inc.twig"
 curl -fsSL "$BASE/utils.inc.twig"    -o "./templates/_ref.utils.inc.twig"
 
 echo "✅ Pulled Foxy default templates into ./templates/_ref.*"
+

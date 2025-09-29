@@ -1,0 +1,28 @@
+
+
+{#
+  Cart Template (Unterkonstruktion)
+  Purpose: render our custom include directly (no remote Webflow shell).
+  Why: reliable, testable, and guarantees that cart.inc.twig is mounted.
+#}
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ config.store_name }} – Warenkorb</title>
+
+    {# Brand CSS (adjust the URL if you host it elsewhere) #}
+    <link rel="stylesheet" href="https://unterkonstruktion-cart.vercel.app/styles/foxy-overrides.css">
+
+    {# Foxy base CSS already loads by default. We only add our overrides. #}
+  </head>
+  <body class="ukc-cart-page">
+    {#
+      Render the full cart UI from our include. This avoids the need for a
+      <div id="fc"> placeholder and sidesteps any DOM/script conflicts from
+      external site shells.
+    #}
+    {% include 'cart.inc.twig' %}
+  </body>
+</html>
