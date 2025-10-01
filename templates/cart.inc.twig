@@ -327,9 +327,9 @@
                                 <input type="hidden" id="id{{ item.item_number }}" name="id{{ item.item_number }}" value="{{ item.id }}" />
                                 <label class="hidden" for="quantity{{ item.item_number }}">{{ config.lang.cart_quantity }}</label>
                                 <div class="ukc-qty-control" data-fc-item-id="{{ item.id }}">
-                                    <button type="button" class="ukc-qty-btn ukc-qty-minus" aria-label="-" data-fc-item-id="{{ item.id }}">&minus;</button>
+                                    <button type="button" class="ukc-qty-btn ukc-qty-minus" aria-label="-" data-fc-id="decrement-item-quantity" data-fc-item-id="{{ item.id }}">&minus;</button>
                                     <input class="fc-cart__item__quantity__input fc-form-control" type="number" name="quantity{{ item.item_number }}" id="quantity{{ item.item_number }}" min="1" value="{{ item.quantity }}" data-fc-id="item-quantity-input" data-fc-item-id="{{ item.id }}"/>
-                                    <button type="button" class="ukc-qty-btn ukc-qty-plus" aria-label="+" data-fc-item-id="{{ item.id }}">+</button>
+                                    <button type="button" class="ukc-qty-btn ukc-qty-plus" aria-label="+" data-fc-id="increment-item-quantity" data-fc-item-id="{{ item.id }}">+</button>
                                 </div>
                                     {% else %}
                                     <p>{{ config.lang.cart_qty|raw }}: {{ item.quantity }}</p>
