@@ -193,10 +193,11 @@
                         <div class="fc-cart__item__details ukc-row__details">
                             <p class="fc-cart__item__name">{{ item.name }}</p>
                         {% block product_options %}
-                            {% set show_product_options = true %}
-                            {% set show_product_weight = true %}
-                            {% set show_product_category = true %}
-                            {% set show_product_code = true %}
+                            {# Für kompaktes Reihenlayout: Optionsliste und Meta ausgeblendet #}
+                            {% set show_product_options = false %}
+                            {% set show_product_weight = false %}
+                            {% set show_product_category = false %}
+                            {% set show_product_code = false %}
                             {% set show_sub_frequency = true %}
                             {% set show_sub_startdate = true %}
                             {% set show_sub_nextdate = true %}
@@ -246,7 +247,7 @@
                                 </li>
                                 {% endif %}
 
-                                {% if item.sub_frequency != '' and (show_sub_frequency or show_sub_nextdate or show_sub_startdate or show_sub_enddate) %}
+                                {% if false and item.sub_frequency != '' and (show_sub_frequency or show_sub_nextdate or show_sub_startdate or show_sub_enddate) %}
                                 <li class="fc-cart__item__option--subscription-details">
                                     {{ config.lang.cart_subscription_details|raw }}
                                     <ul>
