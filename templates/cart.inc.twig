@@ -456,6 +456,7 @@
                 Bei den angegebenen Preisen handelt es sich um Nettobeträge. Privatkunden profitieren von 0% MwSt Gemäß §12 Abs. 3 UstG
             </div>
 
+            {% if context == 'checkout' %}
             <ul class="fc-transaction">
 
 
@@ -660,6 +661,7 @@
 
                 {# Gesamt inkl. Steuern unten ausgeblendet – wird oben in der Tabelle angezeigt #}
             </ul>
+            {% endif %}
 
             {% if context == "checkout" and has_multiple_addresses and multiship_data|length > 1 %}
             <div class="fc-transaction fc-transaction--multiship">
@@ -848,6 +850,9 @@
               if(nextContext){ document.querySelectorAll('#fc-cart').forEach(function(el){ el.setAttribute('data-context', nextContext); }); }
               if(sub){ document.querySelectorAll('[data-ukc-subtotal]').forEach(function(el){ el.innerHTML = sub.innerHTML; }); }
               if(totalOrder){ document.querySelectorAll('[data-ukc-total-order]').forEach(function(el){ el.innerHTML = totalOrder.innerHTML; }); }
+              // Mehrwertsteuer aus neuer Seite ziehen, falls vorhanden
+              const tax = doc.querySelector('[data-ukc-tax-total]');
+              if(tax){ const el = document.querySelector('[data-ukc-tax-total]'); if(el) el.innerHTML = tax.innerHTML; }
               if(ship){ const el = document.querySelector('[data-ukc-shipping]'); if(el) el.innerHTML = ship.innerHTML; }
 
               // Falls Kontext 'cart' ist, alle Versand-Container ausblenden (Defensivmaßnahme)
