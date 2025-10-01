@@ -250,7 +250,7 @@ button[type=submit] {
 /* ----- Item row responsive grid (A) ----- */
 .ukc-row{
   display:grid;
-  grid-template-columns: 120px 1fr 220px 220px 180px; /* thumb | details | qty | total | remove */
+  grid-template-columns: 120px minmax(480px, 1fr) 200px 160px 160px; /* thumb | details (breiter) | qty | total (schmaler) | remove */
   grid-auto-flow: column;
   gap:16px;
   align-items:center;

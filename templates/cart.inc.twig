@@ -12,7 +12,7 @@
 
 {# Entfernt: Sidecart-Fixed-Buttons, die im Fullpage-Cart das Layout überlagern #}
 
-<div id="fc-cart" {% if context == 'cart' %}class="fc-container"{% endif %}>
+<div id="fc-cart" {% if context == 'cart' %}class="fc-container"{% endif %} data-currency="EUR" data-locale="de-DE">
 {% import "utils.inc.twig" as utils %}
 {#
     Blocks within "cart" block:
@@ -167,7 +167,8 @@
                 {% endif %}
 
                 {# bug in twig.js keeps us from just setting a variable. hopefully this is resolved eventually #}
-                <div data-fc-item-id="{{ item.id }}" class="fc-container__row fc-cart__item ukc-row {% if item.parent_code %}fc-cart__item--child-product{% elseif item.is_parent %}fc-cart__item--parent-product{% endif %} {% if loop.last %}fc-cart__item--last{% endif %}" {% if item.code != '' %}data-item-code="{{ item.code|escape('html_attr') }}" {% endif %}>
+                {% if has_inclusive_taxes %}{% set ukc_unit_price = item.price_each_with_tax %}{% else %}{% set ukc_unit_price = item.price_each %}{% endif %}
+                <div data-fc-item-id="{{ item.id }}" class="fc-container__row fc-cart__item ukc-row {% if item.parent_code %}fc-cart__item--child-product{% elseif item.is_parent %}fc-cart__item--parent-product{% endif %} {% if loop.last %}fc-cart__item--last{% endif %}" {% if item.code != '' %}data-item-code="{{ item.code|escape('html_attr') }}" {% endif %} data-price-each="{{ ukc_unit_price }}">
 
                 {% if loading_quantity %}
                     <div class="fc-cart__item--updating">
@@ -434,7 +435,7 @@
                     <table>
                         <tr class="fc-subtotal--row">
                             <td class="fc-subtotal__label"><h5>{{ 'Warenwert (netto)' }}</h5></td>
-                            <td class="fc-subtotal__value">{{ total_item_price|money_format }}</td>
+                            <td class="fc-subtotal__value" data-ukc-subtotal>{{ total_item_price|money_format }}</td>
                         </tr>
                     </table>
                 </li>
@@ -475,7 +476,7 @@
                         <tbody class="fc-subtotal--shipping">
                         <tr class="fc-subtotal--row">
                             <td class="fc-subtotal__label">{{ shipping_service_label|raw }}</td>
-                            <td class="fc-subtotal__value">
+                            <td class="fc-subtotal__value" data-ukc-shipping>
                             {% if has_inclusive_taxes %}
                                 {% set total_shipping_value = total_shipping_with_tax %}
                             {% else %}
@@ -714,7 +715,7 @@
                             <td class="fc-subtotal__label">
                                 {{ config.lang.cart_order_total|raw }}:
                             </td>
-                            <td class="fc-subtotal__value">
+                            <td class="fc-subtotal__value" data-ukc-total-order>
                                 {{ total_order|money_format }}
                             </td>
                         </tr>
@@ -908,7 +909,27 @@
               var doc = new DOMParser().parseFromString(html, 'text/html');
               var next = doc.querySelector('#fc-cart');
               var current = document.querySelector('#fc-cart');
-              if(next && current){ current.replaceWith(next); }
+              if(next && current){ current.replaceWith(next); return; }
+              // Fallback: live totals/row calculation ohne kompletten Reflow
+              const locale = current?.dataset.locale || 'de-DE';
+              const currency = current?.dataset.currency || 'EUR';
+              // Update subtotals/total wenn vorhanden
+              const sub = doc.querySelector('[data-ukc-subtotal]');
+              const totalOrder = doc.querySelector('[data-ukc-total-order]');
+              const ship = doc.querySelector('[data-ukc-shipping]');
+              if(sub){ const el = document.querySelector('[data-ukc-subtotal]'); if(el) el.innerHTML = sub.innerHTML; }
+              if(totalOrder){ const el = document.querySelector('[data-ukc-total-order]'); if(el) el.innerHTML = totalOrder.innerHTML; }
+              if(ship){ const el = document.querySelector('[data-ukc-shipping]'); if(el) el.innerHTML = ship.innerHTML; }
+              // Jede Item-Row neu berechnen (price-each * qty)
+              document.querySelectorAll('.ukc-row').forEach(function(row){
+                const qty = row.querySelector('input[data-fc-id="item-quantity-input"]').value;
+                const priceEach = parseFloat(row.getAttribute('data-price-each') || '0');
+                const totalEl = row.querySelector('.ukc-row__total p');
+                if(totalEl){
+                  const total = priceEach * (parseInt(qty, 10) || 1);
+                  totalEl.textContent = new Intl.NumberFormat(locale, {style:'currency', currency}).format(total);
+                }
+              });
             }catch(e){
               console.error('Cart update failed', e);
               if(form) form.submit();
