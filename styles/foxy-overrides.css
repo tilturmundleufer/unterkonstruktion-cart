@@ -331,6 +331,13 @@ button[type=submit] {
 .ukc-empty__title{ margin:0 0 16px; font-size:20px; color:#9ca3af; }
 .ukc-empty .ukc-btn{ margin-top:8px; }
 
+/* Hard guard: Im Warenkorb nie Versand-/Adress-UI zeigen */
+#fc-cart[data-context="cart"] .fc-address-entry,
+#fc-cart[data-context="cart"] [data-fc-id="block-shipping-results"],
+#fc-cart[data-context="cart"] .fc-transaction__shipping,
+#fc-cart[data-context="cart"] .fc-transaction__shipping-address{ display:none !important; }
+#fc-cart[data-context="cart"] .fc-subtotal--total{ display:none !important; }
+
 /* Remove-all button look */
 .ukc-remove-all{ text-align:center; margin:12px 0 0 }
 .ukc-remove-all a{
