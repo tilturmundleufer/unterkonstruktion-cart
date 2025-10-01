@@ -892,8 +892,12 @@
         {% if with_controls %}
         <script>
         (function(){
+          var form = document.getElementById('fc-cart-form');
           function findQtyInput(itemId){
             return document.querySelector('input[data-fc-id="item-quantity-input"][data-fc-item-id="'+itemId+'"]');
+          }
+          function submitUpdate(){
+            if(form){ form.submit(); }
           }
           document.addEventListener('click', function(ev){
             var btn = ev.target.closest('.ukc-qty-btn');
@@ -909,17 +913,15 @@
                 current = current + 1;
               }
               input.value = current;
-              input.dispatchEvent(new Event('change', { bubbles: true }));
+              submitUpdate();
             }
             var rm = ev.target.closest('.ukc-remove-btn');
             if(rm){
               ev.preventDefault();
               var idr = rm.getAttribute('data-fc-item-id');
               var inp = findQtyInput(idr);
-              if(inp){
-                inp.value = 0;
-                inp.dispatchEvent(new Event('change', { bubbles: true }));
-              }
+              if(inp){ inp.value = 0; }
+              submitUpdate();
             }
           }, false);
         })();
