@@ -338,7 +338,9 @@ button[type=submit] {
 #fc-cart[data-context="cart"] .fc-transaction__shipping-address{ display:none !important; }
 #fc-cart[data-context="cart"] .fc-subtotal--total{ display:none !important; }
 /* Verhindert, dass die Standard-Foxy-Transaktionsliste im Warenkorb sichtbar ist */
+/* Sidebar-Liste generell im Cart ausblenden (fall-back) */
 #fc-cart[data-context="cart"] ul.fc-transaction{ display:none !important; }
+.fc-sidebar--cart.ukc-summary ul.fc-transaction{ display:none !important; }
 
 /* Remove-all button look */
 .ukc-remove-all{ text-align:center; margin:12px 0 0 }

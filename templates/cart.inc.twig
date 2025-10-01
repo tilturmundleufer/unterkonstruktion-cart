@@ -429,7 +429,7 @@
 
             <div data-fc-id="block-order-totals">
             {% block order_totals %}
-            <h3 class="fc-transaction__header"><span>Bestellübersicht</span></h3>
+            <h3 class="fc-transaction__header" data-fc-id="ukc-order-summary-header"><span>Bestellübersicht</span></h3>
 
             <table class="ukc-summary-table">
                 <tbody>
@@ -457,7 +457,7 @@
             </div>
 
             {% if context == 'checkout' %}
-            <ul class="fc-transaction">
+            <ul class="fc-transaction" data-fc-id="ukc-foxy-transaction-list">
 
 
                 {% if context == 'checkout' and shipping_address.has_shippable_products %}
@@ -838,7 +838,17 @@
               var doc = new DOMParser().parseFromString(html, 'text/html');
               var next = doc.querySelector('#fc-cart');
               var current = document.querySelector('#fc-cart');
-              if(next && current){ current.replaceWith(next); return; }
+              if(next && current){ 
+                // Ersetze nur die Inhaltsbereiche, nicht die ganze Sidebar-Struktur
+                var nextSidebar = next.querySelector('.fc-sidebar--cart.ukc-summary');
+                var currSidebar = current.querySelector('.fc-sidebar--cart.ukc-summary');
+                if(nextSidebar && currSidebar){
+                  currSidebar.innerHTML = nextSidebar.innerHTML;
+                }else{
+                  current.replaceWith(next);
+                }
+                return; 
+              }
               // Fallback: live totals/row calculation ohne kompletten Reflow
               const locale = current?.dataset.locale || 'de-DE';
               const currency = current?.dataset.currency || 'EUR';
