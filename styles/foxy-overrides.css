@@ -63,6 +63,9 @@
   position: sticky;
   top: 24px;
 }
+.ukc-summary .fc-logo{ display:none }
+.fc-sidebar__header .ukc-topvalue{ float:right; font-weight:700 }
+.ukc-topvalue{ font-weight:700 }
 .ukc-summary__line { 
   display: flex; 
   justify-content: space-between; 
@@ -94,26 +97,13 @@
   transition: all 0.2s ease;
   text-decoration: none;
 }
-.ukc-btn--primary { 
-  background: var(--brand-blue); 
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(7, 37, 68, 0.3);
-}
-.ukc-btn--primary:hover{
-  background: #051a2e;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(7, 37, 68, 0.4);
-}
-.ukc-btn--alt { 
-  background: var(--brand-yellow); 
-  color: var(--brand-blue);
-  box-shadow: 0 4px 16px rgba(255, 177, 1, 0.3);
-}
-.ukc-btn--alt:hover{
-  background: #e6a000;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 177, 1, 0.4);
-}
+.ukc-btn--primary { background: var(--brand-blue); color: #fff; box-shadow: 0 4px 16px rgba(7, 37, 68, 0.3); }
+.ukc-btn--primary:hover{ background: #051a2e; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(7, 37, 68, 0.4); }
+.ukc-btn--alt { background: #ffbf00; color: #0b1220; font-weight:800; box-shadow: 0 6px 16px rgba(255, 191, 0, 0.3); }
+.ukc-btn--alt:hover{ background: #ffb300; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255, 191, 0, 0.4); }
+.ukc-btn--wallet{ background:#000; color:#fff; width:100%; margin-top:12px }
+.ukc-more-payments-label{ color:#6b7280; margin:16px 0 8px; font-weight:600 }
+.ukc-payment-buttons{ display:flex; flex-direction:column; gap:12px }
 
 /* Links & focus (accessibility) */
 a{ color: var(--brand-blue) }

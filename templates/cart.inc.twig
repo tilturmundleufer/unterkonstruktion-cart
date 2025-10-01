@@ -428,7 +428,7 @@
 
             <div data-fc-id="block-order-totals">
             {% block order_totals %}
-            <h3 class="fc-transaction__header">{{ 'Warenwert (netto)' }}</h3>
+            <h3 class="fc-transaction__header"><span>{{ 'Warenwert (netto)' }}</span><span class="ukc-topvalue" data-ukc-subtotal>{{ total_item_price|money_format }}</span></h3>
 
             <ul class="fc-transaction">
                 <li class="fc-transaction__subtotal fc-transaction__section">
@@ -847,13 +847,25 @@
                 {% block order_payment_action_checkout %}
                 <div class="ukc-checkout-section">
                     <label class="ukc-checkout-label">Zur Kasse</label>
-                    <a class="ukc-btn ukc-btn--primary" href="https://{{ config.store_domain }}/checkout?{{ session_name }}={{ session_id }}" target="_top">Weiter zur Kasse</a>
+                    <a class="ukc-btn ukc-btn--alt" href="https://{{ config.store_domain }}/checkout?{{ session_name }}={{ session_id }}" target="_top">Weiter zur Kasse</a>
                 </div>
                 {% endblock order_payment_action_checkout %}
 
-
-                {# PayPal Express und andere Payment-Optionen entfernt #}
-
+                {# Weitere Zahlungsmethoden (optional) #}
+                {% if payment_info_required and order_payment_options|length > 0 %}
+                <div class="ukc-more-payments-label">Weitere Zahlungsmethoden:</div>
+                <div class="ukc-payment-buttons">
+                    {% for gateway in order_payment_options %}
+                    <a class="ukc-btn ukc-btn--wallet ukc-btn--{{ gateway.name_dashed }}" data-fc-id="{{ gateway.name_dashed }}-link" href="https://{{ config.store_domain }}/checkout?ThisAction=checkout&amp;fc_payment_method={{ gateway.name }}&amp;{{ session_name }}={{ session_id }}{% if gateway.additional_params %}&amp;{{ gateway.additional_params }}{% endif %}" target="_top">
+                        {% if gateway.name_dashed == 'google_pay' or gateway.name == 'GooglePay' %}
+                            Pay with Google Pay
+                        {% else %}
+                            {{ gateway.name }}
+                        {% endif %}
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
 
             {% endif %}{# items|length > 0 #}
                 <p class="ukc-remove-all">
@@ -894,8 +906,8 @@
               const sub = doc.querySelector('[data-ukc-subtotal]');
               const totalOrder = doc.querySelector('[data-ukc-total-order]');
               const ship = doc.querySelector('[data-ukc-shipping]');
-              if(sub){ const el = document.querySelector('[data-ukc-subtotal]'); if(el) el.innerHTML = sub.innerHTML; }
-              if(totalOrder){ const el = document.querySelector('[data-ukc-total-order]'); if(el) el.innerHTML = totalOrder.innerHTML; }
+              if(sub){ document.querySelectorAll('[data-ukc-subtotal]').forEach(function(el){ el.innerHTML = sub.innerHTML; }); }
+              if(totalOrder){ document.querySelectorAll('[data-ukc-total-order]').forEach(function(el){ el.innerHTML = totalOrder.innerHTML; }); }
               if(ship){ const el = document.querySelector('[data-ukc-shipping]'); if(el) el.innerHTML = ship.innerHTML; }
               // Jede Item-Row neu berechnen (price-each * qty)
               document.querySelectorAll('.ukc-row').forEach(function(row){
