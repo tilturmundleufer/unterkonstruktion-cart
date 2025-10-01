@@ -430,22 +430,12 @@
             {% block order_totals %}
             <h3 class="fc-transaction__header"><span>{{ 'Warenwert (netto)' }}</span><span class="ukc-topvalue" data-ukc-subtotal>{{ total_item_price|money_format }}</span></h3>
 
-            <ul class="fc-transaction">
-                <li class="fc-transaction__subtotal fc-transaction__section">
-                    <table>
-                        <tr class="fc-subtotal--row">
-                            <td class="fc-subtotal__label"><h5>{{ 'Warenwert (netto)' }}</h5></td>
-                            <td class="fc-subtotal__value" data-ukc-subtotal>{{ total_item_price|money_format }}</td>
-                        </tr>
-                    </table>
-                </li>
+            {# Hinweisbox direkt unter der Überschrift #}
+            <div class="ukc-hint">
+                Bei den angegebenen Preisen handelt es sich um Nettobeträge. Privatkunden profitieren von 0% MwSt Gemäß §12 Abs. 3 UstG
+            </div>
 
-                {# Hinweisbox unter dem Warenwert #}
-                <li class="fc-transaction__section">
-                    <div class="ukc-hint">
-                        Bei den angegebenen Preisen handelt es sich um Nettobeträge. Privatkunden profitieren von 0% MwSt Gemäß §12 Abs. 3 UstG
-                    </div>
-                </li>
+            <ul class="fc-transaction">
 
 
                 {% if shipping_address.has_shippable_products %}
@@ -711,13 +701,9 @@
 
                 <li class="fc-transaction__total fc-transaction__section">
                     <table>
-                        <tr class="fc-subtotal--row">
-                            <td class="fc-subtotal__label">
-                                Bestellungstotal:
-                            </td>
-                            <td class="fc-subtotal__value" data-ukc-total-order>
-                                {{ total_order|money_format }}
-                            </td>
+                        <tr class="fc-subtotal--row fc-subtotal--total">
+                            <td class="fc-subtotal__label">Gesamt inkl. Steuern</td>
+                            <td class="fc-subtotal__value" data-ukc-total-order>{{ total_order|money_format }}</td>
                         </tr>
                     </table>
                 </li>

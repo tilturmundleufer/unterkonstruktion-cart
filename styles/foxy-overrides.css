@@ -313,6 +313,19 @@ button[type=submit] {
   font-weight:500;
 }
 
+/* Remove-all button look */
+.ukc-remove-all{ text-align:center; margin:12px 0 0 }
+.ukc-remove-all a{
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:220px; height:44px; padding:0 18px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  color:#0b1220; text-decoration:none; font-weight:700; background:#fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transition: all 0.2s ease;
+}
+.ukc-remove-all a:hover{ background:#f7f9fc; transform: translateY(-1px); }
+
 .ukc-row__price{ display:none !important }
 .ukc-row__total p{ 
   margin:0; 
