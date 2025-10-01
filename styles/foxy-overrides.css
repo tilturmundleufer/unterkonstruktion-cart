@@ -252,9 +252,9 @@ button[type=submit] {
 /* ----- Item row responsive grid (A) ----- */
 .ukc-row{
   display:grid;
-  grid-template-columns: 120px minmax(480px, 1fr) 200px 160px 160px; /* thumb | details (breiter) | qty | total (schmaler) | remove */
+  grid-template-columns: 120px 200px max-content max-content max-content; /* thumb | name (fix 200px) | qty | total | remove */
   grid-auto-flow: column;
-  gap:16px;
+  gap:12px;
   align-items:center;
   padding:20px;
   border:1px solid var(--border);
@@ -279,7 +279,7 @@ button[type=submit] {
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.ukc-row__details{ grid-column:2 }
+.ukc-row__details{ grid-column:2; min-width:200px; max-width:200px }
 .ukc-row__details .fc-cart__item__name{ 
   font-weight:600; 
   color:var(--brand-blue); 
@@ -293,7 +293,7 @@ button[type=submit] {
   color:#666;
 }
 
-.ukc-row__qty{ grid-column:3; align-self:center }
+.ukc-row__qty{ grid-column:3; align-self:center; width:max-content }
 .ukc-row__qty input[type=number]{
   width:90px;
   border:2px solid var(--border);
@@ -322,12 +322,12 @@ button[type=submit] {
   color:#666;
   font-size:14px;
 }
-.ukc-row__total{ grid-column:4 }
+.ukc-row__total{ grid-column:4; width:max-content }
 .ukc-row__total p{
   color:var(--brand-blue);
   font-size:18px;
 }
-.ukc-row__remove{ grid-column:5; text-align:right }
+.ukc-row__remove{ grid-column:5; text-align:right; width:max-content }
 .ukc-row__remove a{ 
   color:#999;
   text-decoration:none;
