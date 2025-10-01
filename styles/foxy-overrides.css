@@ -310,6 +310,19 @@ button[type=submit] {
   outline: none;
 }
 
+/* Checkout section styling */
+.ukc-checkout-section{
+  margin-bottom:16px;
+}
+
+.ukc-checkout-label{
+  display:block;
+  font-size:14px;
+  color:#6b7280;
+  margin-bottom:8px;
+  font-weight:500;
+}
+
 .ukc-row__price{ display:none !important }
 .ukc-row__total p{ 
   margin:0; 
