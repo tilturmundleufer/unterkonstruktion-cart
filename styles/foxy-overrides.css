@@ -250,7 +250,7 @@ button[type=submit] {
 /* ----- Item row responsive grid (A) ----- */
 .ukc-row{
   display:grid;
-  grid-template-columns: 120px 1fr 220px 140px 160px 160px; /* thumb | details | qty | unit | total | remove */
+  grid-template-columns: 120px 1fr 220px 220px 180px; /* thumb | details | qty | total | remove */
   grid-auto-flow: column;
   gap:16px;
   align-items:center;
@@ -308,8 +308,7 @@ button[type=submit] {
   outline: none;
 }
 
-.ukc-row__price{ grid-column:4 }
-.ukc-row__price p,
+.ukc-row__price{ display:none !important }
 .ukc-row__total p{ 
   margin:0; 
   text-align:right; 
@@ -321,12 +320,12 @@ button[type=submit] {
   color:#666;
   font-size:14px;
 }
-.ukc-row__total{ grid-column:5 }
+.ukc-row__total{ grid-column:4 }
 .ukc-row__total p{
   color:var(--brand-blue);
   font-size:18px;
 }
-.ukc-row__remove{ grid-column:6; text-align:right }
+.ukc-row__remove{ grid-column:5; text-align:right }
 .ukc-row__remove a{ 
   color:#999;
   text-decoration:none;
