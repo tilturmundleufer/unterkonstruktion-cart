@@ -88,9 +88,9 @@
     {% if not is_updateinfo %}
 
     {% if cart_is_fullpage %}
-    <div class="fc-cart-container fc-cart__main fc-container__row" role="main">
+    <div class="fc-cart-container fc-cart__main fc-container__row ukc-cart__grid" role="main">
     {% else %}
-    <div class="fc-container__row fc-cart-container">
+    <div class="fc-container__row fc-cart-container ukc-cart__grid">
     {% endif %}
         {% block cart_form_start %}
         {% if with_controls %}
@@ -106,7 +106,9 @@
 
 
         <div class="fc-cart__main__content fc-container__grid">
-            <div class="ukc-cart__notice ukc-small" aria-live="polite"></div>
+            {% if ukc_notice is defined and ukc_notice %}
+            <div class="ukc-cart__notice ukc-small" aria-live="polite">{{ ukc_notice|raw }}</div>
+            {% endif %}
             <div class="ukc-items">
             <div data-fc-id="block-cart-errors">
             {% block cart_errors %}
@@ -130,7 +132,7 @@
             {% set checkout_sub_cancel = (context == 'checkout' and is_subscription_cancel) %}
             <div class="fc-cart__items {% if has_product_images %}fc-cart__items--with-images{% else %} fc-cart__items--without-images{% endif %}">
 
-                {% if items|length > 0 %}
+                {% if false and (items|length > 0) %}
                 <div class="fc-cart__items__header fc-container__row">
                     <div class="fc-cart__items__header__item fc-cart__items__header__column">
                         {{ config.lang.cart_item|raw }}

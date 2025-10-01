@@ -18,7 +18,7 @@
 /* Two-column layout: items (left) + summary (right) */
 .ukc-cart__grid {
   display: grid;
-  grid-template-columns: 1fr 400px;
+  grid-template-columns: 1fr 420px; /* links: items, rechts: summary */
   gap: 32px;
   align-items: start;
 }
@@ -47,6 +47,8 @@
 }
 
 .ukc-items > * + * { border-top: 1px solid var(--border); }
+/* Falls Foxy-Header auftaucht, ausblenden */
+.fc-cart__items__header{ display:none !important; }
 
 /* Summary card */
 .ukc-summary { 
