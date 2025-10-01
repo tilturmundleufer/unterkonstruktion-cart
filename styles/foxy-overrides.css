@@ -313,6 +313,19 @@ button[type=submit] {
   font-weight:500;
 }
 
+/* Summary table formatting */
+.ukc-summary-table{ width:100%; border-collapse:collapse; margin:8px 0 8px; }
+.ukc-summary-table td{ padding:6px 0; }
+.ukc-summary-label{ color:#0b1220; font-weight:500; }
+.ukc-summary-value{ text-align:right; color:#0b1220; font-weight:500; }
+.ukc-bold{ font-weight:800; }
+.ukc-summary-totalrow td{ padding-top:8px; border-top:1px solid var(--border); }
+.ukc-summary-sep{ height:16px; border-top:1px solid var(--border); margin:12px 0; }
+
+/* Buttons full width in sidebar */
+.ukc-summary .ukc-btn{ width:100%; }
+.ukc-summary .ukc-remove-all a{ width:100%; }
+
 /* Empty cart box */
 .ukc-empty{ border:2px dashed var(--border); border-radius:16px; padding:36px; background:#fff; text-align:center; }
 .ukc-empty__title{ margin:0 0 16px; font-size:20px; color:#9ca3af; }
