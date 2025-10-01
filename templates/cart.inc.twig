@@ -99,6 +99,11 @@
             <input type="hidden" name="cart" value="update" />
             <input type="hidden" name="item_count" value="{{ items|length }}" />
             <input type="hidden" name="{{ session_name }}" value="{{ session_id }}" />
+            {# Kundentyp von unterkonstruktion.de übernehmen (privat|firma). Falls vorhanden, an Foxy senden #}
+            {% set customer_type = utils.get_cookie('ukc_customer_type') %}
+            {% if customer_type %}
+            <input type="hidden" name="customer_type" value="{{ customer_type }}" />
+            {% endif %}
             {% endblock cart_hidden_inputs %}
         {% endif %}
         {% endblock cart_form_start %}
@@ -858,6 +863,11 @@
             try{
               var fd = new FormData(form);
               fd.set('cart','update');
+              // Kundentyp aus Cookie mitschicken (privat|firma)
+              try{
+                var cookieMatch = document.cookie.match(/(?:^|; )ukc_customer_type=([^;]+)/);
+                if(cookieMatch){ fd.set('customer_type', decodeURIComponent(cookieMatch[1])); }
+              }catch(_){}
               var res = await fetch(form.action, { method:'POST', body: fd, credentials:'include' });
               var html = await res.text();
               var doc = new DOMParser().parseFromString(html, 'text/html');
@@ -885,9 +895,26 @@
               if(nextContext){ document.querySelectorAll('#fc-cart').forEach(function(el){ el.setAttribute('data-context', nextContext); }); }
               if(sub){ document.querySelectorAll('[data-ukc-subtotal]').forEach(function(el){ el.innerHTML = sub.innerHTML; }); }
               if(totalOrder){ document.querySelectorAll('[data-ukc-total-order]').forEach(function(el){ el.innerHTML = totalOrder.innerHTML; }); }
-              // Mehrwertsteuer aus neuer Seite ziehen, falls vorhanden
+              // Mehrwertsteuer aus neuer Seite ziehen oder lokal berechnen wenn nicht vorhanden
               const tax = doc.querySelector('[data-ukc-tax-total]');
-              if(tax){ const el = document.querySelector('[data-ukc-tax-total]'); if(el) el.innerHTML = tax.innerHTML; }
+              if(tax){
+                const el = document.querySelector('[data-ukc-tax-total]'); if(el) el.innerHTML = tax.innerHTML;
+              } else {
+                // Fallback: einfache Berechnung 0%/19% je nach Kundentyp (nur Anzeige)
+                var type = (document.cookie.match(/(?:^|; )ukc_customer_type=([^;]+)/)||[])[1] || 'privat';
+                var subtotalEl = document.querySelector('[data-ukc-subtotal]');
+                var taxEl = document.querySelector('[data-ukc-tax-total]');
+                var totalEl = document.querySelector('[data-ukc-total-order]');
+                if(subtotalEl && taxEl && totalEl){
+                  var parseMoney = function(txt){ return parseFloat(String(txt).replace(/[^0-9,.-]/g,'').replace('.', '').replace(',', '.'))||0; };
+                  var formatMoney = function(num){ return new Intl.NumberFormat(locale, {style:'currency', currency}).format(num); };
+                  var subtotalVal = parseMoney(subtotalEl.textContent);
+                  var taxRate = (type === 'firma') ? 0 : 0; // Privatkunden aktuell 0% nach Vorgabe
+                  var taxVal = subtotalVal * taxRate;
+                  taxEl.textContent = formatMoney(taxVal);
+                  totalEl.textContent = formatMoney(subtotalVal + taxVal);
+                }
+              }
               if(ship){ const el = document.querySelector('[data-ukc-shipping]'); if(el) el.innerHTML = ship.innerHTML; }
 
               // Falls Kontext 'cart' ist, alle Versand-Container ausblenden (Defensivmaßnahme)
