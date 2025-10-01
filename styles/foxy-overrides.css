@@ -367,17 +367,17 @@ button[type=submit] {
 .ukc-row .ukc-row__actions{ display: contents; }
 
 /* Qty control like mock */
-.ukc-qty-control{ display:grid; grid-template-columns: 56px 1fr 56px; align-items:stretch; gap:12px; }
+.ukc-qty-control{ display:grid; grid-template-columns: 44px 1fr 44px; align-items:stretch; gap:8px; }
 .ukc-qty-btn{ 
   display:flex; align-items:center; justify-content:center; 
-  background:#f7f9fc; border:2px solid var(--border); border-radius:16px; 
-  width:56px; height:56px; font-weight:700; font-size:24px; color:#1d2b3a; cursor:pointer;
+  background:#f7f9fc; border:1px solid var(--border); border-radius:12px; 
+  width:44px; height:44px; font-weight:700; font-size:18px; color:#1d2b3a; cursor:pointer;
 }
 .ukc-qty-btn:hover{ background:#fff; }
-.ukc-row__qty input[type=number]{ width:100%; height:56px; border:2px solid var(--border); border-radius:16px; text-align:center; font-weight:700; font-size:24px; }
+.ukc-row__qty input[type=number]{ width:100%; height:44px; border:1px solid var(--border); border-radius:12px; text-align:center; font-weight:700; font-size:18px; }
 
 /* Remove button like mock */
-.ukc-remove-btn{ display:inline-flex; align-items:center; justify-content:center; min-width:150px; height:56px; border:2px solid var(--border); border-radius:16px; color:#0b1220; text-decoration:none; font-weight:700; background:#fff; }
+.ukc-remove-btn{ display:inline-flex; align-items:center; justify-content:center; min-width:130px; height:44px; border:1px solid var(--border); border-radius:12px; color:#0b1220; text-decoration:none; font-weight:700; background:#fff; }
 .ukc-remove-btn:hover{ background:#f7f9fc; }
 /* --- Page shell (logos above/below) --- */
 .ukc-shell{
