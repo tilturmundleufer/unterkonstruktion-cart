@@ -381,7 +381,7 @@
 
             <div data-fc-id="block-address-entry">
             {% block address_entry %}
-            {% if context == 'checkout' and not has_multiple_addresses %}
+            {% if false and context == 'checkout' and not has_multiple_addresses %}
                 {% if show_address_entry %}
                 <div class="fc-address-entry">
                     <h4>
@@ -658,14 +658,7 @@
 
                 {# detaillierte Steuerauflistung ausgeblendet – wir zeigen nur Summen oben #}
 
-                <li class="fc-transaction__total fc-transaction__section">
-                    <table>
-                        <tr class="fc-subtotal--row fc-subtotal--total">
-                            <td class="fc-subtotal__label">Gesamt inkl. Steuern</td>
-                            <td class="fc-subtotal__value" data-ukc-total-order>{{ total_order|money_format }}</td>
-                        </tr>
-                    </table>
-                </li>
+                {# Gesamt inkl. Steuern unten ausgeblendet – wird oben in der Tabelle angezeigt #}
             </ul>
 
             {% if context == "checkout" and has_multiple_addresses and multiship_data|length > 1 %}
