@@ -427,6 +427,7 @@
             {% endblock address_entry %}
             </div><!-- data-fc-id="block-address-entry" -->
 
+            {% if context == 'checkout' %}
             <div data-fc-id="block-order-totals">
             {% block order_totals %}
             <h3 class="fc-transaction__header" data-fc-id="ukc-order-summary-header"><span>Bestellübersicht</span></h3>
@@ -777,6 +778,30 @@
             {% endif %}
             {% endblock order_totals %}
             </div><!-- data-fc-id="block-order-totals" -->
+            {% else %}
+            {# Cart: nur unsere Zusammenfassung ohne Foxy-Listen/Blöcke #}
+            <h3 class="fc-transaction__header" data-fc-id="ukc-order-summary-header"><span>Bestellübersicht</span></h3>
+            <table class="ukc-summary-table">
+                <tbody>
+                    <tr>
+                        <td class="ukc-summary-label">Zwischensumme</td>
+                        <td class="ukc-summary-value" data-ukc-subtotal>{{ total_item_price|money_format }}</td>
+                    </tr>
+                    <tr>
+                        <td class="ukc-summary-label">Mehrwertsteuer</td>
+                        <td class="ukc-summary-value" data-ukc-tax-total>
+                            {% if total_tax > 0 %}{{ total_tax|money_format }}{% else %}0,00 €{% endif %}
+                        </td>
+                    </tr>
+                    <tr class="ukc-summary-totalrow">
+                        <td class="ukc-summary-label ukc-bold">Gesamtpreis inkl. MwSt.</td>
+                        <td class="ukc-summary-value ukc-bold" data-ukc-total-order>{{ total_order|money_format }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="ukc-summary-sep"></div>
+            <div class="ukc-hint">Bei den angegebenen Preisen handelt es sich um Nettobeträge. Privatkunden profitieren von 0% MwSt Gemäß §12 Abs. 3 UstG</div>
+            {% endif %}
 
 
             {% block order_payment_actions %}
