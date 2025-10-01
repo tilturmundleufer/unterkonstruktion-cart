@@ -10,15 +10,17 @@
 }
 
 .ukc-cart__container {
-  max-width: 1120px;
-  margin: 0 auto;
+  max-width: 1200px; /* Gesamtbreite deckeln */
+  margin: 0 auto;     /* zentrieren */
   padding: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Two-column layout: items (left) + summary (right) */
 .ukc-cart__grid {
   display: grid;
-  grid-template-columns: 1fr 420px; /* links: items, rechts: summary */
+  grid-template-columns: 1fr 400px; /* links: items, rechts: summary */
   gap: 32px;
   align-items: start;
 }
@@ -381,7 +383,7 @@ button[type=submit] {
 .ukc-remove-btn:hover{ background:#f7f9fc; }
 /* --- Page shell (logos above/below) --- */
 .ukc-shell{
-  max-width: 1200px;
+  max-width: 1200px; /* Sicherheitsnetz auf dem äußeren Shell-Container */
   margin: 0 auto;
   padding: 0 24px;
 }
