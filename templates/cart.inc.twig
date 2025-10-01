@@ -459,7 +459,7 @@
             <ul class="fc-transaction">
 
 
-                {% if shipping_address.has_shippable_products %}
+                {% if context == 'checkout' and shipping_address.has_shippable_products %}
                 <li class="fc-transaction__shipping fc-transaction__section">
                     {% if context == 'cart' and not has_multiple_addresses %}
                         <div class="fc-transaction__ui">
@@ -517,7 +517,7 @@
                         </tbody>
                     </table>
                 </li>
-                {% elseif total_shipping > 0 %}
+                {% elseif context == 'checkout' and total_shipping > 0 %}
                 <li class="fc-transaction__shipping fc-transaction__section">
                     <table>
                         <tbody class="fc-subtotal--shipping">
