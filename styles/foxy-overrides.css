@@ -252,7 +252,7 @@ button[type=submit] {
 /* ----- Item row responsive grid (A) ----- */
 .ukc-row{
   display:grid;
-  grid-template-columns: 120px 200px max-content max-content max-content; /* thumb | name (fix 200px) | qty | total | remove */
+  grid-template-columns: 120px 300px max-content max-content max-content; /* thumb | name (fix 300px) | qty | total | remove */
   grid-auto-flow: column;
   gap:12px;
   align-items:center;
@@ -279,7 +279,7 @@ button[type=submit] {
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.ukc-row__details{ grid-column:2; min-width:200px; max-width:200px }
+.ukc-row__details{ grid-column:2; min-width:300px; max-width:300px }
 .ukc-row__details .fc-cart__item__name{ 
   font-weight:600; 
   color:var(--brand-blue); 
@@ -369,14 +369,14 @@ button[type=submit] {
 .ukc-row .ukc-row__actions{ display: contents; }
 
 /* Qty control like mock */
-.ukc-qty-control{ display:grid; grid-template-columns: 44px 1fr 44px; align-items:stretch; gap:8px; }
+.ukc-qty-control{ display:grid; grid-template-columns: 32px 1fr 32px; align-items:stretch; gap:6px; }
 .ukc-qty-btn{ 
   display:flex; align-items:center; justify-content:center; 
-  background:#f7f9fc; border:1px solid var(--border); border-radius:12px; 
-  width:44px; height:44px; font-weight:700; font-size:18px; color:#1d2b3a; cursor:pointer;
+  background:#f7f9fc; border:1px solid var(--border); border-radius:8px; 
+  width:32px; height:32px; font-weight:700; font-size:16px; color:#1d2b3a; cursor:pointer;
 }
 .ukc-qty-btn:hover{ background:#fff; }
-.ukc-row__qty input[type=number]{ width:100%; height:44px; border:1px solid var(--border); border-radius:12px; text-align:center; font-weight:700; font-size:18px; }
+.ukc-row__qty input[type=number]{ width:100%; height:32px; border:1px solid var(--border); border-radius:8px; text-align:center; font-weight:700; font-size:14px; }
 
 /* Remove button like mock */
 .ukc-remove-btn{ display:inline-flex; align-items:center; justify-content:center; min-width:130px; height:44px; border:1px solid var(--border); border-radius:12px; color:#0b1220; text-decoration:none; font-weight:700; background:#fff; }
