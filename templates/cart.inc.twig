@@ -12,7 +12,7 @@
 
 {# Entfernt: Sidecart-Fixed-Buttons, die im Fullpage-Cart das Layout überlagern #}
 
-<div id="fc-cart" {% if context == 'cart' %}class="fc-container ukc-shell"{% endif %} data-currency="EUR" data-locale="de-DE">
+<div id="fc-cart" {% if context == 'cart' %}class="fc-container ukc-shell"{% endif %} data-currency="EUR" data-locale="de-DE" data-context="{{ context }}">
 {% import "utils.inc.twig" as utils %}
 {#
     Blocks within "cart" block:
@@ -851,9 +851,17 @@
               const sub = doc.querySelector('[data-ukc-subtotal]');
               const totalOrder = doc.querySelector('[data-ukc-total-order]');
               const ship = doc.querySelector('[data-ukc-shipping]');
+              const nextContext = next?.getAttribute('data-context');
+              if(nextContext){ document.querySelectorAll('#fc-cart').forEach(function(el){ el.setAttribute('data-context', nextContext); }); }
               if(sub){ document.querySelectorAll('[data-ukc-subtotal]').forEach(function(el){ el.innerHTML = sub.innerHTML; }); }
               if(totalOrder){ document.querySelectorAll('[data-ukc-total-order]').forEach(function(el){ el.innerHTML = totalOrder.innerHTML; }); }
               if(ship){ const el = document.querySelector('[data-ukc-shipping]'); if(el) el.innerHTML = ship.innerHTML; }
+
+              // Falls Kontext 'cart' ist, alle Versand-Container ausblenden (Defensivmaßnahme)
+              var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
+              if(currentContext === 'cart'){
+                document.querySelectorAll('.fc-transaction__shipping, [data-fc-id="button-toggle-multiship-details"], .fc-transaction__shipping-address').forEach(function(n){ n?.parentElement?.removeChild(n); });
+              }
               // Jede Item-Row neu berechnen (price-each * qty)
               document.querySelectorAll('.ukc-row').forEach(function(row){
                 const qty = row.querySelector('input[data-fc-id="item-quantity-input"]').value;
