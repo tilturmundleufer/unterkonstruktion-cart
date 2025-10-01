@@ -250,7 +250,7 @@ button[type=submit] {
 /* ----- Item row responsive grid (A) ----- */
 .ukc-row{
   display:grid;
-  grid-template-columns: 100px 1fr 140px 140px 140px 140px; /* thumb | details | qty | unit | total | remove */
+  grid-template-columns: 120px 1fr 220px 140px 160px 160px; /* thumb | details | qty | unit | total | remove */
   gap:16px;
   align-items:center;
   padding:20px;
@@ -266,7 +266,7 @@ button[type=submit] {
   transform: translateY(-1px);
 }
 
-.ukc-row__thumb{ width:100px; grid-column:1 }
+.ukc-row__thumb{ width:120px; grid-column:1 }
 .ukc-row__thumb .fc-cart__item__image__img{ 
   width:100px; 
   height:100px; 
@@ -290,7 +290,7 @@ button[type=submit] {
   color:#666;
 }
 
-.ukc-row__qty{ grid-column:3 }
+.ukc-row__qty{ grid-column:3; align-self:center }
 .ukc-row__qty input[type=number]{
   width:90px;
   border:2px solid var(--border);
@@ -365,6 +365,20 @@ button[type=submit] {
 .ukc-row .fc-cart__item__totals{ display: contents; }
 .ukc-row .fc-cart__item__totals > .fc-container__row{ display: contents; }
 .ukc-row .ukc-row__actions{ display: contents; }
+
+/* Qty control like mock */
+.ukc-qty-control{ display:grid; grid-template-columns: 56px 1fr 56px; align-items:stretch; gap:12px; }
+.ukc-qty-btn{ 
+  display:flex; align-items:center; justify-content:center; 
+  background:#f7f9fc; border:2px solid var(--border); border-radius:16px; 
+  width:56px; height:56px; font-weight:700; font-size:24px; color:#1d2b3a; cursor:pointer;
+}
+.ukc-qty-btn:hover{ background:#fff; }
+.ukc-row__qty input[type=number]{ width:100%; height:56px; border:2px solid var(--border); border-radius:16px; text-align:center; font-weight:700; font-size:24px; }
+
+/* Remove button like mock */
+.ukc-remove-btn{ display:inline-flex; align-items:center; justify-content:center; min-width:150px; height:56px; border:2px solid var(--border); border-radius:16px; color:#0b1220; text-decoration:none; font-weight:700; background:#fff; }
+.ukc-remove-btn:hover{ background:#f7f9fc; }
 /* --- Page shell (logos above/below) --- */
 .ukc-shell{
   max-width: 1200px;

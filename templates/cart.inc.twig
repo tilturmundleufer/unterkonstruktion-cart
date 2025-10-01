@@ -326,7 +326,11 @@
                                 {% if with_controls and checkout_sub_cancel == false %}
                                 <input type="hidden" id="id{{ item.item_number }}" name="id{{ item.item_number }}" value="{{ item.id }}" />
                                 <label class="hidden" for="quantity{{ item.item_number }}">{{ config.lang.cart_quantity }}</label>
-                                <input class="fc-cart__item__quantity__input fc-form-control" type="number" name="quantity{{ item.item_number }}" id="quantity{{ item.item_number }}" min="1" value="{{ item.quantity }}" data-fc-id="item-quantity-input" data-fc-item-id="{{ item.id }}"/>
+                                <div class="ukc-qty-control" data-fc-item-id="{{ item.id }}">
+                                    <button type="button" class="ukc-qty-btn ukc-qty-minus" aria-label="-" data-fc-item-id="{{ item.id }}">&minus;</button>
+                                    <input class="fc-cart__item__quantity__input fc-form-control" type="number" name="quantity{{ item.item_number }}" id="quantity{{ item.item_number }}" min="1" value="{{ item.quantity }}" data-fc-id="item-quantity-input" data-fc-item-id="{{ item.id }}"/>
+                                    <button type="button" class="ukc-qty-btn ukc-qty-plus" aria-label="+" data-fc-item-id="{{ item.id }}">+</button>
+                                </div>
                                     {% else %}
                                     <p>{{ config.lang.cart_qty|raw }}: {{ item.quantity }}</p>
                                     {% endif %}
@@ -337,7 +341,7 @@
 
                             {% if with_controls and checkout_sub_cancel == false and (item.parent_code == '' or (item.parent_code != '' and item.quantity_min == 0)) %}
                             <div class="ukc-row__remove">
-                                <a class="ukc-button ukc-button--link" href="#" title="{{ config.lang.cart_remove_item }}" data-fc-id="item-remove-link" data-fc-item-id="{{ item.id }}">{{ config.lang.cart_remove_item|raw }}</a>
+                                <a class="ukc-remove-btn" href="#" title="{{ config.lang.cart_remove_item }}" data-fc-id="item-remove-link" data-fc-item-id="{{ item.id }}">Entfernen</a>
                             </div>
                             {% endif %}
                         </div>
