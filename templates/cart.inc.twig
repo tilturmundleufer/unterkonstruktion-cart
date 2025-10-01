@@ -88,13 +88,13 @@
     {% if not is_updateinfo %}
 
     {% if cart_is_fullpage %}
-    <div class="fc-cart-container fc-cart__main fc-container__row ukc-cart__grid" role="main">
+    <div class="fc-cart-container fc-cart__main fc-container__row" role="main">
     {% else %}
-    <div class="fc-container__row fc-cart-container ukc-cart__grid">
+    <div class="fc-container__row fc-cart-container">
     {% endif %}
         {% block cart_form_start %}
         {% if with_controls %}
-        <form id="fc-cart-form" action="https://{{ config.store_domain }}/cart" method="post">
+        <form id="fc-cart-form" class="ukc-cart__grid" action="https://{{ config.store_domain }}/cart" method="post">
             {% block cart_hidden_inputs %}
             <input type="hidden" name="cart" value="update" />
             <input type="hidden" name="item_count" value="{{ items|length }}" />
