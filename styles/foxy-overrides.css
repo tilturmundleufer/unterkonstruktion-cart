@@ -313,6 +313,11 @@ button[type=submit] {
   font-weight:500;
 }
 
+/* Empty cart box */
+.ukc-empty{ border:2px dashed var(--border); border-radius:16px; padding:36px; background:#fff; text-align:center; }
+.ukc-empty__title{ margin:0 0 16px; font-size:20px; color:#9ca3af; }
+.ukc-empty .ukc-btn{ margin-top:8px; }
+
 /* Remove-all button look */
 .ukc-remove-all{ text-align:center; margin:12px 0 0 }
 .ukc-remove-all a{

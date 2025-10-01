@@ -116,9 +116,10 @@
                 {% include 'errors.inc.twig' %}
 
                 {% if item_count == 0 %}
-                    <div class="fc-messages">
-                        <div class="fc-messages__empty-notification">
-                            <a href="{{ cart_cancel_and_continue_link }}">{{ config.lang.cart_empty|raw }}</a>
+                    <div class="ukc-empty">
+                        <div class="ukc-empty__content">
+                            <p class="ukc-empty__title">Ihr Warenkorb ist leer</p>
+                            <a class="ukc-btn ukc-btn--primary" href="{{ cart_cancel_and_continue_link }}">Weiter einkaufen</a>
                         </div>
                     </div>
                 {% endif %}
