@@ -851,6 +851,34 @@
         (function(){
           var form = document.getElementById('fc-cart-form');
           var updating = false;
+          function getLocale(){ return document.querySelector('#fc-cart')?.dataset.locale || 'de-DE'; }
+          function getCurrency(){ return document.querySelector('#fc-cart')?.dataset.currency || 'EUR'; }
+          function getCustomerType(){
+            try{ var m = document.cookie.match(/(?:^|; )ukc_customer_type=([^;]+)/); return m ? decodeURIComponent(m[1]) : ''; }catch(_){ return ''; }
+          }
+          function formatMoney(num){ return new Intl.NumberFormat(getLocale(), { style: 'currency', currency: getCurrency() }).format(num); }
+          function recalcSummary(){
+            var subtotal = 0;
+            document.querySelectorAll('.ukc-row').forEach(function(row){
+              var qtyInput = row.querySelector('input[data-fc-id="item-quantity-input"]');
+              var qty = parseInt(qtyInput?.value || '0', 10) || 0;
+              var each = parseFloat(row.getAttribute('data-price-each') || '0') || 0;
+              subtotal += each * qty;
+              var totalEl = row.querySelector('.ukc-row__total p');
+              if(totalEl){ totalEl.textContent = formatMoney(each * qty); }
+            });
+            var type = getCustomerType();
+            // Derzeit 0% MwSt laut Vorgabe; bei Bedarf hier 0.19 o.ä. setzen
+            var taxRate = (type === 'firma') ? 0 : 0;
+            var tax = subtotal * taxRate;
+            var total = subtotal + tax;
+            var subEl = document.querySelector('[data-ukc-subtotal]');
+            var taxEl = document.querySelector('[data-ukc-tax-total]');
+            var totalEl = document.querySelector('[data-ukc-total-order]');
+            if(subEl) subEl.textContent = formatMoney(subtotal);
+            if(taxEl) taxEl.textContent = formatMoney(tax);
+            if(totalEl) totalEl.textContent = formatMoney(total);
+          }
           function findQtyInput(itemId){
             return document.querySelector('input[data-fc-id="item-quantity-input"][data-fc-item-id="'+itemId+'"]');
           }
@@ -868,6 +896,8 @@
                 if(inp) inp.value = val;
                 if(val) fd.set('customer_type', val);
               }catch(_){}
+              // Sofort im UI vorrechnen, damit es flüssig wirkt
+              recalcSummary();
               var res = await fetch(form.action, { method:'POST', body: fd, credentials:'include' });
               var html = await res.text();
               var doc = new DOMParser().parseFromString(html, 'text/html');
@@ -885,8 +915,8 @@
                 return; 
               }
               // Fallback: live totals/row calculation ohne kompletten Reflow
-              const locale = current?.dataset.locale || 'de-DE';
-              const currency = current?.dataset.currency || 'EUR';
+              const locale = getLocale();
+              const currency = getCurrency();
               // Update subtotals/total wenn vorhanden
               const sub = doc.querySelector('[data-ukc-subtotal]');
               const totalOrder = doc.querySelector('[data-ukc-total-order]');
@@ -922,16 +952,7 @@
               if(currentContext === 'cart'){
                 document.querySelectorAll('.fc-transaction__shipping, [data-fc-id="button-toggle-multiship-details"], .fc-transaction__shipping-address').forEach(function(n){ n?.parentElement?.removeChild(n); });
               }
-              // Jede Item-Row neu berechnen (price-each * qty)
-              document.querySelectorAll('.ukc-row').forEach(function(row){
-                const qty = row.querySelector('input[data-fc-id="item-quantity-input"]').value;
-                const priceEach = parseFloat(row.getAttribute('data-price-each') || '0');
-                const totalEl = row.querySelector('.ukc-row__total p');
-                if(totalEl){
-                  const total = priceEach * (parseInt(qty, 10) || 1);
-                  totalEl.textContent = new Intl.NumberFormat(locale, {style:'currency', currency}).format(total);
-                }
-              });
+              recalcSummary();
             }catch(e){
               console.error('Cart update failed', e);
               if(form) form.submit();
@@ -953,6 +974,7 @@
                 current = current + 1;
               }
               input.value = current;
+              recalcSummary();
               ajaxUpdate();
             }
             var rm = ev.target.closest('.ukc-remove-btn');
@@ -961,6 +983,7 @@
               var idr = rm.getAttribute('data-fc-item-id');
               var inp = findQtyInput(idr);
               if(inp){ inp.value = 0; }
+              recalcSummary();
               ajaxUpdate();
             }
           }, false);
