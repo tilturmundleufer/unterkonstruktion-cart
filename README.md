@@ -1,4 +1,19 @@
 ## Kundentyp (Privat/Firma) an Foxy übergeben
+## Foxy Cart Validation (Serverless auf Vercel)
+
+Wir liefern eine schlanke Serverless-Function für die Steuerlogik:
+
+- Datei: `api/foxy-validate.js`
+- Deploy via Vercel (kein eigener Server nötig)
+- In Foxy Admin → Advanced → Cart validation URL: `https://<dein-vercel-projekt>.vercel.app/api/foxy-validate`
+
+Beispiel-Logik:
+- `customer_type` (Cookie/Param) wird gelesen
+- `business|firma` ⇒ `taxes = [{name:'MwSt', rate:0.19}]`
+- `private|privat` ⇒ `taxes = []` (0%)
+
+Nach dem Setzen: Foxy Template/Include Cache leeren.
+
 
 Die Seite `unterkonstruktion.de` kann den Kundentyp per Cookie `ukc_customer_type` setzen (`privat` oder `firma`).
 
