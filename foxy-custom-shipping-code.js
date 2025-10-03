@@ -59,11 +59,19 @@ const basePrice = priceForWeight(totalG);
 // Alle bestehenden Raten ausblenden
 rates.hide();
 
-// Neue Raten hinzufügen
-rates.add(10001, 29.90, 'Spedition', 'Speditionslieferung inkl. telefonischer Avisierung');
-rates.add(10002, 0, 'Abholung', 'Selbstabholung in 22926 Ahrensburg');
-rates.add(10003, 0, 'Abholung', 'Selbstabholung in 31275 Lehrte');
-rates.add(10004, basePrice, 'Spedition', 'neutrale Speditionslieferung inkl. telefonischer Avisierung');
+// Neue Raten hinzufügen - nur wenn keine bestehenden Raten vorhanden sind
+if (!rates.exists()) {
+  rates.add(10001, 29.90, 'Spedition', 'Speditionslieferung inkl. telefonischer Avisierung');
+  rates.add(10002, 0, 'Abholung', 'Selbstabholung in 22926 Ahrensburg');
+  rates.add(10003, 0, 'Abholung', 'Selbstabholung in 31275 Lehrte');
+  rates.add(10004, basePrice, 'Spedition', 'neutrale Speditionslieferung inkl. telefonischer Avisierung');
+} else {
+  // Bestehende Raten modifizieren oder neue hinzufügen
+  rates.add(10001, 29.90, 'Spedition', 'Speditionslieferung inkl. telefonischer Avisierung');
+  rates.add(10002, 0, 'Abholung', 'Selbstabholung in 22926 Ahrensburg');
+  rates.add(10003, 0, 'Abholung', 'Selbstabholung in 31275 Lehrte');
+  rates.add(10004, basePrice, 'Spedition', 'neutrale Speditionslieferung inkl. telefonischer Avisierung');
+}
 
 // Debug-Info (wird in Foxy-Logs angezeigt)
 console.log('Custom Shipping Code:', {
