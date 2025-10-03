@@ -52,15 +52,12 @@ export default async function handler(req, res) {
     }
 
     const body = req.body || {};
-    const items = Array.isArray(body.items) ? body.items : [];
+    const items = Array.isArray(body.items) ? body.items : (body.cart && Array.isArray(body.cart.items) ? body.cart.items : []);
     const currency = (body.currency || (body.cart && body.cart.currency) || 'EUR').toUpperCase();
-    const address = body.shipping_address || body.address || body.shipto || {};
+    const address = body.shipping_address || body.shipto || body.address || (body.cart && body.cart.shipping_address) || {};
 
-    // Wenn Adresse unvollständig, früh leere Antwort zurückgeben
-    if (!address || !address.country || !address.postal_code) {
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      return res.status(200).json({ rates: [], messages: [{ type: 'info', text: 'Bitte Lieferadresse eingeben, um Versandoptionen zu sehen.' }] });
-    }
+    // Adresse: entspannt behandeln – Land reicht, PLZ optional (einige Setups senden PLZ erst spät)
+    const hasCountry = !!(address && (address.country || address.country_code));
 
     // Gesamtgewicht berechnen
     let totalG = 0;
@@ -76,7 +73,7 @@ export default async function handler(req, res) {
     const noShippable = (!items.length || totalG <= 0);
 
     // Debug: Log für Entwicklung (ohne sensible Daten)
-    console.log('Shipping request:', { itemCount: items.length, totalG, currency, country: address.country, postal_code: address.postal_code });
+    console.log('Shipping request:', { itemCount: items.length, totalG, currency, country: address.country || address.country_code, postal_code: address.postal_code || address.postalcode || address.zip });
 
     // Beispiel: eine Standard-Speditionsrate; flexibel erweiterbar
     const basePrice = priceForWeight(noShippable ? 1 : totalG);
@@ -91,11 +88,13 @@ export default async function handler(req, res) {
 
     const response = {
       rates,
-      messages: noShippable ? [{ type: 'info', text: 'Fallback-Rate: Gewicht nicht gefunden, Standardtarif verwendet.' }] : [],
+      messages: (
+        noShippable ? [{ type: 'info', text: 'Fallback-Rate: Gewicht nicht gefunden, Standardtarif verwendet.' }] : []
+      ),
       meta: {
         total_weight_g: Math.round(totalG),
-        country: address.country,
-        postal_code: address.postal_code,
+        country: address.country || address.country_code || null,
+        postal_code: address.postal_code || address.postalcode || address.zip || null,
         computed_at: new Date().toISOString(),
       },
     };
