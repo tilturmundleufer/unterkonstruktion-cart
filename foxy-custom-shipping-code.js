@@ -60,9 +60,10 @@ const basePrice = priceForWeight(totalG);
 rates.hide();
 
 // Neue Raten hinzufügen
-rates.add(10001, basePrice, 'Spedition', 'neutrale Speditionslieferung inkl. telefonischer Avisierung');
-rates.add(10002, 0, 'Abholung', 'Berlin (kostenlos)');
-rates.add(10003, 0, 'Abholung', 'Wedding (kostenlos)');
+rates.add(10001, 29.90, 'Spedition', 'Speditionslieferung inkl. telefonischer Avisierung');
+rates.add(10002, 0, 'Abholung', 'Selbstabholung in 22926 Ahrensburg');
+rates.add(10003, 0, 'Abholung', 'Selbstabholung in 31275 Lehrte');
+rates.add(10004, basePrice, 'Spedition', 'neutrale Speditionslieferung inkl. telefonischer Avisierung');
 
 // Debug-Info (wird in Foxy-Logs angezeigt)
 console.log('Custom Shipping Code:', {

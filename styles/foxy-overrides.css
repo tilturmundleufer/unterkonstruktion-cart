@@ -353,6 +353,63 @@ button[type=submit] {
 /* EXPLIZIT: Versandoptionen im Checkout sichtbar machen */
 #fc-cart[data-context="checkout"] [data-fc-id="block-shipping-results"],
 #fc-cart[data-context="checkout"] [data-fc-id="shipping-results"]{ display:block !important; }
+
+/* Versandoptionen Styling */
+.fc-shipping-rates {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.fc-shipping-rates__rate {
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.2s ease;
+}
+
+.fc-shipping-rates__rate:last-child {
+  border-bottom: none;
+}
+
+.fc-shipping-rates__rate:hover {
+  background-color: #f9fafb;
+}
+
+.fc-shipping-rates__rate.fc-input-group-container--active {
+  background-color: #eff6ff;
+  border-color: #3b82f6;
+}
+
+.fc-form-label--shipping-rate {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  cursor: pointer;
+  margin: 0;
+  font-weight: 500;
+  color: #374151;
+}
+
+.fc-form-control--shipping-rate {
+  margin: 0 12px 0 0;
+  width: 18px;
+  height: 18px;
+  accent-color: #3b82f6;
+}
+
+.fc-shipping-rates__rate__name {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.fc-shipping-rates__rate__value {
+  font-weight: 600;
+  font-size: 14px;
+  color: #111827;
+  min-width: 80px;
+  text-align: right;
+}
 #fc-cart[data-context="cart"] .fc-subtotal--total{ display:none !important; }
 /* Verhindert, dass die Standard-Foxy-Transaktionsliste im Warenkorb sichtbar ist */
 /* Sidebar-Liste generell im Cart ausblenden (fall-back) */
@@ -779,7 +836,18 @@ body.ukc-cart-page{
   margin: 16px 0 !important;
 }
 
-/* Input-Elemente (Radio/Checkbox) links positionieren */
+/* Labels als Flex-Container für Input + Text */
+.fc-input-group-container--radio .fc-input-group-container__title,
+.fc-input-group-container--checkbox .fc-input-group-container__title {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  flex: 1 !important;
+  margin: 0 !important;
+  cursor: pointer !important;
+}
+
+/* Input-Elemente (Radio/Checkbox) links innerhalb der Labels positionieren */
 .fc-input-group-container--radio .fc-form-control[type="radio"],
 .fc-input-group-container--checkbox .fc-form-control[type="checkbox"] {
   order: -1 !important;
@@ -789,24 +857,20 @@ body.ukc-cart-page{
   height: 18px !important;
 }
 
-/* Labels rechts vom Input positionieren */
-.fc-input-group-container--radio .fc-input-group-container__title,
-.fc-input-group-container--checkbox .fc-input-group-container__title {
+/* Label-Text rechts vom Input positionieren */
+.fc-input-group-container--radio .fc-input-group-container__title > *:not(input),
+.fc-input-group-container--checkbox .fc-input-group-container__title > *:not(input) {
   order: 1 !important;
   flex: 1 !important;
   margin: 0 !important;
-  cursor: pointer !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 8px !important;
 }
 
-/* Zusätzliche Inhalte (wie Beschreibungstexte) unter dem Label */
+/* Zusätzliche Inhalte (wie Beschreibungstexte) vertikal unter dem gesamten Label-Container */
 .fc-input-group-container--radio .fc-form-group,
 .fc-input-group-container--checkbox .fc-form-group {
-  order: 2 !important;
-  margin: 0 !important;
-  margin-top: 8px !important;
+  margin: 8px 0 0 0 !important;
+  width: 100% !important;
+  padding-left: 30px !important; /* 18px Input + 12px Gap */
 }
 
 /* Spezielle Behandlung für Payment-Method Container */
