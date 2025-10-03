@@ -104,15 +104,14 @@ export default async function handler(req, res) {
     const toMoney = (n) => Number(n).toFixed(2);
     const rates = [
       {
-        // Spedition (gewichtsabhängig)
+        // Spedition (gewichtsabhängig) - Foxy Template erwartet: service_id, method, service_name, price
         service_id: 'freight_aviso',
-        service_description: 'neutrale Speditionslieferung inkl. telefonischer Avisierung',
-        id: 'freight_aviso',
-        name: 'neutrale Speditionslieferung inkl. telefonischer Avisierung',
-        code: 'freight_aviso',
+        method: 'Spedition',
+        service_name: 'neutrale Speditionslieferung inkl. telefonischer Avisierung',
         price: toMoney(basePrice),
         currency,
-        // Foxy-spezifische Felder
+        // Zusätzliche Felder für Kompatibilität
+        service_description: 'neutrale Speditionslieferung inkl. telefonischer Avisierung',
         shipping_service_id: 'freight_aviso',
         shipping_service_description: 'neutrale Speditionslieferung inkl. telefonischer Avisierung',
         shipping_service_signature: 'freight_aviso',
@@ -120,12 +119,11 @@ export default async function handler(req, res) {
       {
         // Abholung – Option 1 (kostenlos)
         service_id: 'pickup_berlin',
-        service_description: 'Abholung Berlin (kostenlos)',
-        id: 'pickup_berlin',
-        name: 'Abholung Berlin (kostenlos)',
-        code: 'pickup_berlin',
+        method: 'Abholung',
+        service_name: 'Berlin (kostenlos)',
         price: toMoney(0),
         currency,
+        service_description: 'Abholung Berlin (kostenlos)',
         shipping_service_id: 'pickup_berlin',
         shipping_service_description: 'Abholung Berlin (kostenlos)',
         shipping_service_signature: 'pickup_berlin',
@@ -133,12 +131,11 @@ export default async function handler(req, res) {
       {
         // Abholung – Option 2 (kostenlos)
         service_id: 'pickup_wedding',
-        service_description: 'Abholung Wedding (kostenlos)',
-        id: 'pickup_wedding',
-        name: 'Abholung Wedding (kostenlos)',
-        code: 'pickup_wedding',
+        method: 'Abholung',
+        service_name: 'Wedding (kostenlos)',
         price: toMoney(0),
         currency,
+        service_description: 'Abholung Wedding (kostenlos)',
         shipping_service_id: 'pickup_wedding',
         shipping_service_description: 'Abholung Wedding (kostenlos)',
         shipping_service_signature: 'pickup_wedding',
