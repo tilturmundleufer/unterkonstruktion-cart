@@ -71,17 +71,15 @@ export default async function handler(req, res) {
       totalG += toGrams(w, uom) * q;
     }
 
-    // Keine versandfähigen Artikel
-    if (!items.length || totalG <= 0) {
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      return res.status(200).json({ rates: [], messages: [{ type: 'info', text: 'Keine versandpflichtigen Artikel.' }] });
-    }
+    // Keine versandfähigen Artikel → als Sicherheitsnetz trotzdem eine Mindest-Rate anbieten,
+    // damit Foxy im Checkout nicht blockiert (kannst du später entfernen)
+    const noShippable = (!items.length || totalG <= 0);
 
     // Debug: Log für Entwicklung (ohne sensible Daten)
     console.log('Shipping request:', { itemCount: items.length, totalG, currency, country: address.country, postal_code: address.postal_code });
 
     // Beispiel: eine Standard-Speditionsrate; flexibel erweiterbar
-    const basePrice = priceForWeight(totalG);
+    const basePrice = priceForWeight(noShippable ? 1 : totalG);
     const rates = [
       {
         service_id: 'freight_aviso',
@@ -93,7 +91,7 @@ export default async function handler(req, res) {
 
     const response = {
       rates,
-      messages: [],
+      messages: noShippable ? [{ type: 'info', text: 'Fallback-Rate: Gewicht nicht gefunden, Standardtarif verwendet.' }] : [],
       meta: {
         total_weight_g: Math.round(totalG),
         country: address.country,
