@@ -101,17 +101,38 @@ export default async function handler(req, res) {
 
     // Beispiel: eine Standard-Speditionsrate; flexibel erweiterbar
     const basePrice = priceForWeight(noShippable ? 1 : totalG);
+    const toMoney = (n) => Number(n).toFixed(2);
     const rates = [
       {
-        // Foxy-Kompat: mehrere Alias-Felder
+        // Spedition (gewichtsabhängig)
         service_id: 'freight_aviso',
         service_description: 'neutrale Speditionslieferung inkl. telefonischer Avisierung',
         id: 'freight_aviso',
         name: 'neutrale Speditionslieferung inkl. telefonischer Avisierung',
         code: 'freight_aviso',
-        price: Number(basePrice),
+        price: toMoney(basePrice),
         currency,
-      }
+      },
+      {
+        // Abholung – Option 1 (kostenlos)
+        service_id: 'pickup_berlin',
+        service_description: 'Abholung Berlin (kostenlos)',
+        id: 'pickup_berlin',
+        name: 'Abholung Berlin (kostenlos)',
+        code: 'pickup_berlin',
+        price: toMoney(0),
+        currency,
+      },
+      {
+        // Abholung – Option 2 (kostenlos)
+        service_id: 'pickup_wedding',
+        service_description: 'Abholung Wedding (kostenlos)',
+        id: 'pickup_wedding',
+        name: 'Abholung Wedding (kostenlos)',
+        code: 'pickup_wedding',
+        price: toMoney(0),
+        currency,
+      },
     ];
 
     const response = {
