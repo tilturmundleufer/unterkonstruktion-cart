@@ -1,9 +1,4 @@
-// server.js
-const express = require('express');
-const bodyParser = require('body-parser');
-const app = express();
-app.use(bodyParser.json());
-
+// Next.js API Route für Foxy Custom Shipping Endpoint
 const TOKEN = process.env.FOXY_SHIPPING_TOKEN;
 
 function toGrams(weight, uom = 'g') {
@@ -30,40 +25,75 @@ function priceForWeight(g) {
   for (const b of BRACKETS) {
     if (g >= b.minG && (b.maxG == null || g <= b.maxG)) return b.price;
   }
-  return BRACKETS.at(-1).price;
+  return BRACKETS[BRACKETS.length - 1].price;
 }
 
-app.post('/foxy/shipping', (req, res) => {
-  if (TOKEN) {
-    const auth = req.headers.authorization || '';
-    if (auth !== `Bearer ${TOKEN}`) return res.status(401).json({ error: 'Unauthorized' });
-  }
+export default async function handler(req, res) {
+  try {
+    // CORS für Preflight
+    if (req.method === 'OPTIONS') {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+      return res.status(204).end();
+    }
 
-  const body = req.body || {};
-  const items = Array.isArray(body.items) ? body.items : [];
-  const currency = (body.currency || 'EUR').toUpperCase();
+    // Nur POST erlauben
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method Not Allowed' });
+    }
 
-  let totalG = 0;
-  for (const it of items) {
-    const q = Number(it.quantity || 0);
-    const w = Number(it.weight || 0);
-    totalG += toGrams(w, it.weight_uom) * q;
-  }
+    // Auth prüfen
+    if (TOKEN) {
+      const auth = req.headers.authorization || '';
+      if (auth !== `Bearer ${TOKEN}`) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+    }
 
-  const response = {
-    rates: [
-      {
-        service_id: 'freight_aviso',
-        service_description: 'neutrale Speditionslieferung inkl. telefonischer Avisierung',
-        price: priceForWeight(totalG),
-        currency,
+    const body = req.body || {};
+    const items = Array.isArray(body.items) ? body.items : [];
+    const currency = (body.currency || 'EUR').toUpperCase();
+
+    // Gesamtgewicht berechnen
+    let totalG = 0;
+    for (const it of items) {
+      const q = Number(it.quantity || 0);
+      const w = Number(it.weight || 0);
+      const uom = it.weight_uom || it.weight_uom_code || 'g';
+      totalG += toGrams(w, uom) * q;
+    }
+
+    // Debug: Log für Entwicklung
+    console.log('Shipping request:', { items, totalG, currency });
+
+    const response = {
+      rates: [
+        {
+          service_id: 'freight_aviso',
+          service_description: 'neutrale Speditionslieferung inkl. telefonischer Avisierung',
+          price: priceForWeight(totalG),
+          currency,
+        },
+      ],
+      messages: [],
+      meta: { 
+        total_weight_g: Math.round(totalG),
+        computed_at: new Date().toISOString()
       },
-    ],
-    messages: [],
-    meta: { total_weight_g: Math.round(totalG) },
-  };
+    };
 
-  res.json(response);
-});
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    return res.status(200).json(response);
 
-app.listen(3000, () => console.log('Listening on :3000'));
+  } catch (error) {
+    console.error('Shipping endpoint error:', error);
+    return res.status(500).json({ 
+      error: 'Internal Server Error',
+      message: error.message 
+    });
+  }
+}
+
+// Next.js bodyParser aktivieren
+export const config = { api: { bodyParser: true } };
