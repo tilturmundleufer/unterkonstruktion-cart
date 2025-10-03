@@ -60,9 +60,24 @@ export default async function handler(req, res) {
     if (body && typeof body.cart === 'string') {
       try { body.cart = JSON.parse(body.cart); } catch (_) {}
     }
-    const items = Array.isArray(body.items) ? body.items : (body.cart && Array.isArray(body.cart.items) ? body.cart.items : []);
+    // Items aus verschiedenen Formaten ziehen (Foxy kann _embedded["fx:items"] schicken)
+    let items = [];
+    if (Array.isArray(body.items)) items = body.items;
+    else if (body.cart && Array.isArray(body.cart.items)) items = body.cart.items;
+    else if (body._embedded && (Array.isArray(body._embedded['fx:items']) || Array.isArray(body._embedded.items))) {
+      items = body._embedded['fx:items'] || body._embedded.items || [];
+    }
     const currency = (body.currency || (body.cart && body.cart.currency) || 'EUR').toUpperCase();
-    const address = body.shipping_address || body.shipto || body.address || (body.cart && body.cart.shipping_address) || {};
+    // Adresse aus Objekt ODER flachen Feldern
+    let address = body.shipping_address || body.shipto || body.address || (body.cart && body.cart.shipping_address) || {};
+    if (!address || (!address.country && !address.country_code)) {
+      address = {
+        country: body.shipping_country || body.country || null,
+        country_code: body.shipping_country || null,
+        postal_code: body.shipping_postal_code || body.postal_code || null,
+        city: body.shipping_city || body.city || null,
+      };
+    }
 
     // Adresse: entspannt behandeln – Land reicht, PLZ optional (einige Setups senden PLZ erst spät)
     const hasCountry = !!(address && (address.country || address.country_code));
@@ -70,7 +85,8 @@ export default async function handler(req, res) {
     // Gesamtgewicht berechnen
     let totalG = 0;
     for (const it of items) {
-      const q = Number(it.quantity || 0);
+      const q = Number(it.quantity || it.qty || 0);
+      // Foxy Items haben oft weight in Gramm bereits
       const w = Number(it.weight || 0);
       const uom = it.weight_uom || it.weight_uom_code || 'g';
       totalG += toGrams(w, uom) * q;
