@@ -349,6 +349,10 @@ button[type=submit] {
 #fc-cart[data-context="cart"] .fc-transaction__shipping-address{ display:none !important; }
 /* Versandoptionen nur im Warenkorb ausblenden, nicht im Checkout */
 #fc-cart[data-context="cart"] [data-fc-id="block-shipping-results"]{ display:none !important; }
+
+/* EXPLIZIT: Versandoptionen im Checkout sichtbar machen */
+#fc-cart[data-context="checkout"] [data-fc-id="block-shipping-results"],
+#fc-cart[data-context="checkout"] [data-fc-id="shipping-results"]{ display:block !important; }
 #fc-cart[data-context="cart"] .fc-subtotal--total{ display:none !important; }
 /* Verhindert, dass die Standard-Foxy-Transaktionsliste im Warenkorb sichtbar ist */
 /* Sidebar-Liste generell im Cart ausblenden (fall-back) */
