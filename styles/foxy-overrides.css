@@ -553,6 +553,18 @@ body.ukc-cart-page{
   display:block;
 }
 
+/* Country-Dropdown und Flag ausblenden/stylen */
+.fc-foxycomplete-flag{ display:none !important; }
+.fc-foxycomplete-combobox{ display:none !important; }
+.fc-location.awesomecomplete-input{
+  background:#fff !important;
+  border:1px solid var(--border) !important;
+  border-radius:12px !important;
+  height:46px !important;
+  padding:12px 14px !important;
+  width:100% !important;
+}
+
 /* Submit-Button (breit, gelb) */
 .fc-button.fc-button--submit{
   width:100%;

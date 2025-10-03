@@ -34,13 +34,14 @@ CONVENTIONS:
 {% block sidebar %}
 <div class="fc-sidebar fc-sidebar--checkout" role="complementary">
 
-    {% block logo %}
+    {# Logo im Checkout ausgeblendet #}
+    {# {% block logo %}
     {% if config.store_logo_url %}
     <img id="fc-logo" src="{{ config.cache_path }}{{ config.store_logo_url }}" class="fc-logo__image" alt="{{ store_name }}">
     {% else %}
     <h1 class="fc-logotype">{{ config.store_name }}</h1>
     {% endif %}
-    {% endblock logo %}
+    {% endblock logo %} #}
 
     <div data-fc-container="cart">
         {% include 'cart.inc.twig' %}
