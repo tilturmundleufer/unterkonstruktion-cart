@@ -565,6 +565,37 @@ body.ukc-cart-page{
   width:100% !important;
 }
 
+/* Country-Dropdown Liste stylen */
+.fc-foxycomplete-list{
+  background:#fff !important;
+  border:1px solid var(--border) !important;
+  border-radius:12px !important;
+  box-shadow:0 4px 12px rgba(0,0,0,0.1) !important;
+  max-height:200px !important;
+  overflow-y:auto !important;
+  padding:8px 0 !important;
+  width:100% !important;
+  z-index:1000 !important;
+}
+.fc-foxycomplete-list li{
+  padding:8px 16px !important;
+  cursor:pointer !important;
+  border-bottom:1px solid #f0f0f0 !important;
+  transition:background-color 0.2s ease !important;
+}
+.fc-foxycomplete-list li:hover,
+.fc-foxycomplete-list li.active{
+  background-color:#f8f9fa !important;
+}
+.fc-foxycomplete-list li:last-child{
+  border-bottom:none !important;
+}
+.fc-foxycomplete-list li p.title{
+  margin:0 !important;
+  font-size:14px !important;
+  color:#333 !important;
+}
+
 /* Submit-Button (breit, gelb) */
 .fc-button.fc-button--submit{
   width:100%;
