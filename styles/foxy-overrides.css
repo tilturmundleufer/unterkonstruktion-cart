@@ -598,6 +598,12 @@ body.ukc-cart-page{
   color:#333 !important;
 }
 
+/* Optional-Felder: (fakultativ) zu (optional) ändern */
+.fc-form-label[for*="company"]::after,
+.fc-form-label[for*="firma"]::after{
+  content: " (optional)" !important;
+}
+
 /* Postleitzahl-Actions Button stylen */
 .fc-container__grid--postal-code-actions{
   margin-top:12px !important;
