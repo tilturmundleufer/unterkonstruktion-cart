@@ -1189,6 +1189,38 @@ CONVENTIONS:
     {% endblock payment_method %}
     </section><!-- data-fc-id="block-payment-method" -->
 
+    {# Adresse-suchen: nach Auto-Complete/Submit Versand neu laden #}
+    <script>
+      (function(){
+        function triggerRefresh(){
+          try{
+            if(window.FC && FC.checkout && FC.checkout.shipping && typeof FC.checkout.shipping.get_shipping_and_handling === 'function'){
+              FC.checkout.shipping.get_shipping_and_handling();
+              return;
+            }
+            // Fallback: change-Event auf relevante Felder
+            ['shipping_country','shipping_postal_code','shipping_city'].forEach(function(name){
+              var el = document.querySelector('[name="'+name+'"]');
+              if(el){ el.dispatchEvent(new Event('change', { bubbles:true })); }
+            });
+          }catch(_){/* noop */}
+        }
+        // Button "Adresse suchen" (foxycomplete) abschicken => Refresh
+        document.addEventListener('click', function(e){
+          if(e.target.closest('.fc-postal-code-entry__submit .fc-button')){
+            setTimeout(triggerRefresh, 300);
+          }
+        });
+        // Autocomplete Auswahl
+        document.addEventListener('awesomecomplete:select', function(){ setTimeout(triggerRefresh, 200); });
+        // Direkte Eingaben in Land/PLZ/Ort
+        ['shipping_country','shipping_postal_code','shipping_city'].forEach(function(name){
+          var el = document.querySelector('[name="'+name+'"]');
+          if(el){ el.addEventListener('change', function(){ setTimeout(triggerRefresh, 100); }); }
+        });
+      })();
+    </script>
+
 
     {# ADDITIONAL FIELDS ===================================================== #}
     <section data-fc-id="block-additional-fields">
