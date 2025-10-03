@@ -410,6 +410,87 @@ button[type=submit] {
   min-width: 80px;
   text-align: right;
 }
+
+/* Zahlungsoptionen Styling */
+/* Security Icon ausblenden */
+#fc-icon-lock-large {
+  display: none !important;
+}
+
+/* Mollie Payment Gateway modern stylen */
+.fc-payment-method--mollie_omnipay {
+  background: #fff;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 16px 0;
+  transition: all 0.2s ease;
+}
+
+.fc-payment-method--mollie_omnipay:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+.fc-payment-method--mollie_omnipay .fc-input-group-container--active {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.fc-payment-method--mollie_omnipay .fc-input-group-container__title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  font-size: 16px;
+  color: #374151;
+  cursor: pointer;
+  margin: 0;
+}
+
+.fc-payment-method--mollie_omnipay .fc-payment-method-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fc-payment-method--mollie_omnipay .fc-payment-method-logo img {
+  height: 32px;
+  width: auto;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.fc-payment-method--mollie_omnipay .fc-form-group {
+  margin: 12px 0 0 0;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border-left: 4px solid #3b82f6;
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* Radio Button für Mollie stylen */
+.fc-payment-method--mollie_omnipay input[type="hidden"] + span::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #d1d5db;
+  border-radius: 50%;
+  margin-right: 12px;
+  vertical-align: middle;
+  transition: all 0.2s ease;
+}
+
+.fc-payment-method--mollie_omnipay .fc-input-group-container--active input[type="hidden"] + span::before {
+  border-color: #3b82f6;
+  background: #3b82f6;
+  box-shadow: inset 0 0 0 4px #fff;
+}
 #fc-cart[data-context="cart"] .fc-subtotal--total{ display:none !important; }
 /* Verhindert, dass die Standard-Foxy-Transaktionsliste im Warenkorb sichtbar ist */
 /* Sidebar-Liste generell im Cart ausblenden (fall-back) */
