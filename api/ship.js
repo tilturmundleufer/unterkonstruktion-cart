@@ -112,6 +112,10 @@ export default async function handler(req, res) {
         code: 'freight_aviso',
         price: toMoney(basePrice),
         currency,
+        // Foxy-spezifische Felder
+        shipping_service_id: 'freight_aviso',
+        shipping_service_description: 'neutrale Speditionslieferung inkl. telefonischer Avisierung',
+        shipping_service_signature: 'freight_aviso',
       },
       {
         // Abholung – Option 1 (kostenlos)
@@ -122,6 +126,9 @@ export default async function handler(req, res) {
         code: 'pickup_berlin',
         price: toMoney(0),
         currency,
+        shipping_service_id: 'pickup_berlin',
+        shipping_service_description: 'Abholung Berlin (kostenlos)',
+        shipping_service_signature: 'pickup_berlin',
       },
       {
         // Abholung – Option 2 (kostenlos)
@@ -132,6 +139,9 @@ export default async function handler(req, res) {
         code: 'pickup_wedding',
         price: toMoney(0),
         currency,
+        shipping_service_id: 'pickup_wedding',
+        shipping_service_description: 'Abholung Wedding (kostenlos)',
+        shipping_service_signature: 'pickup_wedding',
       },
     ];
 
