@@ -604,6 +604,82 @@ body.ukc-cart-page{
   content: " (optional)" !important;
 }
 
+/* Modernisierung der Checkout-Box */
+.fc-checkout__main__form{
+  background:#fff !important;
+  border-radius:16px !important;
+  box-shadow:0 8px 32px rgba(0,0,0,0.08) !important;
+  padding:32px !important;
+  margin:0 !important;
+}
+
+/* Checkboxen kleiner und moderner */
+.fc-form-control[type="checkbox"]{
+  width:18px !important;
+  height:18px !important;
+  border-radius:4px !important;
+  border:2px solid var(--border) !important;
+  background:#fff !important;
+  cursor:pointer !important;
+  margin-right:12px !important;
+  flex-shrink:0 !important;
+}
+.fc-form-control[type="checkbox"]:checked{
+  background:var(--brand-blue) !important;
+  border-color:var(--brand-blue) !important;
+}
+.fc-form-control[type="checkbox"]:checked::after{
+  content:"✓" !important;
+  color:#fff !important;
+  font-size:12px !important;
+  font-weight:bold !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:100% !important;
+  height:100% !important;
+}
+
+/* Hint-Texte modernisieren */
+.fc-alert,
+.fc-form-help,
+.fc-checkout__help-text,
+.fc-postal-code-entry__help-text{
+  background:#f8f9fa !important;
+  border:1px solid #e9ecef !important;
+  border-radius:8px !important;
+  padding:12px 16px !important;
+  margin:8px 0 !important;
+  font-size:14px !important;
+  line-height:1.5 !important;
+  color:#6c757d !important;
+}
+.fc-alert--info{
+  background:#e3f2fd !important;
+  border-color:#bbdefb !important;
+  color:#1976d2 !important;
+}
+.fc-alert--success{
+  background:#e8f5e8 !important;
+  border-color:#c8e6c9 !important;
+  color:#2e7d32 !important;
+}
+
+/* Checkbox-Labels modernisieren */
+.fc-form-group--checkbox{
+  display:flex !important;
+  align-items:flex-start !important;
+  gap:12px !important;
+  margin:16px 0 !important;
+}
+.fc-form-group--checkbox .fc-form-label{
+  font-size:14px !important;
+  line-height:1.5 !important;
+  color:#333 !important;
+  margin:0 !important;
+  cursor:pointer !important;
+}
+
 /* Postleitzahl-Actions Button stylen */
 .fc-container__grid--postal-code-actions{
   margin-top:12px !important;
