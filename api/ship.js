@@ -101,12 +101,15 @@ export default async function handler(req, res) {
 
     // Beispiel: eine Standard-Speditionsrate; flexibel erweiterbar
     const basePrice = priceForWeight(noShippable ? 1 : totalG);
-    const formatPrice = (n) => Number(n).toFixed(2); // Foxy erwartet häufig String mit 2 Dezimalstellen
     const rates = [
       {
+        // Foxy-Kompat: mehrere Alias-Felder
         service_id: 'freight_aviso',
         service_description: 'neutrale Speditionslieferung inkl. telefonischer Avisierung',
-        price: formatPrice(basePrice),
+        id: 'freight_aviso',
+        name: 'neutrale Speditionslieferung inkl. telefonischer Avisierung',
+        code: 'freight_aviso',
+        price: Number(basePrice),
         currency,
       }
     ];
