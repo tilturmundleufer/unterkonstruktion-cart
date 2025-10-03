@@ -51,7 +51,15 @@ export default async function handler(req, res) {
       }
     }
 
-    const body = req.body || {};
+    let body = req.body || {};
+    // Foxy kann urlencoded mit einem "input"-Feld (JSON-String) senden
+    if (body && typeof body.input === 'string') {
+      try { body = JSON.parse(body.input); } catch (_) {}
+    }
+    // Oder cart als JSON-String
+    if (body && typeof body.cart === 'string') {
+      try { body.cart = JSON.parse(body.cart); } catch (_) {}
+    }
     const items = Array.isArray(body.items) ? body.items : (body.cart && Array.isArray(body.cart.items) ? body.cart.items : []);
     const currency = (body.currency || (body.cart && body.cart.currency) || 'EUR').toUpperCase();
     const address = body.shipping_address || body.shipto || body.address || (body.cart && body.cart.shipping_address) || {};
@@ -73,7 +81,7 @@ export default async function handler(req, res) {
     const noShippable = (!items.length || totalG <= 0);
 
     // Debug: Log für Entwicklung (ohne sensible Daten)
-    console.log('Shipping request:', { itemCount: items.length, totalG, currency, country: address.country || address.country_code, postal_code: address.postal_code || address.postalcode || address.zip });
+    console.log('Shipping request:', { keys: Object.keys(req.body||{}), itemCount: items.length, totalG, currency, country: address.country || address.country_code, postal_code: address.postal_code || address.postalcode || address.zip });
 
     // Beispiel: eine Standard-Speditionsrate; flexibel erweiterbar
     const basePrice = priceForWeight(noShippable ? 1 : totalG);
