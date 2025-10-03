@@ -53,7 +53,14 @@ export default async function handler(req, res) {
 
     const body = req.body || {};
     const items = Array.isArray(body.items) ? body.items : [];
-    const currency = (body.currency || 'EUR').toUpperCase();
+    const currency = (body.currency || (body.cart && body.cart.currency) || 'EUR').toUpperCase();
+    const address = body.shipping_address || body.address || body.shipto || {};
+
+    // Wenn Adresse unvollständig, früh leere Antwort zurückgeben
+    if (!address || !address.country || !address.postal_code) {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      return res.status(200).json({ rates: [], messages: [{ type: 'info', text: 'Bitte Lieferadresse eingeben, um Versandoptionen zu sehen.' }] });
+    }
 
     // Gesamtgewicht berechnen
     let totalG = 0;
@@ -64,22 +71,34 @@ export default async function handler(req, res) {
       totalG += toGrams(w, uom) * q;
     }
 
-    // Debug: Log für Entwicklung
-    console.log('Shipping request:', { items, totalG, currency });
+    // Keine versandfähigen Artikel
+    if (!items.length || totalG <= 0) {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      return res.status(200).json({ rates: [], messages: [{ type: 'info', text: 'Keine versandpflichtigen Artikel.' }] });
+    }
+
+    // Debug: Log für Entwicklung (ohne sensible Daten)
+    console.log('Shipping request:', { itemCount: items.length, totalG, currency, country: address.country, postal_code: address.postal_code });
+
+    // Beispiel: eine Standard-Speditionsrate; flexibel erweiterbar
+    const basePrice = priceForWeight(totalG);
+    const rates = [
+      {
+        service_id: 'freight_aviso',
+        service_description: 'neutrale Speditionslieferung inkl. telefonischer Avisierung',
+        price: basePrice,
+        currency,
+      }
+    ];
 
     const response = {
-      rates: [
-        {
-          service_id: 'freight_aviso',
-          service_description: 'neutrale Speditionslieferung inkl. telefonischer Avisierung',
-          price: priceForWeight(totalG),
-          currency,
-        },
-      ],
+      rates,
       messages: [],
-      meta: { 
+      meta: {
         total_weight_g: Math.round(totalG),
-        computed_at: new Date().toISOString()
+        country: address.country,
+        postal_code: address.postal_code,
+        computed_at: new Date().toISOString(),
       },
     };
 
