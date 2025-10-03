@@ -987,6 +987,35 @@
               ajaxUpdate();
             }
           }, false);
+
+          // Versand neu laden, wenn im CHECKOUT die Adresse per "Adresse suchen" gesetzt wird
+          function triggerShippingRefresh(){
+            try{
+              var isCheckout = document.querySelector('#fc-cart')?.getAttribute('data-context') === 'checkout';
+              if(!isCheckout) return;
+              if(window.FC && FC.checkout && FC.checkout.shipping && typeof FC.checkout.shipping.get_shipping_and_handling === 'function'){
+                FC.checkout.shipping.get_shipping_and_handling();
+              } else {
+                ['shipping_country','shipping_postal_code','shipping_city'].forEach(function(name){
+                  var el = document.querySelector('[name="'+name+'"]');
+                  if(el){ el.dispatchEvent(new Event('change', { bubbles:true })); }
+                });
+              }
+            }catch(_){/* noop */}
+          }
+          // Button "Adresse suchen"
+          document.addEventListener('click', function(e){
+            if(e.target.closest('.fc-postal-code-entry__submit .fc-button')){
+              setTimeout(triggerShippingRefresh, 300);
+            }
+          });
+          // Autocomplete Auswahl-Event
+          document.addEventListener('awesomecomplete:select', function(){ setTimeout(triggerShippingRefresh, 200); });
+          // Direkte Änderungen an Land/PLZ/Ort
+          ['shipping_country','shipping_postal_code','shipping_city'].forEach(function(name){
+            var el = document.querySelector('[name="'+name+'"]');
+            if(el){ el.addEventListener('change', function(){ setTimeout(triggerShippingRefresh, 100); }); }
+          });
         })();
         </script>
         </form>
