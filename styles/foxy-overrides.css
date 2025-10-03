@@ -9,6 +9,17 @@
   --border:#e6eaf0;
 }
 
+/* Tokens auch für Checkout-Wurzel setzen */
+.ukc-checkout{
+  --brand-blue:#072544;
+  --brand-yellow:#ffb101;
+  --brand-yellow-soft:#fffdfa;
+  --text:#0b1220;
+  --bg:#ffffff;
+  --muted:var(--brand-yellow-soft);
+  --border:#e6eaf0;
+}
+
 .ukc-cart__container {
   max-width: 1200px; /* Gesamtbreite deckeln */
   margin: 0 auto;     /* zentrieren */
@@ -458,10 +469,22 @@ body.ukc-cart-page{
 /* Tighten headings on the cart page */
 .fc-cart__title__header,
 .ukc-h1{ color:var(--brand-blue); margin: 8px 0 4px; }
-.fc-order-quantity{ margin: 0 0 16px; }
+.fc-order-quantity{ display:none !important; }
 
 /* Give the main cart container some breathing room inside the shell */
 .ukc-cart__container{ padding: 8px 0 0; }
+
+/* ===================== */
+/* Checkout — Layout     */
+/* ===================== */
+/* Sidebar rechts neben Formular, sticky */
+#fc-checkout-container.fc-checkout__main.fc-checkout__row{ display:grid; grid-template-columns: 1fr 400px; gap:32px; align-items:start; }
+.fc-sidebar--checkout{ grid-column:2; position:sticky; top:24px }
+#fc-main{ grid-column:1 }
+@media (max-width:960px){
+  #fc-checkout-container.fc-checkout__main.fc-checkout__row{ grid-template-columns:1fr }
+  .fc-sidebar--checkout{ grid-column:1; position:static }
+}
 
 /* ===================== */
 /* Checkout — Formular UI */
