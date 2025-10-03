@@ -101,11 +101,12 @@ export default async function handler(req, res) {
 
     // Beispiel: eine Standard-Speditionsrate; flexibel erweiterbar
     const basePrice = priceForWeight(noShippable ? 1 : totalG);
+    const formatPrice = (n) => Number(n).toFixed(2); // Foxy erwartet häufig String mit 2 Dezimalstellen
     const rates = [
       {
         service_id: 'freight_aviso',
         service_description: 'neutrale Speditionslieferung inkl. telefonischer Avisierung',
-        price: basePrice,
+        price: formatPrice(basePrice),
         currency,
       }
     ];
@@ -124,6 +125,7 @@ export default async function handler(req, res) {
     };
 
     res.setHeader('Access-Control-Allow-Origin', '*');
+    console.log('Shipping response:', { count: response.rates.length, first: response.rates[0] });
     return res.status(200).json(response);
 
   } catch (error) {
