@@ -142,8 +142,11 @@ export default async function handler(req, res) {
       },
     ];
 
+    // Foxy erwartet möglicherweise ein anderes Response-Format
     const response = {
       rates,
+      shipping_rates: rates, // Alternative Feldnamen
+      shipping_options: rates, // Noch eine Alternative
       messages: (
         noShippable ? [{ type: 'info', text: 'Fallback-Rate: Gewicht nicht gefunden, Standardtarif verwendet.' }] : []
       ),
