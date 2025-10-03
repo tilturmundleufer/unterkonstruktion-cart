@@ -157,6 +157,7 @@ export default async function handler(req, res) {
 
     res.setHeader('Access-Control-Allow-Origin', '*');
     console.log('Shipping response:', { count: response.rates.length, first: response.rates[0] });
+    console.log('Full response:', JSON.stringify(response, null, 2));
     return res.status(200).json(response);
 
   } catch (error) {
