@@ -947,12 +947,25 @@
               }
               if(ship){ const el = document.querySelector('[data-ukc-shipping]'); if(el) el.innerHTML = ship.innerHTML; }
 
-              // Falls Kontext 'cart' ist, alle Versand-Container ausblenden (Defensivmaßnahme)
-              var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
-              if(currentContext === 'cart'){
-                document.querySelectorAll('.fc-transaction__shipping, [data-fc-id="button-toggle-multiship-details"], .fc-transaction__shipping-address').forEach(function(n){ n?.parentElement?.removeChild(n); });
+          // Falls Kontext 'cart' ist, alle Versand-Container ausblenden (Defensivmaßnahme)
+          var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
+          if(currentContext === 'cart'){
+            document.querySelectorAll('.fc-transaction__shipping, [data-fc-id="button-toggle-multiship-details"], .fc-transaction__shipping-address').forEach(function(n){ n?.parentElement?.removeChild(n); });
+          }
+          recalcSummary();
+          
+          // Tax-Berechnung im Checkout triggern
+          if(currentContext === 'checkout'){
+            var customerTypeInput = document.getElementById('customer_type');
+            if(customerTypeInput){
+              var customerType = getCustomerType();
+              customerTypeInput.value = customerType;
+              // Foxy Tax-Berechnung triggern
+              if(typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
+                FC.checkout.tax.get_tax();
               }
-              recalcSummary();
+            }
+          }
             }catch(e){
               console.error('Cart update failed', e);
               if(form) form.submit();
@@ -960,6 +973,34 @@
               updating = false;
             }
           }
+          // Tax-Berechnung triggern wenn Kundentyp sich ändert
+          function triggerTaxCalculation(){
+            var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
+            if(currentContext === 'checkout'){
+              var customerTypeInput = document.getElementById('customer_type');
+              if(customerTypeInput){
+                var customerType = getCustomerType();
+                customerTypeInput.value = customerType;
+                // Foxy Tax-Berechnung triggern
+                if(typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
+                  FC.checkout.tax.get_tax();
+                }
+              }
+            }
+          }
+          
+          // Tax-Berechnung beim Laden triggern
+          triggerTaxCalculation();
+          
+          // Tax-Berechnung bei Cookie-Änderungen triggern
+          var originalSetCookie = document.cookie;
+          setInterval(function(){
+            if(document.cookie !== originalSetCookie){
+              originalSetCookie = document.cookie;
+              triggerTaxCalculation();
+            }
+          }, 1000);
+          
           document.addEventListener('click', function(ev){
             var btn = ev.target.closest('.ukc-qty-btn');
             if(btn){
