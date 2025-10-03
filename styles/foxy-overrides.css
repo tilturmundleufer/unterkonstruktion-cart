@@ -479,17 +479,21 @@ body.ukc-cart-page{
 /* Checkout — Layout     */
 /* ===================== */
 /* Sidebar rechts neben Formular, sticky */
-#fc-checkout-container.fc-checkout__main.fc-checkout__row{ display:grid; grid-template-columns: 1fr 400px; gap:32px; align-items:start; }
-.fc-sidebar--checkout{ grid-column:2; position:sticky; top:24px }
-#fc-main{ grid-column:1 }
+#fc-checkout-container.fc-checkout__main.fc-checkout__row{ display:grid; grid-template-columns: minmax(520px,1fr) 400px; gap:32px; align-items:start; }
+#fc-checkout-container.fc-checkout__main.fc-checkout__row > .fc-checkout__main__contents{ grid-column:1; grid-row:1; }
+#fc-checkout-container.fc-checkout__main.fc-checkout__row > .fc-sidebar--checkout{ grid-column:2; grid-row:1; position:sticky; top:24px }
+#fc-main{ grid-column:1; grid-row:1 }
 @media (max-width:960px){
   #fc-checkout-container.fc-checkout__main.fc-checkout__row{ grid-template-columns:1fr }
   .fc-sidebar--checkout{ grid-column:1; position:static }
 }
 
 /* Checkout Kopf-Overhead entfernen und Top-Gap schließen */
-.ukc-checkout .fc-logo,
-.ukc-checkout .fc-cart__header.fc-container__row{ display:none !important; }
+.ukc-checkout #fc-logo,
+.ukc-checkout .fc-logo__image,
+.ukc-checkout .fc-cart__header.fc-container__row,
+.ukc-checkout .fc-cart__title,
+.ukc-checkout .fc-cart__title__header{ display:none !important; }
 .ukc-checkout #fc-checkout-container{ margin-top:0 !important; }
 .ukc-checkout .fc-checkout__main{ padding-top:0 !important; }
 .ukc-checkout .fc-checkout__main__contents{ margin-top:0 !important; }
@@ -523,6 +527,7 @@ body.ukc-cart-page{
   border-radius:12px;
   height:46px;
   padding:12px 14px;
+  width:100%;
 }
 .fc-checkout__main__form input.fc-form-control,
 .fc-checkout__main__form select.fc-form-control,
@@ -534,9 +539,19 @@ body.ukc-cart-page{
   border-radius:12px !important;
   height:46px;
   padding:12px 14px !important;
+  width:100% !important;
 }
 .fc-checkout__main__form .fc-form-group{ margin-bottom:16px; }
 .fc-checkout__main__form .fc-form-group--multiple-inline{ column-gap:12px; }
+
+/* Subheadline-Label (Name-Gruppe) */
+.fc-container__grid--label--name.fc-form-label{
+  font-size:16px;
+  font-weight:700;
+  color:var(--brand-blue);
+  margin:0 0 8px;
+  display:block;
+}
 
 /* Submit-Button (breit, gelb) */
 .fc-button.fc-button--submit{
