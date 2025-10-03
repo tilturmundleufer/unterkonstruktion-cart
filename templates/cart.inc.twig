@@ -47,6 +47,7 @@
 {% endif %}
 
 <div id="{{ container_id }}">
+    {% if context != 'checkout' %}
     <header class="fc-cart__header fc-container__row" role="banner">
         {% if not is_updateinfo %}
         <div class="fc-cart__title fc-container__grid">
@@ -80,6 +81,7 @@
         </div>
         {% endif %}
     </header>
+    {% endif %}
 
     {% if not is_updateinfo %}
 
@@ -367,6 +369,7 @@
 
 
         <div class="fc-sidebar fc-sidebar--cart ukc-summary">
+            {% if context != 'checkout' %}
             {% block logo %}
             <div class="fc-logo">
                 {% if config.store_logo_url %}
@@ -376,6 +379,7 @@
                 {% endif %}
             </div>
             {% endblock logo %}
+            {% endif %}
 
             <div data-fc-id="block-address-entry">
             {% block address_entry %}
