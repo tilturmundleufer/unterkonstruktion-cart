@@ -1016,6 +1016,32 @@
             var el = document.querySelector('[name="'+name+'"]');
             if(el){ el.addEventListener('change', function(){ setTimeout(triggerShippingRefresh, 100); }); }
           });
+
+          // Wenn Versand-Raten geladen sind, automatisch erste Option wählen (falls keine gewählt)
+          function autoSelectFirstShipping(){
+            var isCheckout = document.querySelector('#fc-cart')?.getAttribute('data-context') === 'checkout';
+            if(!isCheckout) return;
+            var container = document.querySelector('[data-fc-id="shipping-results"]');
+            if(!container) return;
+            var chosen = container.querySelector('input[name="shipping_service_id"]:checked');
+            var first = container.querySelector('input[name="shipping_service_id"]');
+            if(!chosen && first){
+              first.checked = true;
+              first.dispatchEvent(new Event('change', { bubbles:true }));
+            }
+          }
+          // Beobachte Änderungen im Versandbereich
+          var shipSection = document.querySelector('[data-fc-id="block-shipping-results"]');
+          if(shipSection){
+            var mo = new MutationObserver(function(){ setTimeout(autoSelectFirstShipping, 50); });
+            mo.observe(shipSection, { childList:true, subtree:true });
+          }
+          // Sicherheitsnetz nach manueller Aktualisierung
+          document.addEventListener('click', function(e){
+            if(e.target.closest('[data-fc-id="shipping-results"]')){
+              setTimeout(autoSelectFirstShipping, 50);
+            }
+          });
         })();
         </script>
         </form>
