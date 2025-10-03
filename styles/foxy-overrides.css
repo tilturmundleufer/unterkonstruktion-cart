@@ -618,18 +618,25 @@ body.ukc-cart-page{
   margin:0 !important;
 }
 
-/* Checkboxen kleiner und moderner */
-.fc-form-control[type="checkbox"]{
+/* Checkboxen und Radio-Buttons kleiner und moderner */
+.fc-form-control[type="checkbox"],
+.fc-form-control[type="radio"]{
   width:18px !important;
   height:18px !important;
   border-radius:4px !important;
   border:2px solid var(--border) !important;
   background:#fff !important;
   cursor:pointer !important;
-  margin-right:12px !important;
+  margin:0 !important;
   flex-shrink:0 !important;
 }
-.fc-form-control[type="checkbox"]:checked{
+
+/* Radio-Buttons runde Form */
+.fc-form-control[type="radio"]{
+  border-radius:50% !important;
+}
+.fc-form-control[type="checkbox"]:checked,
+.fc-form-control[type="radio"]:checked{
   background:var(--brand-blue) !important;
   border-color:var(--brand-blue) !important;
 }
@@ -643,6 +650,15 @@ body.ukc-cart-page{
   justify-content:center !important;
   width:100% !important;
   height:100% !important;
+}
+.fc-form-control[type="radio"]:checked::after{
+  content:"" !important;
+  background:#fff !important;
+  border-radius:50% !important;
+  width:8px !important;
+  height:8px !important;
+  margin:auto !important;
+  display:block !important;
 }
 
 /* Hint-Texte modernisieren */
@@ -748,4 +764,61 @@ body.ukc-cart-page{
   border-radius:20px;
   background:#fff;
   box-shadow:0 4px 20px rgba(0,0,0,.08);
+}
+
+/* ===================== */
+/* Checkout — Radio & Checkbox Layout */
+/* ===================== */
+
+/* Radio-Buttons und Checkboxen linksbündig positionieren */
+.fc-input-group-container--radio,
+.fc-input-group-container--checkbox {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  margin: 16px 0 !important;
+}
+
+/* Input-Elemente (Radio/Checkbox) links positionieren */
+.fc-input-group-container--radio .fc-form-control[type="radio"],
+.fc-input-group-container--checkbox .fc-form-control[type="checkbox"] {
+  order: -1 !important;
+  flex-shrink: 0 !important;
+  margin: 0 !important;
+  width: 18px !important;
+  height: 18px !important;
+}
+
+/* Labels rechts vom Input positionieren */
+.fc-input-group-container--radio .fc-input-group-container__title,
+.fc-input-group-container--checkbox .fc-input-group-container__title {
+  order: 1 !important;
+  flex: 1 !important;
+  margin: 0 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+/* Zusätzliche Inhalte (wie Beschreibungstexte) unter dem Label */
+.fc-input-group-container--radio .fc-form-group,
+.fc-input-group-container--checkbox .fc-form-group {
+  order: 2 !important;
+  margin: 0 !important;
+  margin-top: 8px !important;
+}
+
+/* Spezielle Behandlung für Payment-Method Container */
+.fc-container__grid--payment-method {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+/* Error-Messages unter den Input-Containern */
+.fc-input-group-container--radio + .fc-alert,
+.fc-input-group-container--checkbox + .fc-alert {
+  order: 3 !important;
+  margin-top: 8px !important;
 }
