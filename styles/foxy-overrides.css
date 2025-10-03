@@ -493,7 +493,19 @@ body.ukc-cart-page{
   height:46px;
   padding:12px 14px;
 }
-.fc-checkout__main__form .fc-form-group{ margin-bottom:12px; }
+.fc-checkout__main__form input.fc-form-control,
+.fc-checkout__main__form select.fc-form-control,
+.fc-checkout__main__form textarea.fc-form-control,
+.fc-checkout__main__form .fc-location,
+.fc-checkout__main__form .awesomecomplete-input{
+  background:#fff !important;
+  border:1px solid var(--border) !important;
+  border-radius:12px !important;
+  height:46px;
+  padding:12px 14px !important;
+}
+.fc-checkout__main__form .fc-form-group{ margin-bottom:16px; }
+.fc-checkout__main__form .fc-form-group--multiple-inline{ column-gap:12px; }
 
 /* Submit-Button (breit, gelb) */
 .fc-button.fc-button--submit{
@@ -519,6 +531,14 @@ body.ukc-cart-page{
 .fc-checkout__main__form [data-fc-id="block-cart-items"],
 .fc-checkout__main__form [data-fc-id="block-cart-items-divs"],
 .fc-checkout__main__form .fc-cart__item{ display:none !important; }
+
+/* Zusätzlich: Sidebar-Cart, wenn im Checkout eingebettet */
+#fc-cart[data-context="checkout"] .fc-cart__items,
+#fc-cart[data-context="checkout"] [data-fc-id="block-cart-items"],
+#fc-cart[data-context="checkout"] [data-fc-id="block-cart-items-divs"],
+#fc-cart[data-context="checkout"] .fc-cart__item,
+#fc-cart[data-context="checkout"] .fc-cart__items__header,
+#fc-cart[data-context="checkout"] nav.fc-sidecart-only-fixed{ display:none !important; }
 
 /* Sidebar-Box im Checkout an Markenstil angleichen */
 [data-fc-id="checkout-summary"],
