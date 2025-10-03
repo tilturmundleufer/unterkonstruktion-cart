@@ -1,4 +1,5 @@
 /* Brand tokens (Unterkonstruktion) */
+:root{ --border:#e6eaf0; }
 .ukc-cart{
   --brand-blue:#072544;
   --brand-yellow:#ffb101;
@@ -485,6 +486,13 @@ body.ukc-cart-page{
   #fc-checkout-container.fc-checkout__main.fc-checkout__row{ grid-template-columns:1fr }
   .fc-sidebar--checkout{ grid-column:1; position:static }
 }
+
+/* Checkout Kopf-Overhead entfernen und Top-Gap schließen */
+.ukc-checkout .fc-logo,
+.ukc-checkout .fc-cart__header.fc-container__row{ display:none !important; }
+.ukc-checkout #fc-checkout-container{ margin-top:0 !important; }
+.ukc-checkout .fc-checkout__main{ padding-top:0 !important; }
+.ukc-checkout .fc-checkout__main__contents{ margin-top:0 !important; }
 
 /* ===================== */
 /* Checkout — Formular UI */
