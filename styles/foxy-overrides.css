@@ -1105,3 +1105,136 @@ body.ukc-cart-page{
 #purchase_order[readonly] + .fc-container__grid--input--po::after {
   display: block !important;
 }
+
+/* ===================== */
+/* Cart - Unnötige Elemente ausblenden */
+/* ===================== */
+.fc-action--payment--or,
+.fc-action--payment--paypal-platfor {
+  display: none !important;
+}
+
+/* ===================== */
+/* Passwort-Eingabe im Checkout */
+/* ===================== */
+.fc-alert[data-fc-error-for="customer_password"] {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.fc-alert[data-fc-error-for="customer_password"] p {
+  font-size: 16px;
+  color: #1f2937;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.fc-input-group--customer-password {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.fc-form-label--customer-password {
+  font-weight: 600;
+  color: #374151;
+  font-size: 14px;
+}
+
+.fc-form-control--customer-password {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 16px;
+  color: #1f2937;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fc-form-control--customer-password:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+  outline: none;
+}
+
+.fc-input-group__button {
+  margin-top: 10px;
+}
+
+.fc-button--sign-in {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  background-color: #3b82f6;
+  border: 1px solid #3b82f6;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fc-button--sign-in:hover {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.fc-password-actions {
+  display: flex;
+  justify-content: space-between;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.fc-password-action {
+  flex-grow: 1;
+  text-align: center;
+}
+
+.fc-password-action--button-container {
+  font-size: 14px;
+}
+
+.fc-button-link {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.fc-button-link:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 640px) {
+  .fc-password-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fc-password-action {
+    margin-bottom: 10px;
+  }
+
+  .fc-password-action:last-child {
+    margin-bottom: 0;
+  }
+}
