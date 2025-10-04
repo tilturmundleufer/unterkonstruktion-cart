@@ -965,25 +965,30 @@
               }
               if(ship){ const el = document.querySelector('[data-ukc-shipping]'); if(el) el.innerHTML = ship.innerHTML; }
 
-          // Falls Kontext 'cart' ist, alle Versand-Container ausblenden (Defensivmaßnahme)
-          var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
-          if(currentContext === 'cart'){
-            document.querySelectorAll('.fc-transaction__shipping, [data-fc-id="button-toggle-multiship-details"], .fc-transaction__shipping-address').forEach(function(n){ n?.parentElement?.removeChild(n); });
-          }
-          recalcSummary();
-          
-          // Tax-Berechnung im Checkout triggern
-          if(currentContext === 'checkout'){
-            var customerTypeInput = document.getElementById('customer_type');
-            if(customerTypeInput){
-              var customerType = getCustomerType();
-              customerTypeInput.value = customerType;
-              // Foxy Tax-Berechnung triggern
-              if(typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
-                FC.checkout.tax.get_tax();
+              // Falls Kontext 'cart' ist, alle Versand-Container ausblenden (Defensivmaßnahme)
+              var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
+              if(currentContext === 'cart'){
+                document.querySelectorAll('.fc-transaction__shipping, [data-fc-id="button-toggle-multiship-details"], .fc-transaction__shipping-address').forEach(function(n){ n?.parentElement?.removeChild(n); });
               }
-            }
-          }
+              recalcSummary();
+              
+              // Tax-Berechnung im Checkout triggern
+              if(currentContext === 'checkout'){
+                var customerTypeInput = document.getElementById('customer_type');
+                if(customerTypeInput){
+                  var customerType = getCustomerType();
+                  customerTypeInput.value = customerType;
+                  // Foxy Tax-Berechnung triggern
+                  if(typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
+                    FC.checkout.tax.get_tax();
+                  }
+                }
+              }
+              
+              // Bestellnummer nach AJAX-Update wiederherstellen
+              setTimeout(function(){
+                generatePurchaseOrderNumber();
+              }, 100);
             }catch(e){
               console.error('Cart update failed', e);
               if(form) form.submit();
@@ -1022,52 +1027,67 @@
           // Automatische Bestellnummer für Purchase Order generieren
           function generatePurchaseOrderNumber(){
             var poInput = document.getElementById('purchase_order');
-            if(poInput && !poInput.value){
-              var now = new Date();
-              var year = now.getFullYear();
-              var month = String(now.getMonth() + 1).padStart(2, '0');
-              var day = String(now.getDate()).padStart(2, '0');
-              var hours = String(now.getHours()).padStart(2, '0');
-              var minutes = String(now.getMinutes()).padStart(2, '0');
-              var seconds = String(now.getSeconds()).padStart(2, '0');
-              var random = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+            if(poInput){
+              // Prüfe ob bereits eine Bestellnummer im Session Storage gespeichert ist
+              var storedPONumber = sessionStorage.getItem('ukc_po_number');
               
-              // Prüfen ob Nutzer eingeloggt ist und PBI-Attribut hat
-              var customerId = document.querySelector('#customer_id')?.value;
-              var isLoggedIn = customerId && customerId !== '0';
-              var pbiValue = null;
-              
-              // Versuche PBI-Wert aus Custom Attributes zu holen (nur für eingeloggte Nutzer)
-              if(isLoggedIn) {
-                try {
-                  // Prüfe ob Foxy-Daten verfügbar sind
-                  if(typeof FC !== 'undefined' && FC.cart && FC.cart.customer && FC.cart.customer.attributes) {
-                    var attributes = FC.cart.customer.attributes;
-                    for(var i = 0; i < attributes.length; i++) {
-                      if(attributes[i].name === 'PBI') {
-                        pbiValue = attributes[i].value;
-                        break;
+              if(storedPONumber) {
+                // Verwende gespeicherte Bestellnummer
+                poInput.value = storedPONumber;
+                poInput.readOnly = true;
+                poInput.style.backgroundColor = '#f8f9fa';
+                poInput.style.cursor = 'not-allowed';
+              } else if(!poInput.value) {
+                // Generiere neue Bestellnummer nur wenn keine vorhanden ist
+                var now = new Date();
+                var year = now.getFullYear();
+                var month = String(now.getMonth() + 1).padStart(2, '0');
+                var day = String(now.getDate()).padStart(2, '0');
+                var hours = String(now.getHours()).padStart(2, '0');
+                var minutes = String(now.getMinutes()).padStart(2, '0');
+                var seconds = String(now.getSeconds()).padStart(2, '0');
+                var random = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+                
+                // Prüfen ob Nutzer eingeloggt ist und PBI-Attribut hat
+                var customerId = document.querySelector('#customer_id')?.value;
+                var isLoggedIn = customerId && customerId !== '0';
+                var pbiValue = null;
+                
+                // Versuche PBI-Wert aus Custom Attributes zu holen (nur für eingeloggte Nutzer)
+                if(isLoggedIn) {
+                  try {
+                    // Prüfe ob Foxy-Daten verfügbar sind
+                    if(typeof FC !== 'undefined' && FC.cart && FC.cart.customer && FC.cart.customer.attributes) {
+                      var attributes = FC.cart.customer.attributes;
+                      for(var i = 0; i < attributes.length; i++) {
+                        if(attributes[i].name === 'PBI') {
+                          pbiValue = attributes[i].value;
+                          break;
+                        }
                       }
                     }
+                  } catch(e) {
+                    console.log('PBI-Attribut nicht gefunden');
                   }
-                } catch(e) {
-                  console.log('PBI-Attribut nicht gefunden');
                 }
+                
+                var poNumber;
+                if(isLoggedIn && pbiValue) {
+                  // Für eingeloggte Nutzer MIT PBI-Attribut: PBI-WERT-YYYYMMDD-HHMMSS-XXXX Format
+                  poNumber = 'PBI-' + pbiValue + '-' + year + month + day + '-' + hours + minutes + seconds + '-' + random;
+                } else {
+                  // Für alle anderen (Gäste und eingeloggte Nutzer ohne PBI): Standard UKC-Format
+                  poNumber = 'UKC-' + year + month + day + '-' + hours + minutes + seconds + '-' + random;
+                }
+                
+                // Speichere Bestellnummer im Session Storage
+                sessionStorage.setItem('ukc_po_number', poNumber);
+                
+                poInput.value = poNumber;
+                poInput.readOnly = true;
+                poInput.style.backgroundColor = '#f8f9fa';
+                poInput.style.cursor = 'not-allowed';
               }
-              
-              var poNumber;
-              if(isLoggedIn && pbiValue) {
-                // Für eingeloggte Nutzer MIT PBI-Attribut: PBI-WERT-YYYYMMDD-HHMMSS-XXXX Format
-                poNumber = 'PBI-' + pbiValue + '-' + year + month + day + '-' + hours + minutes + seconds + '-' + random;
-              } else {
-                // Für alle anderen (Gäste und eingeloggte Nutzer ohne PBI): Standard UKC-Format
-                poNumber = 'UKC-' + year + month + day + '-' + hours + minutes + seconds + '-' + random;
-              }
-              
-              poInput.value = poNumber;
-              poInput.readOnly = true;
-              poInput.style.backgroundColor = '#f8f9fa';
-              poInput.style.cursor = 'not-allowed';
             }
           }
           
