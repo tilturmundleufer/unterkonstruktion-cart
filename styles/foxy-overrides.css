@@ -994,3 +994,53 @@ body.ukc-cart-page{
   order: 3 !important;
   margin-top: 8px !important;
 }
+
+/* ===================== */
+/* Checkout — Logo & Icons ausblenden */
+/* ===================== */
+
+/* Logo ausblenden */
+#fc-logo {
+  display: none !important;
+}
+
+/* Lock-Icon ausblenden */
+.fc-svg-icon--lock,
+.fc-cc-icon {
+  display: none !important;
+}
+
+/* ===================== */
+/* Checkout — Multiple Inline Form Groups */
+/* ===================== */
+
+/* Multiple Inline Form Groups als Grid-Layout */
+.fc-form-group-multiple-inline {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr !important; /* 3 Spalten für Monat, Jahr, CVV */
+  gap: 12px !important;
+  margin: 16px 0 !important;
+}
+
+/* Labels in der ersten Reihe */
+.fc-form-group-multiple-inline .fc-form-label {
+  grid-row: 1 !important;
+  margin: 0 0 8px 0 !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #0b1220 !important;
+}
+
+/* Input-Container in der zweiten Reihe */
+.fc-form-group-multiple-inline .fc-container__grid--plastic-new-exp-month,
+.fc-form-group-multiple-inline .fc-container__grid--plastic-new-exp-year,
+.fc-form-group-multiple-inline .fc-container__grid--plastic-new-csc {
+  grid-row: 2 !important;
+  margin: 0 !important;
+}
+
+/* Input-Elemente in den Containern */
+.fc-form-group-multiple-inline .fc-form-control {
+  width: 100% !important;
+  margin: 0 !important;
+}
