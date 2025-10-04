@@ -443,7 +443,13 @@
                     <tr>
                         <td class="ukc-summary-label">Mehrwertsteuer</td>
                         <td class="ukc-summary-value" data-ukc-tax-total>
-                            {% if total_tax > 0 %}{{ total_tax|money_format }}{% else %}0,00 €{% endif %}
+                            {% if total_tax > 0 %}{{ total_tax|money_format }}{% else %}0,00 €{% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="ukc-summary-label">Lieferkosten</td>
+                        <td class="ukc-summary-value" data-ukc-shipping>
+                            {% if total_shipping > 0 %}{{ total_shipping|money_format }}{% else %}0,00 €{% endif %}
                         </td>
                     </tr>
                     <tr class="ukc-summary-totalrow">
@@ -871,7 +877,16 @@
             // Derzeit 0% MwSt laut Vorgabe; bei Bedarf hier 0.19 o.ä. setzen
             var taxRate = (type === 'firma') ? 0 : 0;
             var tax = subtotal * taxRate;
-            var total = subtotal + tax;
+            
+            // Lieferkosten aus Foxy-Daten extrahieren
+            var shipping = 0;
+            var shippingEl = document.querySelector('[data-ukc-shipping]');
+            if(shippingEl){
+              var shippingText = shippingEl.textContent || '0,00 €';
+              shipping = parseFloat(shippingText.replace(/[^0-9,.-]/g,'').replace('.', '').replace(',', '.')) || 0;
+            }
+            
+            var total = subtotal + tax + shipping;
             var subEl = document.querySelector('[data-ukc-subtotal]');
             var taxEl = document.querySelector('[data-ukc-tax-total]');
             var totalEl = document.querySelector('[data-ukc-total-order]');
@@ -934,6 +949,7 @@
                 var type = (document.cookie.match(/(?:^|; )ukc_customer_type=([^;]+)/)||[])[1] || 'privat';
                 var subtotalEl = document.querySelector('[data-ukc-subtotal]');
                 var taxEl = document.querySelector('[data-ukc-tax-total]');
+                var shippingEl = document.querySelector('[data-ukc-shipping]');
                 var totalEl = document.querySelector('[data-ukc-total-order]');
                 if(subtotalEl && taxEl && totalEl){
                   var parseMoney = function(txt){ return parseFloat(String(txt).replace(/[^0-9,.-]/g,'').replace('.', '').replace(',', '.'))||0; };
@@ -941,8 +957,10 @@
                   var subtotalVal = parseMoney(subtotalEl.textContent);
                   var taxRate = (type === 'firma') ? 0 : 0; // Privatkunden aktuell 0% nach Vorgabe
                   var taxVal = subtotalVal * taxRate;
+                  var shippingVal = shippingEl ? parseMoney(shippingEl.textContent) : 0;
                   taxEl.textContent = formatMoney(taxVal);
-                  totalEl.textContent = formatMoney(subtotalVal + taxVal);
+                  if(shippingEl) shippingEl.textContent = formatMoney(shippingVal);
+                  totalEl.textContent = formatMoney(subtotalVal + taxVal + shippingVal);
                 }
               }
               if(ship){ const el = document.querySelector('[data-ukc-shipping]'); if(el) el.innerHTML = ship.innerHTML; }
