@@ -403,6 +403,17 @@ button[type=submit] {
   line-height: 1.4;
 }
 
+/* Kategorie (Spedition/Abholung) aus dem Namen entfernen */
+.fc-shipping-rates__rate__name::before {
+  content: '';
+  display: none;
+}
+
+/* Alternative: Falls die Kategorie in einem separaten Element steht */
+.fc-shipping-rates__rate__method {
+  display: none !important;
+}
+
 .fc-shipping-rates__rate__value {
   font-weight: 600;
   font-size: 14px;

@@ -11,8 +11,8 @@ function toGrams(weight, uom = 'g') {
   return weight;
 }
 
-// Gewichtsbasierte Preise
-const BRACKETS = [
+// Gewichtsbasierte Preise für neutrale Speditionslieferung
+const NEUTRAL_FREIGHT_BRACKETS = [
   { minG: 0,        maxG: 100000,  price: 44.90 },
   { minG: 100001,   maxG: 200000,  price: 73.90 },
   { minG: 200001,   maxG: 300000,  price: 99.90 },
@@ -23,11 +23,23 @@ const BRACKETS = [
   { minG: 2500001,  maxG: null,    price: 309.90 },
 ];
 
-function priceForWeight(g) {
-  for (const b of BRACKETS) {
+// Gewichtsbasierte Preise für Speditionslieferung inkl. telefonischer Avisierung
+const AVISO_FREIGHT_BRACKETS = [
+  { minG: 0,        maxG: 100000,  price: 29.90 },
+  { minG: 100001,   maxG: 200000,  price: 55.90 },
+  { minG: 200001,   maxG: 300000,  price: 79.90 },
+  { minG: 300001,   maxG: 500000,  price: 99.90 },
+  { minG: 500001,   maxG: 750000,  price: 129.90 },
+  { minG: 750001,   maxG: 1000000, price: 169.90 },
+  { minG: 1000001,  maxG: 2500000, price: 199.90 },
+  { minG: 2500001,  maxG: null,    price: 269.90 },
+];
+
+function priceForWeight(g, brackets) {
+  for (const b of brackets) {
     if (g >= b.minG && (b.maxG == null || g <= b.maxG)) return b.price;
   }
-  return BRACKETS[BRACKETS.length - 1].price;
+  return brackets[brackets.length - 1].price;
 }
 
 // Gesamtgewicht berechnen
@@ -54,21 +66,23 @@ if (noShippable) {
 }
 
 // Preise berechnen
-const basePrice = priceForWeight(totalG);
+const avisoPrice = priceForWeight(noShippable ? 1 : totalG, AVISO_FREIGHT_BRACKETS);
+const neutralPrice = priceForWeight(noShippable ? 1 : totalG, NEUTRAL_FREIGHT_BRACKETS);
 
 // Alle bestehenden Raten ausblenden
 rates.hide();
 
 // Neue Raten hinzufügen
-rates.add(10001, 29.90, 'Spedition', 'Speditionslieferung inkl. telefonischer Avisierung');
+rates.add(10001, avisoPrice, 'Spedition', 'Speditionslieferung inkl. telefonischer Avisierung');
 rates.add(10002, 0, 'Abholung', 'Selbstabholung in 22926 Ahrensburg');
 rates.add(10003, 0, 'Abholung', 'Selbstabholung in 31275 Lehrte');
-rates.add(10004, basePrice, 'Spedition', 'neutrale Speditionslieferung inkl. telefonischer Avisierung');
+rates.add(10004, neutralPrice, 'Spedition', 'neutrale Speditionslieferung inkl. telefonischer Avisierung');
 
 // Debug-Info (wird in Foxy-Logs angezeigt)
 console.log('Custom Shipping Code:', {
   totalG: totalG,
-  basePrice: basePrice,
+  avisoPrice: avisoPrice,
+  neutralPrice: neutralPrice,
   itemCount: cart['_embedded'] ? cart['_embedded']['fx:items'].length : 0,
   country: cart['_embedded'] && cart['_embedded']['fx:shipment'] ? cart['_embedded']['fx:shipment']['country'] : 'unknown'
 });
