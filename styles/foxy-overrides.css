@@ -1064,3 +1064,44 @@ body.ukc-cart-page{
   width: 100% !important;
   margin: 0 !important;
 }
+
+/* ===================== */
+/* Purchase Order - Automatische Bestellnummer */
+/* ===================== */
+
+/* Purchase Order Input-Feld als readonly stylen */
+#purchase_order[readonly] {
+  background-color: #f8f9fa !important;
+  color: #6c757d !important;
+  cursor: not-allowed !important;
+  border-color: #dee2e6 !important;
+}
+
+/* Purchase Order Label anpassen */
+.fc-container__grid--label--po {
+  font-weight: 600 !important;
+  color: #0b1220 !important;
+  margin-bottom: 8px !important;
+}
+
+/* Purchase Order Container */
+.fc-container__grid--input--po {
+  position: relative !important;
+}
+
+/* Hinweis-Text für automatische Generierung */
+.fc-container__grid--input--po::after {
+  content: 'Automatisch generiert' !important;
+  position: absolute !important;
+  right: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  font-size: 12px !important;
+  color: #6c757d !important;
+  pointer-events: none !important;
+  display: none !important;
+}
+
+#purchase_order[readonly] + .fc-container__grid--input--po::after {
+  display: block !important;
+}

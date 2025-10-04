@@ -1019,6 +1019,38 @@
             }
           }, 1000);
           
+          // Automatische Bestellnummer für Purchase Order generieren
+          function generatePurchaseOrderNumber(){
+            var poInput = document.getElementById('purchase_order');
+            if(poInput && !poInput.value){
+              // Format: UKC-YYYYMMDD-HHMMSS-XXXX (UKC + Datum + Zeit + 4-stellige Zufallszahl)
+              var now = new Date();
+              var year = now.getFullYear();
+              var month = String(now.getMonth() + 1).padStart(2, '0');
+              var day = String(now.getDate()).padStart(2, '0');
+              var hours = String(now.getHours()).padStart(2, '0');
+              var minutes = String(now.getMinutes()).padStart(2, '0');
+              var seconds = String(now.getSeconds()).padStart(2, '0');
+              var random = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+              
+              var poNumber = 'UKC-' + year + month + day + '-' + hours + minutes + seconds + '-' + random;
+              poInput.value = poNumber;
+              poInput.readOnly = true;
+              poInput.style.backgroundColor = '#f8f9fa';
+              poInput.style.cursor = 'not-allowed';
+            }
+          }
+          
+          // Bestellnummer beim Laden generieren
+          generatePurchaseOrderNumber();
+          
+          // Bestellnummer auch bei Payment-Method-Wechsel generieren
+          document.addEventListener('change', function(ev){
+            if(ev.target && ev.target.name === 'fc_payment_method' && ev.target.value === 'purchase_order'){
+              setTimeout(generatePurchaseOrderNumber, 100);
+            }
+          });
+          
           document.addEventListener('click', function(ev){
             var btn = ev.target.closest('.ukc-qty-btn');
             if(btn){
