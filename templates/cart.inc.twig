@@ -1035,14 +1035,10 @@
               // Prüfen ob Nutzer eingeloggt ist und PBI-Attribut hat
               var customerId = document.querySelector('#customer_id')?.value;
               var isLoggedIn = customerId && customerId !== '0';
+              var pbiValue = null;
               
-              var poNumber;
-              if(isLoggedIn){
-                // Für eingeloggte Nutzer: PBI-YYYYMMDD-HHMMSS-XXXX Format
-                // PBI-Wert aus Custom Attributes holen (falls verfügbar)
-                var pbiValue = '20251'; // Standard PBI-Wert
-                
-                // Versuche PBI-Wert aus Foxy-Daten zu holen
+              // Versuche PBI-Wert aus Custom Attributes zu holen (nur für eingeloggte Nutzer)
+              if(isLoggedIn) {
                 try {
                   // Prüfe ob Foxy-Daten verfügbar sind
                   if(typeof FC !== 'undefined' && FC.cart && FC.cart.customer && FC.cart.customer.attributes) {
@@ -1055,12 +1051,16 @@
                     }
                   }
                 } catch(e) {
-                  console.log('PBI-Attribut nicht gefunden, verwende Standard-Wert');
+                  console.log('PBI-Attribut nicht gefunden');
                 }
-                
+              }
+              
+              var poNumber;
+              if(isLoggedIn && pbiValue) {
+                // Für eingeloggte Nutzer MIT PBI-Attribut: PBI-WERT-YYYYMMDD-HHMMSS-XXXX Format
                 poNumber = 'PBI-' + pbiValue + '-' + year + month + day + '-' + hours + minutes + seconds + '-' + random;
               } else {
-                // Für Gäste: Standard UKC-Format
+                // Für alle anderen (Gäste und eingeloggte Nutzer ohne PBI): Standard UKC-Format
                 poNumber = 'UKC-' + year + month + day + '-' + hours + minutes + seconds + '-' + random;
               }
               
