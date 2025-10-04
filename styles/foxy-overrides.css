@@ -1110,7 +1110,8 @@ body.ukc-cart-page{
 /* Cart - Unnötige Elemente ausblenden */
 /* ===================== */
 .fc-action--payment--or,
-.fc-action--payment--paypal-platfor {
+.fc-action--payment--paypal-platfor,
+.fc-action--payment--paypal-platform {
   display: none !important;
 }
 
