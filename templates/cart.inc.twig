@@ -1023,7 +1023,6 @@
           function generatePurchaseOrderNumber(){
             var poInput = document.getElementById('purchase_order');
             if(poInput && !poInput.value){
-              // Format: UKC-YYYYMMDD-HHMMSS-XXXX (UKC + Datum + Zeit + 4-stellige Zufallszahl)
               var now = new Date();
               var year = now.getFullYear();
               var month = String(now.getMonth() + 1).padStart(2, '0');
@@ -1033,7 +1032,38 @@
               var seconds = String(now.getSeconds()).padStart(2, '0');
               var random = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
               
-              var poNumber = 'UKC-' + year + month + day + '-' + hours + minutes + seconds + '-' + random;
+              // Prüfen ob Nutzer eingeloggt ist und PBI-Attribut hat
+              var customerId = document.querySelector('#customer_id')?.value;
+              var isLoggedIn = customerId && customerId !== '0';
+              
+              var poNumber;
+              if(isLoggedIn){
+                // Für eingeloggte Nutzer: PBI-YYYYMMDD-HHMMSS-XXXX Format
+                // PBI-Wert aus Custom Attributes holen (falls verfügbar)
+                var pbiValue = '20251'; // Standard PBI-Wert
+                
+                // Versuche PBI-Wert aus Foxy-Daten zu holen
+                try {
+                  // Prüfe ob Foxy-Daten verfügbar sind
+                  if(typeof FC !== 'undefined' && FC.cart && FC.cart.customer && FC.cart.customer.attributes) {
+                    var attributes = FC.cart.customer.attributes;
+                    for(var i = 0; i < attributes.length; i++) {
+                      if(attributes[i].name === 'PBI') {
+                        pbiValue = attributes[i].value;
+                        break;
+                      }
+                    }
+                  }
+                } catch(e) {
+                  console.log('PBI-Attribut nicht gefunden, verwende Standard-Wert');
+                }
+                
+                poNumber = 'PBI-' + pbiValue + '-' + year + month + day + '-' + hours + minutes + seconds + '-' + random;
+              } else {
+                // Für Gäste: Standard UKC-Format
+                poNumber = 'UKC-' + year + month + day + '-' + hours + minutes + seconds + '-' + random;
+              }
+              
               poInput.value = poNumber;
               poInput.readOnly = true;
               poInput.style.backgroundColor = '#f8f9fa';
