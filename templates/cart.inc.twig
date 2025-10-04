@@ -1024,6 +1024,25 @@
             }
           }, 1000);
           
+          // Purchase Order Feld permanent readonly machen
+          function setPOFieldReadonly(poInput) {
+            if(poInput) {
+              poInput.readOnly = true;
+              poInput.disabled = false; // disabled = true würde das Feld grau machen, aber wir wollen es nur readonly
+              poInput.style.backgroundColor = '#f8f9fa';
+              poInput.style.cursor = 'not-allowed';
+              poInput.style.color = '#6c757d';
+              
+              // Zusätzliche Sicherheit: Event-Listener entfernen
+              poInput.onclick = function(e) { e.preventDefault(); return false; };
+              poInput.onkeydown = function(e) { e.preventDefault(); return false; };
+              poInput.onkeyup = function(e) { e.preventDefault(); return false; };
+              poInput.onkeypress = function(e) { e.preventDefault(); return false; };
+              poInput.oninput = function(e) { e.preventDefault(); return false; };
+              poInput.onpaste = function(e) { e.preventDefault(); return false; };
+            }
+          }
+          
           // Automatische Bestellnummer für Purchase Order generieren
           function generatePurchaseOrderNumber(){
             var poInput = document.getElementById('purchase_order');
@@ -1034,9 +1053,7 @@
               if(storedPONumber) {
                 // Verwende gespeicherte Bestellnummer
                 poInput.value = storedPONumber;
-                poInput.readOnly = true;
-                poInput.style.backgroundColor = '#f8f9fa';
-                poInput.style.cursor = 'not-allowed';
+                setPOFieldReadonly(poInput);
               } else if(!poInput.value) {
                 // Generiere neue Bestellnummer nur wenn keine vorhanden ist
                 var now = new Date();
@@ -1084,9 +1101,7 @@
                 sessionStorage.setItem('ukc_po_number', poNumber);
                 
                 poInput.value = poNumber;
-                poInput.readOnly = true;
-                poInput.style.backgroundColor = '#f8f9fa';
-                poInput.style.cursor = 'not-allowed';
+                setPOFieldReadonly(poInput);
               }
             }
           }
@@ -1100,6 +1115,62 @@
               setTimeout(generatePurchaseOrderNumber, 100);
             }
           });
+          
+          // MutationObserver für Purchase Order Feld - überwacht Änderungen am DOM
+          function setupPOFieldObserver() {
+            var poInput = document.getElementById('purchase_order');
+            if(poInput) {
+              // Observer für das spezifische Feld
+              var observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                  if(mutation.type === 'attributes' && mutation.attributeName === 'readonly') {
+                    // Falls readonly-Attribut entfernt wurde, wieder hinzufügen
+                    if(!poInput.readOnly) {
+                      setPOFieldReadonly(poInput);
+                    }
+                  }
+                });
+              });
+              
+              // Beobachte Änderungen an Attributen
+              observer.observe(poInput, { 
+                attributes: true, 
+                attributeFilter: ['readonly', 'disabled', 'style'] 
+              });
+              
+              // Zusätzlicher Observer für das gesamte Dokument (falls Feld neu erstellt wird)
+              var docObserver = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                  if(mutation.type === 'childList') {
+                    mutation.addedNodes.forEach(function(node) {
+                      if(node.nodeType === 1) { // Element node
+                        var newPOInput = node.querySelector ? node.querySelector('#purchase_order') : null;
+                        if(newPOInput || node.id === 'purchase_order') {
+                          var targetInput = newPOInput || node;
+                          setTimeout(function() {
+                            var storedPONumber = sessionStorage.getItem('ukc_po_number');
+                            if(storedPONumber) {
+                              targetInput.value = storedPONumber;
+                              setPOFieldReadonly(targetInput);
+                            }
+                          }, 50);
+                        }
+                      }
+                    });
+                  }
+                });
+              });
+              
+              // Beobachte das gesamte Dokument
+              docObserver.observe(document.body, { 
+                childList: true, 
+                subtree: true 
+              });
+            }
+          }
+          
+          // Observer nach kurzer Verzögerung einrichten
+          setTimeout(setupPOFieldObserver, 500);
           
           document.addEventListener('click', function(ev){
             var btn = ev.target.closest('.ukc-qty-btn');
