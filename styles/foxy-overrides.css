@@ -920,16 +920,32 @@ body.ukc-cart-page{
 /* ===================== */
 
 /* Radio-Buttons und Checkboxen linksbündig positionieren */
-.fc-input-group-container--radio,
+.fc-input-group-container--radio {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  margin: 16px 0 !important;
+}
+
 .fc-input-group-container--checkbox {
   display: flex !important;
+  flex-direction: column !important;
   align-items: flex-start !important;
   gap: 12px !important;
   margin: 16px 0 !important;
 }
 
 /* Labels als Flex-Container für Input + Text */
-.fc-input-group-container--radio .fc-input-group-container__title,
+.fc-input-group-container--radio .fc-input-group-container__title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex: 1 !important;
+  margin: 0 !important;
+  cursor: pointer !important;
+}
+
 .fc-input-group-container--checkbox .fc-input-group-container__title {
   display: flex !important;
   align-items: flex-start !important;
