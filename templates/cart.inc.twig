@@ -1005,6 +1005,18 @@
               updating = false;
             }
           }
+          // Kundentyp aus Cookie ermitteln
+          function getCustomerType(){
+            var cookies = document.cookie.split(';');
+            for(var i = 0; i < cookies.length; i++){
+              var cookie = cookies[i].trim();
+              if(cookie.indexOf('ukc_customer_type=') === 0){
+                return cookie.substring('ukc_customer_type='.length);
+              }
+            }
+            return 'privat'; // Standard: Privatkunde
+          }
+          
           // Tax-Berechnung triggern wenn Kundentyp sich ändert
           function triggerTaxCalculation(){
             var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
@@ -1013,6 +1025,7 @@
               if(customerTypeInput){
                 var customerType = getCustomerType();
                 customerTypeInput.value = customerType;
+                console.log('Setting customer_type to:', customerType);
                 // Foxy Tax-Berechnung triggern
                 if(typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
                   FC.checkout.tax.get_tax();

@@ -9,42 +9,50 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') {
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-      res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
       return res.status(204).end();
     }
 
-    // Nur POST erlauben
-    if (req.method !== 'POST') {
+    // POST und GET erlauben (Foxy macht manchmal GET-Requests)
+    if (req.method !== 'POST' && req.method !== 'GET') {
       return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
     // Body tolerant auslesen (JSON bevorzugt)
     let body = req.body || {};
     
-    // Robusteres Body-Parsing für verschiedene Foxy-Formate
-    if (typeof body === 'string') {
-      try {
-        body = JSON.parse(body);
-      } catch (e) {
-        // ignore, try to parse from 'input' or 'cart' field
+    // Für GET-Requests: Daten aus Query-Parameters holen
+    if (req.method === 'GET') {
+      body = req.query || {};
+    } else {
+      // Robusteres Body-Parsing für verschiedene Foxy-Formate (POST)
+      if (typeof body === 'string') {
+        try {
+          body = JSON.parse(body);
+        } catch (e) {
+          // ignore, try to parse from 'input' or 'cart' field
+        }
       }
-    }
-    if (body.input && typeof body.input === 'string') {
-      try {
-        body = JSON.parse(body.input);
-      } catch (e) { /* ignore */ }
-    } else if (body.cart && typeof body.cart === 'string') {
-      try {
-        body = JSON.parse(body.cart);
-      } catch (e) { /* ignore */ }
+      if (body.input && typeof body.input === 'string') {
+        try {
+          body = JSON.parse(body.input);
+        } catch (e) { /* ignore */ }
+      } else if (body.cart && typeof body.cart === 'string') {
+        try {
+          body = JSON.parse(body.cart);
+        } catch (e) { /* ignore */ }
+      }
     }
 
     // Debug: Log für Entwicklung
     console.log('Tax request:', { 
+      method: req.method,
       keys: Object.keys(body || {}), 
       customer_type: body.customer_type,
       fields: body.fields,
-      custom_fields: body.custom_fields
+      custom_fields: body.custom_fields,
+      billing_country: body.billing_country,
+      locale_code: body.locale_code
     });
 
     // customer_type aus diversen Quellen ziehen
@@ -74,8 +82,10 @@ export default async function handler(req, res) {
 
     console.log('Detected customer_type:', customerType);
 
-    // Tax-Logik
+    // Tax-Logik - Standard: 0% für alle (wie in der ursprünglichen Konfiguration)
     let taxes = [];
+    
+    // Nur wenn explizit Firmenkunde erkannt wird, 19% MwSt anwenden
     if (customerType === 'business' || customerType === 'firma' || customerType === 'firmenkunde') {
       taxes = [{ 
         name: 'MwSt', 
@@ -83,7 +93,8 @@ export default async function handler(req, res) {
         amount: 0 // Foxy berechnet den Betrag automatisch
       }];
     } else {
-      taxes = []; // 0% für Privatkunden
+      // Standard: 0% für alle anderen (Privatkunden und wenn customer_type nicht erkannt wird)
+      taxes = [];
     }
 
     const response = { taxes };
