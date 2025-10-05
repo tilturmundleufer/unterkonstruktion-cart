@@ -1178,9 +1178,25 @@
                 method: 'POST',
                 body: formData
               }).then(function(response) {
-                return response.json();
+                console.log('Direct tax response status:', response.status);
+                console.log('Direct tax response headers:', response.headers.get('content-type'));
+                
+                if (!response.ok) {
+                  throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+                }
+                
+                return response.text().then(function(text) {
+                  console.log('Direct tax response text:', text);
+                  try {
+                    return JSON.parse(text);
+                  } catch (e) {
+                    console.error('Failed to parse JSON response:', e);
+                    console.error('Response text was:', text);
+                    throw new Error('Invalid JSON response: ' + text.substring(0, 100));
+                  }
+                });
               }).then(function(data) {
-                console.log('Direct tax response:', data);
+                console.log('Direct tax response parsed:', data);
                 // Hier könnten wir die Tax-Werte in die UI einbauen
               }).catch(function(error) {
                 console.error('Direct tax request failed:', error);
@@ -1355,33 +1371,46 @@
             var allInputs = document.querySelectorAll('input');
             var companyInputs = [];
             var billingInputs = [];
+            var allFields = [];
             
+            // Erweiterte Suche nach allen möglichen Feldern
             allInputs.forEach(function(input) {
+              var fieldInfo = {
+                name: input.name,
+                id: input.id,
+                value: input.value,
+                type: input.type,
+                visible: input.offsetParent !== null,
+                placeholder: input.placeholder,
+                className: input.className,
+                element: input
+              };
+              
+              allFields.push(fieldInfo);
+              
+              // Company-Felder suchen
               if (input.name && (input.name.includes('company') || input.id && input.id.includes('company'))) {
-                companyInputs.push({
-                  name: input.name,
-                  id: input.id,
-                  value: input.value,
-                  type: input.type,
-                  visible: input.offsetParent !== null,
-                  element: input
-                });
+                companyInputs.push(fieldInfo);
               }
               
-              if (input.name && input.name.includes('billing')) {
-                billingInputs.push({
-                  name: input.name,
-                  id: input.id,
-                  value: input.value,
-                  type: input.type,
-                  visible: input.offsetParent !== null,
-                  element: input
-                });
+              // Billing-Felder suchen (erweitert)
+              if (input.name && (input.name.includes('billing') || input.id && input.id.includes('billing'))) {
+                billingInputs.push(fieldInfo);
               }
             });
             
+            console.log('All input fields:', allFields);
             console.log('Company inputs details:', companyInputs);
             console.log('Billing inputs details:', billingInputs);
+            
+            // Suche nach versteckten oder dynamischen Feldern
+            var hiddenInputs = document.querySelectorAll('input[type="hidden"]');
+            console.log('Hidden inputs:', hiddenInputs.length);
+            hiddenInputs.forEach(function(input) {
+              if (input.name && (input.name.includes('company') || input.name.includes('billing'))) {
+                console.log('Hidden field found:', input.name, '=', input.value);
+              }
+            });
             
             // Teste direkten Tax-Request mit gefundenen Werten
             if(companyInputs.length > 0) {
@@ -1453,6 +1482,100 @@
           
           // Billing Company Feld nach 4 Sekunden erstellen
           setTimeout(ensureBillingCompanyField, 4000);
+          
+          // Erweiterte Funktion: Billing Company Feld mit besserer Positionierung erstellen
+          function createBillingCompanyFieldAdvanced() {
+            var billingCompanyField = document.querySelector('#billing_company, input[name="billing_company"], input[data-fc-name="billing_company"]');
+            
+            if(!billingCompanyField) {
+              console.log('billing_company field not found, creating advanced version');
+              
+              // Suche nach verschiedenen möglichen Containern
+              var possibleContainers = [
+                '[data-fc-id="block-billing-address"]',
+                '.fc-transaction__billing',
+                '.fc-container__grid--billing',
+                '.fc-form-group',
+                'form',
+                'body'
+              ];
+              
+              var container = null;
+              for(var i = 0; i < possibleContainers.length; i++) {
+                container = document.querySelector(possibleContainers[i]);
+                if(container) {
+                  console.log('Found container:', possibleContainers[i]);
+                  break;
+                }
+              }
+              
+              if(container) {
+                // Erstelle ein sichtbares billing_company Feld
+                var fieldContainer = document.createElement('div');
+                fieldContainer.className = 'fc-form-group ukc-billing-company-field';
+                fieldContainer.style.cssText = 'margin: 10px 0; padding: 10px; border: 1px solid #ddd; background: #f9f9f9;';
+                
+                var label = document.createElement('label');
+                label.setAttribute('for', 'billing_company');
+                label.textContent = 'Firmenname (für Steuerberechnung)';
+                label.className = 'fc-form-group__label';
+                label.style.cssText = 'display: block; margin-bottom: 5px; font-weight: bold;';
+                
+                var input = document.createElement('input');
+                input.type = 'text';
+                input.id = 'billing_company';
+                input.name = 'billing_company';
+                input.setAttribute('data-fc-name', 'billing_company');
+                input.setAttribute('data-fc-tax-trigger', 'true');
+                input.className = 'fc-form-group__input';
+                input.placeholder = 'Firmenname eingeben (optional)';
+                input.style.cssText = 'width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;';
+                
+                var helpText = document.createElement('small');
+                helpText.textContent = 'Leer lassen für Privatkunden (0% MwSt), ausfüllen für Firmenkunden (19% MwSt)';
+                helpText.style.cssText = 'display: block; margin-top: 5px; color: #666; font-size: 12px;';
+                
+                fieldContainer.appendChild(label);
+                fieldContainer.appendChild(input);
+                fieldContainer.appendChild(helpText);
+                
+                // Füge das Feld zum Container hinzu
+                container.appendChild(fieldContainer);
+                
+                console.log('Created advanced billing_company field');
+                
+                // Event-Listener hinzufügen
+                input.addEventListener('input', function() {
+                  console.log('billing_company changed:', input.value);
+                  setTimeout(function() {
+                    triggerDirectTaxRequest();
+                  }, 500);
+                });
+                
+                input.addEventListener('change', function() {
+                  console.log('billing_company changed (change event):', input.value);
+                  setTimeout(function() {
+                    triggerDirectTaxRequest();
+                  }, 500);
+                });
+                
+                // Teste das Feld
+                setTimeout(function() {
+                  console.log('Testing created billing_company field...');
+                  input.value = 'Test Company';
+                  input.dispatchEvent(new Event('input', { bubbles: true }));
+                }, 1000);
+                
+              } else {
+                console.log('No suitable container found for billing_company field');
+              }
+            } else {
+              console.log('billing_company field already exists');
+            }
+          }
+          
+          // Erweiterte Billing Company Feld-Erstellung nach 7 Sekunden
+          setTimeout(createBillingCompanyFieldAdvanced, 7000);
           
           // Automatische Tax-Trigger für alle Company-Felder
           function attachTaxTriggersToCompanyFields() {
