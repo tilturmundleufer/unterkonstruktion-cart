@@ -998,6 +998,16 @@
                     FC.cart.customer_type = customerType;
                   }
                   
+                  // Weitere Alternative: Als billing_company setzen (wird immer übertragen)
+                  if(typeof FC !== 'undefined' && FC.cart) {
+                    // Speichere ursprünglichen Wert
+                    if(!FC.cart._original_billing_company) {
+                      FC.cart._original_billing_company = FC.cart.billing_company || '';
+                    }
+                    // Setze customer_type als billing_company (wird in Tax-Request übertragen)
+                    FC.cart.billing_company = 'CUSTOMER_TYPE:' + customerType;
+                  }
+                  
                   // Foxy Tax-Berechnung triggern
                   if(typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
                     FC.checkout.tax.get_tax();
@@ -1046,6 +1056,7 @@
                 var customerType = getCustomerType();
                 customerTypeInput.value = customerType;
                 console.log('Setting customer_type to:', customerType);
+                console.log('FC.cart object:', FC.cart);
                 
                 // Zusätzlich als Custom Field setzen, damit Foxy es mitsendet
                 if(typeof FC !== 'undefined' && FC.cart) {
@@ -1066,6 +1077,17 @@
                 if(typeof FC !== 'undefined' && FC.cart) {
                   FC.cart.customer_type = customerType;
                   console.log('Set FC.cart.customer_type to:', customerType);
+                }
+                
+                // Weitere Alternative: Als billing_company setzen (wird immer übertragen)
+                if(typeof FC !== 'undefined' && FC.cart) {
+                  // Speichere ursprünglichen Wert
+                  if(!FC.cart._original_billing_company) {
+                    FC.cart._original_billing_company = FC.cart.billing_company || '';
+                  }
+                  // Setze customer_type als billing_company (wird in Tax-Request übertragen)
+                  FC.cart.billing_company = 'CUSTOMER_TYPE:' + customerType;
+                  console.log('Set FC.cart.billing_company to:', FC.cart.billing_company);
                 }
                 
                 // Foxy Tax-Berechnung triggern

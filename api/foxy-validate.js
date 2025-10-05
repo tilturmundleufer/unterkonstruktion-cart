@@ -51,6 +51,7 @@ export default async function handler(req, res) {
       customer_type: body.customer_type,
       fields: body.fields,
       custom_fields: body.custom_fields,
+      billing_company: body.billing_company,
       billing_country: body.billing_country,
       locale_code: body.locale_code
     });
@@ -74,6 +75,10 @@ export default async function handler(req, res) {
           break;
         }
       }
+    }
+    // Aus billing_company (neue Methode)
+    else if (body.billing_company && body.billing_company.toString().startsWith('CUSTOMER_TYPE:')) {
+      customerType = body.billing_company.toString().replace('CUSTOMER_TYPE:', '').toLowerCase();
     }
     // Aus query params
     else if (req.query && (req.query.customer_type || req.query.customerType)) {
