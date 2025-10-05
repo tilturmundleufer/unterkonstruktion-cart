@@ -1122,7 +1122,11 @@
             if(typeof FC === 'undefined') return;
             var isCheckout = document.querySelector('#fc-cart')?.getAttribute('data-context') === 'checkout';
             if(!isCheckout) return;
-            if(!hasValidAddress()) return; // keine gültige Adresse => nichts triggern (verhindert Flackern)
+            // Bei Company-Änderung auch ohne vollständige Adresse Tax triggern, Foxy darf 0% liefern
+            if(!hasValidAddress()){
+              try{ FC.checkout && FC.checkout.tax && FC.checkout.tax.get_tax && FC.checkout.tax.get_tax(); }catch(_){ }
+              return;
+            }
             try{ FC.checkout && FC.checkout.tax && FC.checkout.tax.get_tax && FC.checkout.tax.get_tax(); }catch(_){ }
             try{ FC.checkout && FC.checkout.shipping && FC.checkout.shipping.get_shipping_and_handling && FC.checkout.shipping.get_shipping_and_handling(); }catch(_){ }
           }, 400);
@@ -1135,6 +1139,15 @@
             if(!form) return { billing: null, shipping: null };
             var billing = form.querySelector('input[name="billing_company"], input[data-fc-name="billing_company"]');
             var shipping = form.querySelector('input[name="shipping_company"], input[data-fc-name="shipping_company"]');
+            // Falls sichtbares Feld existiert, aber kein data-fc-name/trigger gesetzt ist: ergänzen
+            if(billing && !billing.getAttribute('data-fc-name')){
+              billing.setAttribute('data-fc-name','billing_company');
+              billing.setAttribute('data-fc-tax-trigger','true');
+            }
+            if(shipping && !shipping.getAttribute('data-fc-name')){
+              shipping.setAttribute('data-fc-name','shipping_company');
+              shipping.setAttribute('data-fc-tax-trigger','true');
+            }
             if(!billing){
               billing = document.createElement('input');
               billing.type='hidden';
@@ -1187,7 +1200,7 @@
           // Listener an sichtbare Felder
           (function attachCompanyListeners(){
             var debounced = debounce(function(){ syncCompanyFields(); applyCompanyAndTriggerTax(); }, 250);
-            ['#billing_company','input[name="billing_company"]','#shipping_company','input[name="shipping_company"]']
+            ['#billing_company','input[name="billing_company"]','input[data-fc-name="billing_company"]','#shipping_company','input[name="shipping_company"]','input[data-fc-name="shipping_company"]']
               .forEach(function(sel){
                 var el = document.querySelector(sel);
                 if(el){ ['input','change','blur'].forEach(function(evt){ el.addEventListener(evt, debounced); }); }
