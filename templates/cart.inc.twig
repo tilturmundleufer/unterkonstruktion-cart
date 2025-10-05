@@ -1348,6 +1348,53 @@
           // Debug-Funktion nach 3 Sekunden ausführen
           setTimeout(window.debugFoxyFields, 3000);
           
+          // Erweiterte Debug-Funktion: Company-Felder detailliert anzeigen
+          window.debugCompanyFields = function() {
+            console.log('=== COMPANY FIELDS DETAILED DEBUG ===');
+            
+            var allInputs = document.querySelectorAll('input');
+            var companyInputs = [];
+            var billingInputs = [];
+            
+            allInputs.forEach(function(input) {
+              if (input.name && (input.name.includes('company') || input.id && input.id.includes('company'))) {
+                companyInputs.push({
+                  name: input.name,
+                  id: input.id,
+                  value: input.value,
+                  type: input.type,
+                  visible: input.offsetParent !== null,
+                  element: input
+                });
+              }
+              
+              if (input.name && input.name.includes('billing')) {
+                billingInputs.push({
+                  name: input.name,
+                  id: input.id,
+                  value: input.value,
+                  type: input.type,
+                  visible: input.offsetParent !== null,
+                  element: input
+                });
+              }
+            });
+            
+            console.log('Company inputs details:', companyInputs);
+            console.log('Billing inputs details:', billingInputs);
+            
+            // Teste direkten Tax-Request mit gefundenen Werten
+            if(companyInputs.length > 0) {
+              console.log('Testing direct tax request with found company values...');
+              triggerDirectTaxRequest();
+            }
+            
+            console.log('=== END COMPANY DEBUG ===');
+          };
+          
+          // Erweiterte Debug-Funktion nach 5 Sekunden ausführen
+          setTimeout(window.debugCompanyFields, 5000);
+          
           // Billing Company Feld explizit erstellen falls nicht vorhanden
           function ensureBillingCompanyField() {
             var billingCompanyField = document.querySelector('#billing_company, input[name="billing_company"], input[data-fc-name="billing_company"]');
@@ -1406,6 +1453,42 @@
           
           // Billing Company Feld nach 4 Sekunden erstellen
           setTimeout(ensureBillingCompanyField, 4000);
+          
+          // Automatische Tax-Trigger für alle Company-Felder
+          function attachTaxTriggersToCompanyFields() {
+            var allInputs = document.querySelectorAll('input');
+            var attachedCount = 0;
+            
+            allInputs.forEach(function(input) {
+              if (input.name && (input.name.includes('company') || input.id && input.id.includes('company'))) {
+                // Entferne alte Event-Listener
+                input.removeEventListener('input', handleCompanyFieldChange);
+                input.removeEventListener('change', handleCompanyFieldChange);
+                
+                // Füge neue Event-Listener hinzu
+                input.addEventListener('input', handleCompanyFieldChange);
+                input.addEventListener('change', handleCompanyFieldChange);
+                
+                attachedCount++;
+                console.log('Attached tax trigger to field:', input.name || input.id, 'value:', input.value);
+              }
+            });
+            
+            console.log('Attached tax triggers to', attachedCount, 'company fields');
+          }
+          
+          function handleCompanyFieldChange(event) {
+            console.log('Company field changed:', event.target.name || event.target.id, 'new value:', event.target.value);
+            
+            // Kurze Verzögerung, dann Tax triggern
+            setTimeout(function() {
+              console.log('Triggering tax calculation due to company field change');
+              triggerDirectTaxRequest();
+            }, 500);
+          }
+          
+          // Tax-Trigger nach 6 Sekunden an alle Company-Felder anhängen
+          setTimeout(attachTaxTriggersToCompanyFields, 6000);
           
           // Diagnose: Stelle sicher, dass der Tax-Endpoint mindestens EINMAL requested wird
           (function ensureTaxRequestedOnce(){
