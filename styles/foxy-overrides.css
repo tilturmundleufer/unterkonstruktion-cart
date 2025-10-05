@@ -1089,6 +1089,32 @@ body.ukc-cart-page{
 }
 
 /* ===================== */
+/* Checkout — Kreditkarten-Fehlermeldungen */
+/* ===================== */
+
+/* Fehlermeldungen für Kreditkartenfelder nur anzeigen, wenn Zahlungsmethode ausgewählt ist */
+.fc-alert[data-fc-error-for="cc_cvv2"],
+.fc-alert[data-fc-error-for="cc_number"] {
+  display: none !important;
+}
+
+/* Fehlermeldungen anzeigen, wenn entsprechende Zahlungsmethode aktiv ist */
+.fc-input-group-container--active .fc-alert[data-fc-error-for="cc_cvv2"],
+.fc-input-group-container--active .fc-alert[data-fc-error-for="cc_number"],
+.fc-container__grid--payment-method:has(.fc-input-group-container--active) .fc-alert[data-fc-error-for="cc_cvv2"],
+.fc-container__grid--payment-method:has(.fc-input-group-container--active) .fc-alert[data-fc-error-for="cc_number"] {
+  display: block !important;
+}
+
+/* Alternative Lösung für Browser ohne :has() Support */
+.fc-payment-method--plastic__new .fc-alert[data-fc-error-for="cc_cvv2"],
+.fc-payment-method--plastic__new .fc-alert[data-fc-error-for="cc_number"],
+.fc-payment-method--stripe_connect .fc-alert[data-fc-error-for="cc_cvv2"],
+.fc-payment-method--stripe_connect .fc-alert[data-fc-error-for="cc_number"] {
+  display: block !important;
+}
+
+/* ===================== */
 /* Purchase Order - Automatische Bestellnummer */
 /* ===================== */
 
