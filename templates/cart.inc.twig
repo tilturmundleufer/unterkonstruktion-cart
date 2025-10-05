@@ -1044,10 +1044,24 @@
             }
             FC.cart.billing_company = 'CUSTOMER_TYPE:' + customerType;
             
-            console.debug('Set customer_type in Foxy:', {
+            // 4. Als billing_address2 (zusätzlicher Workaround)
+            if(!FC.cart._original_billing_address2) {
+              FC.cart._original_billing_address2 = FC.cart.billing_address2 || '';
+            }
+            FC.cart.billing_address2 = 'CUSTOMER_TYPE:' + customerType;
+            
+            // 5. Als customer_email (zusätzlicher Workaround)
+            if(!FC.cart._original_customer_email) {
+              FC.cart._original_customer_email = FC.cart.customer_email || '';
+            }
+            FC.cart.customer_email = 'CUSTOMER_TYPE:' + customerType;
+            
+            console.log('Set customer_type in Foxy:', {
               customerType: customerType,
               custom_fields: FC.cart.custom_fields,
-              billing_company: FC.cart.billing_company
+              billing_company: FC.cart.billing_company,
+              billing_address2: FC.cart.billing_address2,
+              customer_email: FC.cart.customer_email
             });
           }
           

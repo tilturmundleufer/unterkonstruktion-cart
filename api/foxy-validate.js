@@ -35,11 +35,13 @@ export default async function handler(req, res) {
     }
 
     // Debug-Log (nur in Entwicklung)
-    console.debug('Tax request:', { 
+    console.log('Tax request:', { 
       method: req.method,
       keys: Object.keys(data || {}), 
       customer_type: data?.customer_type,
       billing_company: data?.billing_company,
+      billing_address2: data?.billing_address2,
+      customer_email: data?.customer_email,
       custom_fields: data?.custom_fields
     });
 
@@ -59,9 +61,15 @@ export default async function handler(req, res) {
     else if (data?.billing_company?.startsWith('CUSTOMER_TYPE:')) {
       type = lower(data.billing_company.replace('CUSTOMER_TYPE:', ''));
     }
+    else if (data?.billing_address2?.startsWith('CUSTOMER_TYPE:')) {
+      type = lower(data.billing_address2.replace('CUSTOMER_TYPE:', ''));
+    }
+    else if (data?.customer_email?.startsWith('CUSTOMER_TYPE:')) {
+      type = lower(data.customer_email.replace('CUSTOMER_TYPE:', ''));
+    }
     else if (req.query?.customer_type) type = lower(req.query.customer_type);
 
-    console.debug('Detected customer_type:', type);
+    console.log('Detected customer_type:', type);
 
     // Steuerlogik: Firmenkunden = 19%, Privat = 0%
     const TAX_RATES = {
@@ -76,7 +84,7 @@ export default async function handler(req, res) {
       amount: 0 // Foxy berechnet den Betrag automatisch
     }] : [];
 
-    console.debug('Tax response:', { taxes });
+    console.log('Tax response:', { taxes });
     return res.status(200).json({ taxes });
     
   } catch (e) {
