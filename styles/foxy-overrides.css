@@ -597,7 +597,7 @@ button[type=submit] {
 .ukc-remove-btn:hover{ background:#f7f9fc; }
 /* --- Page shell (logos above/below) --- */
 .ukc-shell{
-  max-width: 1200px; /* Sicherheitsnetz auf dem äußeren Shell-Container */
+  max-width: 1300px; /* Sicherheitsnetz auf dem äußeren Shell-Container */
   margin: 0 auto;
   padding: 0; /* Kein horizontales Padding */
 }
