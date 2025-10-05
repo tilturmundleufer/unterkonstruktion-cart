@@ -1111,6 +1111,13 @@ body.ukc-cart-page{
   padding-right: 10px;
 }
 
+/* PayPal Pay Later Form-Block ausblenden */
+#fc-payment-method-paypal_platform_paylater,
+.fc-payment-method--paypal_platform_paylater,
+.fc-form-group:has(#fc-payment-method-paypal_platform_paylater) {
+  display: none !important;
+}
+
 /* ===================== */
 /* Purchase Order - Automatische Bestellnummer */
 /* ===================== */
