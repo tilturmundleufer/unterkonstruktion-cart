@@ -988,6 +988,15 @@
               // Bestellnummer nach AJAX-Update wiederherstellen
               setTimeout(function(){
                 generatePurchaseOrderNumber();
+                // Zusätzliche Sicherheit: Alle PO-Felder im DOM finden und readonly machen
+                var allPOInputs = document.querySelectorAll('#purchase_order');
+                allPOInputs.forEach(function(input) {
+                  var storedPONumber = sessionStorage.getItem('ukc_po_number');
+                  if(storedPONumber) {
+                    input.value = storedPONumber;
+                    setPOFieldReadonly(input);
+                  }
+                });
               }, 100);
             }catch(e){
               console.error('Cart update failed', e);
@@ -1116,6 +1125,40 @@
             }
           });
           
+          // Direkter Event-Listener für Versandmethoden-Änderungen
+          document.addEventListener('change', function(ev){
+            // Prüfe ob es ein Versandmethoden-Radio-Button ist
+            if(ev.target && ev.target.type === 'radio' && ev.target.name && ev.target.name.includes('shipping')) {
+              setTimeout(function(){
+                var allPOInputs = document.querySelectorAll('#purchase_order');
+                allPOInputs.forEach(function(input) {
+                  var storedPONumber = sessionStorage.getItem('ukc_po_number');
+                  if(storedPONumber) {
+                    input.value = storedPONumber;
+                    setPOFieldReadonly(input);
+                  }
+                });
+              }, 200);
+            }
+          });
+          
+          // Zusätzlicher Event-Listener für alle Klicks auf Versandoptionen
+          document.addEventListener('click', function(ev){
+            // Prüfe ob auf eine Versandoption geklickt wurde
+            if(ev.target && (ev.target.closest('.fc-shipping-rates__rate') || ev.target.closest('[data-fc-id="shipping-results"]'))) {
+              setTimeout(function(){
+                var allPOInputs = document.querySelectorAll('#purchase_order');
+                allPOInputs.forEach(function(input) {
+                  var storedPONumber = sessionStorage.getItem('ukc_po_number');
+                  if(storedPONumber) {
+                    input.value = storedPONumber;
+                    setPOFieldReadonly(input);
+                  }
+                });
+              }, 300);
+            }
+          });
+          
           // MutationObserver für Purchase Order Feld - überwacht Änderungen am DOM
           function setupPOFieldObserver() {
             var poInput = document.getElementById('purchase_order');
@@ -1171,6 +1214,18 @@
           
           // Observer nach kurzer Verzögerung einrichten
           setTimeout(setupPOFieldObserver, 500);
+          
+          // Kontinuierlicher Check alle 2 Sekunden
+          setInterval(function(){
+            var allPOInputs = document.querySelectorAll('#purchase_order');
+            allPOInputs.forEach(function(input) {
+              var storedPONumber = sessionStorage.getItem('ukc_po_number');
+              if(storedPONumber && (input.value !== storedPONumber || !input.readOnly)) {
+                input.value = storedPONumber;
+                setPOFieldReadonly(input);
+              }
+            });
+          }, 2000);
           
           document.addEventListener('click', function(ev){
             var btn = ev.target.closest('.ukc-qty-btn');
