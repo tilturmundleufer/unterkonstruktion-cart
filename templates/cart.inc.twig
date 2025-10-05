@@ -978,6 +978,21 @@
                 if(customerTypeInput){
                   var customerType = getCustomerType();
                   customerTypeInput.value = customerType;
+                  
+                  // Zusätzlich als Custom Field setzen, damit Foxy es mitsendet
+                  if(typeof FC !== 'undefined' && FC.cart) {
+                    FC.cart.custom_fields = FC.cart.custom_fields || [];
+                    // Bestehenden customer_type Eintrag entfernen
+                    FC.cart.custom_fields = FC.cart.custom_fields.filter(function(field) {
+                      return field.name !== 'customer_type';
+                    });
+                    // Neuen customer_type hinzufügen
+                    FC.cart.custom_fields.push({
+                      name: 'customer_type',
+                      value: customerType
+                    });
+                  }
+                  
                   // Foxy Tax-Berechnung triggern
                   if(typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
                     FC.checkout.tax.get_tax();
@@ -1026,6 +1041,22 @@
                 var customerType = getCustomerType();
                 customerTypeInput.value = customerType;
                 console.log('Setting customer_type to:', customerType);
+                
+                // Zusätzlich als Custom Field setzen, damit Foxy es mitsendet
+                if(typeof FC !== 'undefined' && FC.cart) {
+                  FC.cart.custom_fields = FC.cart.custom_fields || [];
+                  // Bestehenden customer_type Eintrag entfernen
+                  FC.cart.custom_fields = FC.cart.custom_fields.filter(function(field) {
+                    return field.name !== 'customer_type';
+                  });
+                  // Neuen customer_type hinzufügen
+                  FC.cart.custom_fields.push({
+                    name: 'customer_type',
+                    value: customerType
+                  });
+                  console.log('Updated FC.cart.custom_fields:', FC.cart.custom_fields);
+                }
+                
                 // Foxy Tax-Berechnung triggern
                 if(typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
                   FC.checkout.tax.get_tax();
