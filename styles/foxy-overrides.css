@@ -1080,6 +1080,15 @@ body.ukc-cart-page{
   border-color: #dee2e6 !important;
 }
 
+/* Ensure billing address is visible for guests */
+[data-fc-id="block-billing-address"] {
+  display: block !important;
+}
+
+.fc-transaction__billing {
+  display: block !important;
+}
+
 /* Purchase Order Label anpassen */
 .fc-container__grid--label--po {
   font-weight: 600 !important;
