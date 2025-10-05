@@ -2066,10 +2066,56 @@
             if(rm){
               ev.preventDefault();
               var idr = rm.getAttribute('data-fc-item-id');
+              var row = document.querySelector('[data-fc-item-id="' + idr + '"]');
+              
+              // Sofortige visuelle Animation: Element ausblenden
+              if(row){
+                row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(-20px)';
+                
+                // Nach Animation entfernen
+                setTimeout(function(){
+                  if(row && row.parentNode){
+                    row.parentNode.removeChild(row);
+                  }
+                }, 300);
+              }
+              
               var inp = findQtyInput(idr);
               if(inp){ inp.value = 0; }
               recalcSummary();
               ajaxUpdate();
+            }
+          }, false);
+
+          // Event-Listener für "Alle entfernen" Button
+          document.addEventListener('click', function(ev) {
+            var emptyBtn = ev.target.closest('[data-fc-id="cart-empty-link"]');
+            if(emptyBtn){
+              ev.preventDefault();
+              
+              // Alle Item-Rows finden und animiert entfernen
+              var allRows = document.querySelectorAll('.ukc-row[data-fc-item-id]');
+              allRows.forEach(function(row, index){
+                setTimeout(function(){
+                  row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                  row.style.opacity = '0';
+                  row.style.transform = 'translateX(-20px)';
+                  
+                  setTimeout(function(){
+                    if(row && row.parentNode){
+                      row.parentNode.removeChild(row);
+                    }
+                  }, 300);
+                }, index * 100); // Gestaffelte Animation
+              });
+              
+              // Summary zurücksetzen
+              setTimeout(function(){
+                recalcSummary();
+                ajaxUpdate();
+              }, allRows.length * 100 + 400);
             }
           }, false);
 
