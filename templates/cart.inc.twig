@@ -1089,11 +1089,44 @@
           
           // Checkout: Listener für Firmenname, debounced Tax-Trigger
           function debounce(fn, wait){ let t; return function(){ clearTimeout(t); t = setTimeout(fn, wait); }; }
-          const billingCompanyInput = document.querySelector('#billing_company');
-          if(billingCompanyInput){
-            const debounced = debounce(applyCompanyAndTriggerTax, 300);
-            ['input','change','blur'].forEach(function(evt){ billingCompanyInput.addEventListener(evt, debounced); });
+          // Hilfsfunktion: hidden Inputs für billing_company / shipping_company sicherstellen
+          function ensureCompanyHiddenInputs(){
+            var form = document.querySelector('form');
+            if(!form) return { billing: null, shipping: null };
+            var billing = form.querySelector('input[name="billing_company"]');
+            var shipping = form.querySelector('input[name="shipping_company"]');
+            if(!billing){ billing = document.createElement('input'); billing.type='hidden'; billing.name='billing_company'; billing.id='billing_company'; form.appendChild(billing); }
+            if(!shipping){ shipping = document.createElement('input'); shipping.type='hidden'; shipping.name='shipping_company'; shipping.id='shipping_company'; form.appendChild(shipping); }
+            return { billing: billing, shipping: shipping };
           }
+
+          // Sync-Funktion: sichtbare Felder -> hidden Inputs -> FC.cart
+          function syncCompanyFields(){
+            var refs = ensureCompanyHiddenInputs();
+            var visibleBilling = document.querySelector('#billing_company') || document.querySelector('input[name="billing_company"]');
+            var visibleShipping = document.querySelector('#shipping_company') || document.querySelector('input[name="shipping_company"]');
+            var billingVal = (visibleBilling && visibleBilling !== refs.billing) ? (visibleBilling.value||'') : (refs.billing?.value||'');
+            var shippingVal = (visibleShipping && visibleShipping !== refs.shipping) ? (visibleShipping.value||'') : (refs.shipping?.value||'');
+            if(refs.billing) refs.billing.value = billingVal;
+            if(refs.shipping) refs.shipping.value = shippingVal;
+            if(typeof FC !== 'undefined' && FC.cart){
+              if(billingVal != null) FC.cart.billing_company = billingVal;
+              if(shippingVal != null) FC.cart.shipping_company = shippingVal;
+            }
+          }
+
+          // Listener an sichtbare Felder
+          (function attachCompanyListeners(){
+            var debounced = debounce(function(){ syncCompanyFields(); applyCompanyAndTriggerTax(); }, 250);
+            ['#billing_company','input[name="billing_company"]','#shipping_company','input[name="shipping_company"]']
+              .forEach(function(sel){
+                var el = document.querySelector(sel);
+                if(el){ ['input','change','blur'].forEach(function(evt){ el.addEventListener(evt, debounced); }); }
+              });
+          })();
+
+          // Periodischer Sync als Fallback gegen DOM-Replacements von Foxy
+          setInterval(syncCompanyFields, 1000);
           
           // Test-Funktion: Manuell Kundentyp setzen (für Debugging)
           window.testCustomerType = function(type) {
