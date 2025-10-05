@@ -1118,6 +1118,18 @@ body.ukc-cart-page{
   display: none !important;
 }
 
+/* PayPal SEPA Text korrigieren */
+.fc-input-group-container__title:has(input[value="paypal_platform_sepa"]) {
+  font-size: 0 !important; /* Original-Text ausblenden */
+}
+
+.fc-input-group-container__title:has(input[value="paypal_platform_sepa"])::after {
+  content: "Bezahlen mit SEPA da." !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #0b1220 !important;
+}
+
 /* ===================== */
 /* Purchase Order - Automatische Bestellnummer */
 /* ===================== */
