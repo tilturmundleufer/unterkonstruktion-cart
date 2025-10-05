@@ -1,112 +1,83 @@
-// Vercel Serverless Function für Foxy Cart Validation
-// Steuert die Steuerhöhe abhängig vom Kundentyp (customer_type):
-// - "business" | "firma" => 19% MwSt (Beispiel)
-// - "private" | "privat" => 0%
+// Vercel Serverless Function für Foxy Cart Tax Endpoint
+// Berechnet Steuersätze basierend auf Kundentyp (Privat/Firma)
+// - Firmenkunden: 19% MwSt
+// - Privatkunden: 0% (steuerfrei)
 
 export default async function handler(req, res) {
   try {
-    // CORS für Preflight
+    // CORS-Header setzen
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+    
+    // OPTIONS für Preflight
     if (req.method === 'OPTIONS') {
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-      res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
       return res.status(204).end();
     }
-
-    // POST und GET erlauben (Foxy macht manchmal GET-Requests)
+    
+    // Nur POST und GET erlauben
     if (req.method !== 'POST' && req.method !== 'GET') {
       return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    // Body tolerant auslesen (JSON bevorzugt)
-    let body = req.body || {};
+    // Daten tolerant auslesen
+    let data = req.method === 'GET' ? req.query : req.body;
     
-    // Für GET-Requests: Daten aus Query-Parameters holen
-    if (req.method === 'GET') {
-      body = req.query || {};
-    } else {
-      // Robusteres Body-Parsing für verschiedene Foxy-Formate (POST)
-      if (typeof body === 'string') {
-        try {
-          body = JSON.parse(body);
-        } catch (e) {
-          // ignore, try to parse from 'input' or 'cart' field
-        }
-      }
-      if (body.input && typeof body.input === 'string') {
-        try {
-          body = JSON.parse(body.input);
-        } catch (e) { /* ignore */ }
-      } else if (body.cart && typeof body.cart === 'string') {
-        try {
-          body = JSON.parse(body.cart);
-        } catch (e) { /* ignore */ }
-      }
+    // Robusteres Parsing für verschiedene Foxy-Formate
+    if (typeof data === 'string') {
+      try { data = JSON.parse(data); } catch (e) { /* ignore */ }
+    }
+    if (data?.input && typeof data.input === 'string') {
+      try { data = JSON.parse(data.input); } catch (e) { /* ignore */ }
+    }
+    if (data?.cart && typeof data.cart === 'string') {
+      try { data = JSON.parse(data.cart); } catch (e) { /* ignore */ }
     }
 
-    // Debug: Log für Entwicklung
-    console.log('Tax request:', { 
+    // Debug-Log (nur in Entwicklung)
+    console.debug('Tax request:', { 
       method: req.method,
-      keys: Object.keys(body || {}), 
-      customer_type: body.customer_type,
-      fields: body.fields,
-      custom_fields: body.custom_fields,
-      billing_company: body.billing_company,
-      billing_country: body.billing_country,
-      locale_code: body.locale_code
+      keys: Object.keys(data || {}), 
+      customer_type: data?.customer_type,
+      billing_company: data?.billing_company,
+      custom_fields: data?.custom_fields
     });
 
-    // customer_type aus diversen Quellen ziehen
-    let customerType = '';
+    // Kunden-Typ ermitteln
+    const lower = (v) => (v || '').toString().toLowerCase();
+    let type = '';
     
-    // Direkt aus body
-    if (body.customer_type) {
-      customerType = body.customer_type.toString().toLowerCase();
+    // Verschiedene Quellen für customer_type prüfen
+    if (data?.customer_type) type = lower(data.customer_type);
+    else if (data?.fields?.customer_type) type = lower(data.fields.customer_type);
+    else if (data?.custom_fields?.length) {
+      const field = data.custom_fields.find(f => 
+        lower(f.name) === 'customer_type' || lower(f.name) === 'customertype'
+      );
+      if (field) type = lower(field.value);
     }
-    // Aus fields
-    else if (body.fields && body.fields.customer_type) {
-      customerType = body.fields.customer_type.toString().toLowerCase();
+    else if (data?.billing_company?.startsWith('CUSTOMER_TYPE:')) {
+      type = lower(data.billing_company.replace('CUSTOMER_TYPE:', ''));
     }
-    // Aus custom_fields
-    else if (body.custom_fields && Array.isArray(body.custom_fields)) {
-      for (const field of body.custom_fields) {
-        if (field.name === 'customer_type' || field.name === 'customerType') {
-          customerType = field.value.toString().toLowerCase();
-          break;
-        }
-      }
-    }
-    // Aus billing_company (neue Methode)
-    else if (body.billing_company && body.billing_company.toString().startsWith('CUSTOMER_TYPE:')) {
-      customerType = body.billing_company.toString().replace('CUSTOMER_TYPE:', '').toLowerCase();
-    }
-    // Aus query params
-    else if (req.query && (req.query.customer_type || req.query.customerType)) {
-      customerType = (req.query.customer_type || req.query.customerType).toString().toLowerCase();
-    }
+    else if (req.query?.customer_type) type = lower(req.query.customer_type);
 
-    console.log('Detected customer_type:', customerType);
+    console.debug('Detected customer_type:', type);
 
-    // Tax-Logik - Standard: 0% für alle (wie in der ursprünglichen Konfiguration)
-    let taxes = [];
+    // Steuerlogik: Firmenkunden = 19%, Privat = 0%
+    const TAX_RATES = {
+      business: { name: 'MwSt', rate: 0.19 },
+      firma: { name: 'MwSt', rate: 0.19 },
+      firmenkunde: { name: 'MwSt', rate: 0.19 }
+    };
     
-    // Nur wenn explizit Firmenkunde erkannt wird, 19% MwSt anwenden
-    if (customerType === 'business' || customerType === 'firma' || customerType === 'firmenkunde') {
-      taxes = [{ 
-        name: 'MwSt', 
-        rate: 0.19,
-        amount: 0 // Foxy berechnet den Betrag automatisch
-      }];
-    } else {
-      // Standard: 0% für alle anderen (Privatkunden und wenn customer_type nicht erkannt wird)
-      taxes = [];
-    }
+    const taxes = TAX_RATES[type] ? [{
+      name: TAX_RATES[type].name,
+      rate: TAX_RATES[type].rate,
+      amount: 0 // Foxy berechnet den Betrag automatisch
+    }] : [];
 
-    const response = { taxes };
-    
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    console.log('Tax response:', response);
-    return res.status(200).json(response);
+    console.debug('Tax response:', { taxes });
+    return res.status(200).json({ taxes });
     
   } catch (e) {
     console.error('Tax endpoint error:', e);

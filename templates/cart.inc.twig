@@ -979,34 +979,8 @@
                   var customerType = getCustomerType();
                   customerTypeInput.value = customerType;
                   
-                  // Zusätzlich als Custom Field setzen, damit Foxy es mitsendet
-                  if(typeof FC !== 'undefined' && FC.cart) {
-                    FC.cart.custom_fields = FC.cart.custom_fields || [];
-                    // Bestehenden customer_type Eintrag entfernen
-                    FC.cart.custom_fields = FC.cart.custom_fields.filter(function(field) {
-                      return field.name !== 'customer_type';
-                    });
-                    // Neuen customer_type hinzufügen
-                    FC.cart.custom_fields.push({
-                      name: 'customer_type',
-                      value: customerType
-                    });
-                  }
-                  
-                  // Alternative: Als Standard-Field setzen (falls Custom Fields nicht funktionieren)
-                  if(typeof FC !== 'undefined' && FC.cart) {
-                    FC.cart.customer_type = customerType;
-                  }
-                  
-                  // Weitere Alternative: Als billing_company setzen (wird immer übertragen)
-                  if(typeof FC !== 'undefined' && FC.cart) {
-                    // Speichere ursprünglichen Wert
-                    if(!FC.cart._original_billing_company) {
-                      FC.cart._original_billing_company = FC.cart.billing_company || '';
-                    }
-                    // Setze customer_type als billing_company (wird in Tax-Request übertragen)
-                    FC.cart.billing_company = 'CUSTOMER_TYPE:' + customerType;
-                  }
+                  // Customer Type in Foxy setzen (alle Methoden)
+                  setCustomerTypeInFoxy(customerType);
                   
                   // Foxy Tax-Berechnung triggern
                   if(typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
@@ -1047,6 +1021,36 @@
             return 'privat'; // Standard: Privatkunde
           }
           
+          // Customer Type in Foxy Cart setzen
+          function setCustomerTypeInFoxy(customerType) {
+            if(typeof FC === 'undefined' || !FC.cart) return;
+            
+            // 1. Als Custom Field setzen
+            FC.cart.custom_fields = FC.cart.custom_fields || [];
+            FC.cart.custom_fields = FC.cart.custom_fields.filter(function(field) {
+              return field.name !== 'customer_type';
+            });
+            FC.cart.custom_fields.push({
+              name: 'customer_type',
+              value: customerType
+            });
+            
+            // 2. Als Standard-Field setzen
+            FC.cart.customer_type = customerType;
+            
+            // 3. Als billing_company (Workaround)
+            if(!FC.cart._original_billing_company) {
+              FC.cart._original_billing_company = FC.cart.billing_company || '';
+            }
+            FC.cart.billing_company = 'CUSTOMER_TYPE:' + customerType;
+            
+            console.debug('Set customer_type in Foxy:', {
+              customerType: customerType,
+              custom_fields: FC.cart.custom_fields,
+              billing_company: FC.cart.billing_company
+            });
+          }
+          
           // Tax-Berechnung triggern wenn Kundentyp sich ändert
           function triggerTaxCalculation(){
             var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
@@ -1055,40 +1059,9 @@
               if(customerTypeInput){
                 var customerType = getCustomerType();
                 customerTypeInput.value = customerType;
-                console.log('Setting customer_type to:', customerType);
-                console.log('FC.cart object:', FC.cart);
                 
-                // Zusätzlich als Custom Field setzen, damit Foxy es mitsendet
-                if(typeof FC !== 'undefined' && FC.cart) {
-                  FC.cart.custom_fields = FC.cart.custom_fields || [];
-                  // Bestehenden customer_type Eintrag entfernen
-                  FC.cart.custom_fields = FC.cart.custom_fields.filter(function(field) {
-                    return field.name !== 'customer_type';
-                  });
-                  // Neuen customer_type hinzufügen
-                  FC.cart.custom_fields.push({
-                    name: 'customer_type',
-                    value: customerType
-                  });
-                  console.log('Updated FC.cart.custom_fields:', FC.cart.custom_fields);
-                }
-                
-                // Alternative: Als Standard-Field setzen (falls Custom Fields nicht funktionieren)
-                if(typeof FC !== 'undefined' && FC.cart) {
-                  FC.cart.customer_type = customerType;
-                  console.log('Set FC.cart.customer_type to:', customerType);
-                }
-                
-                // Weitere Alternative: Als billing_company setzen (wird immer übertragen)
-                if(typeof FC !== 'undefined' && FC.cart) {
-                  // Speichere ursprünglichen Wert
-                  if(!FC.cart._original_billing_company) {
-                    FC.cart._original_billing_company = FC.cart.billing_company || '';
-                  }
-                  // Setze customer_type als billing_company (wird in Tax-Request übertragen)
-                  FC.cart.billing_company = 'CUSTOMER_TYPE:' + customerType;
-                  console.log('Set FC.cart.billing_company to:', FC.cart.billing_company);
-                }
+                // Customer Type in Foxy setzen (alle Methoden)
+                setCustomerTypeInFoxy(customerType);
                 
                 // Foxy Tax-Berechnung triggern
                 if(typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
