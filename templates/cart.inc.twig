@@ -974,18 +974,27 @@
               
               // Tax-Berechnung im Checkout und Cart triggern
               if(currentContext === 'checkout' || currentContext === 'cart'){
+                var customerType = getCustomerType();
+                
+                // Customer Type direkt in billing_company setzen (wird immer übertragen)
+                if(typeof FC !== 'undefined' && FC.cart) {
+                  // Speichere ursprünglichen Wert
+                  if(!FC.cart._original_billing_company) {
+                    FC.cart._original_billing_company = FC.cart.billing_company || '';
+                  }
+                  // Setze customer_type als billing_company
+                  FC.cart.billing_company = customerType;
+                }
+                
+                // Zusätzlich: Customer Type Input setzen falls vorhanden
                 var customerTypeInput = document.getElementById('customer_type');
                 if(customerTypeInput){
-                  var customerType = getCustomerType();
                   customerTypeInput.value = customerType;
-                  
-                  // Customer Type in Foxy setzen (alle Methoden)
-                  setCustomerTypeInFoxy(customerType);
-                  
-                  // Foxy Tax-Berechnung triggern (nur im checkout Context)
-                  if(currentContext === 'checkout' && typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
-                    FC.checkout.tax.get_tax();
-                  }
+                }
+                
+                // Foxy Tax-Berechnung triggern (sowohl im cart als auch checkout Context)
+                if(typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
+                  FC.checkout.tax.get_tax();
                 }
               }
               
@@ -1078,27 +1087,33 @@
             
             // Tax-Berechnung sowohl im cart als auch im checkout Context
             if(currentContext === 'checkout' || currentContext === 'cart'){
-              var customerTypeInput = document.getElementById('customer_type');
-              console.log('Customer type input found:', customerTypeInput);
-              if(customerTypeInput){
-                var customerType = getCustomerType();
-                console.log('Retrieved customer type:', customerType);
-                customerTypeInput.value = customerType;
-                
-                // Customer Type in Foxy setzen (alle Methoden)
-                setCustomerTypeInFoxy(customerType);
-                
-                // Foxy Tax-Berechnung triggern (nur im checkout Context)
-                if(currentContext === 'checkout' && typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
-                  console.log('Triggering FC.checkout.tax.get_tax()');
-                  FC.checkout.tax.get_tax();
-                } else if(currentContext === 'cart') {
-                  console.log('In cart context - customer_type set, but tax calculation only happens in checkout');
-                } else {
-                  console.log('FC.checkout.tax not available');
+              var customerType = getCustomerType();
+              console.log('Retrieved customer type:', customerType);
+              
+              // Customer Type direkt in billing_company setzen (wird immer übertragen)
+              if(typeof FC !== 'undefined' && FC.cart) {
+                // Speichere ursprünglichen Wert
+                if(!FC.cart._original_billing_company) {
+                  FC.cart._original_billing_company = FC.cart.billing_company || '';
                 }
+                // Setze customer_type als billing_company
+                FC.cart.billing_company = customerType;
+                console.log('Set FC.cart.billing_company to:', FC.cart.billing_company);
+              }
+              
+              // Zusätzlich: Customer Type Input setzen falls vorhanden
+              var customerTypeInput = document.getElementById('customer_type');
+              if(customerTypeInput){
+                customerTypeInput.value = customerType;
+                console.log('Set customer_type input to:', customerType);
+              }
+              
+              // Foxy Tax-Berechnung triggern (sowohl im cart als auch checkout Context)
+              if(typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
+                console.log('Triggering FC.checkout.tax.get_tax() for context:', currentContext);
+                FC.checkout.tax.get_tax();
               } else {
-                console.log('No customer_type input found');
+                console.log('FC.checkout.tax not available');
               }
             } else {
               console.log('Not in checkout or cart context, skipping tax calculation');

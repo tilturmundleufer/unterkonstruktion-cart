@@ -58,8 +58,14 @@ export default async function handler(req, res) {
       );
       if (field) type = lower(field.value);
     }
-    else if (data?.billing_company?.startsWith('CUSTOMER_TYPE:')) {
-      type = lower(data.billing_company.replace('CUSTOMER_TYPE:', ''));
+    // Direkt aus billing_company (neue Hauptmethode)
+    else if (data?.billing_company) {
+      if (data.billing_company.startsWith('CUSTOMER_TYPE:')) {
+        type = lower(data.billing_company.replace('CUSTOMER_TYPE:', ''));
+      } else {
+        // billing_company enthält direkt den customer_type
+        type = lower(data.billing_company);
+      }
     }
     else if (data?.billing_address2?.startsWith('CUSTOMER_TYPE:')) {
       type = lower(data.billing_address2.replace('CUSTOMER_TYPE:', ''));
