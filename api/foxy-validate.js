@@ -46,40 +46,9 @@ export default async function handler(req, res) {
       custom_fields: data?.custom_fields
     });
 
-    // Steuerlogik: Nur noch anhand Firma (leer => 0%, gesetzt => 19%)
-    const getString = (v) => (v == null ? '' : String(v));
-    // Aus _embedded zusätzliche Company-Werte lesen
-    let embeddedBillingCompany = '';
-    let embeddedShippingCompany = '';
-    try {
-      const emb = data?._embedded || {};
-      embeddedBillingCompany = getString(emb['fx:billing_address']?.company).trim();
-      embeddedShippingCompany = getString(emb['fx:shipment']?.company || emb['fx:shipping_address']?.company).trim();
-    } catch(e) {}
-
-    // Priorität: flache Felder, dann embedded
-    const companyRaw = (
-      getString(data?.billing_company).trim() ||
-      getString(data?.shipping_company).trim() ||
-      embeddedBillingCompany ||
-      embeddedShippingCompany
-    );
-    const isBusiness = companyRaw.length > 0;
-
-    console.log('Detected company (business?):', { company: companyRaw, embeddedBillingCompany, embeddedShippingCompany, isBusiness });
-
-    // Adresse prüfen: Wenn keine Country + Postal Code in flachen oder embedded Feldern, immer 0%
-    const flatBillingCountry = getString(data?.billing_country).trim();
-    const flatBillingPostal = getString(data?.billing_postal_code).trim();
-    const flatShippingCountry = getString(data?.shipping_country).trim();
-    const flatShippingPostal = getString(data?.shipping_postal_code).trim();
-    const embBilling = data?._embedded?.['fx:billing_address'] || {};
-    const embShipping = data?._embedded?.['fx:shipping_address'] || data?._embedded?.['fx:shipment'] || {};
-    const hasBillingAddress = (getString(embBilling.country) || flatBillingCountry) && (getString(embBilling.postal_code) || flatBillingPostal);
-    const hasShippingAddress = (getString(embShipping.country) || flatShippingCountry) && (getString(embShipping.postal_code) || flatShippingPostal);
-
-    const addressValid = Boolean(hasBillingAddress || hasShippingAddress);
-    const taxes = addressValid && isBusiness ? [{ name: 'MwSt', rate: 0.19, amount: 0 }] : [];
+    // TESTMODUS: Immer 0% zurückgeben, egal welcher Input ankommt
+    console.log('Tax endpoint TEST MODE: forcing 0% tax');
+    const taxes = [];
 
     console.log('Tax response:', { taxes });
     return res.status(200).json({ taxes });
