@@ -992,9 +992,14 @@
                   customerTypeInput.value = customerType;
                 }
                 
-                // Foxy Tax-Berechnung triggern (sowohl im cart als auch checkout Context)
-                if(typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
+                // Foxy Tax-Berechnung triggern
+                if(currentContext === 'checkout' && typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
                   FC.checkout.tax.get_tax();
+                } else if(currentContext === 'cart') {
+                  // Im cart Context: Cart-Update triggern, damit der customer_type übertragen wird
+                  if(typeof FC !== 'undefined' && FC.cart && FC.cart.updateHash) {
+                    FC.cart.updateHash();
+                  }
                 }
               }
               
@@ -1108,12 +1113,39 @@
                 console.log('Set customer_type input to:', customerType);
               }
               
-              // Foxy Tax-Berechnung triggern (sowohl im cart als auch checkout Context)
-              if(typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
-                console.log('Triggering FC.checkout.tax.get_tax() for context:', currentContext);
+              // Foxy Tax-Berechnung triggern
+              if(currentContext === 'checkout' && typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
+                console.log('Triggering FC.checkout.tax.get_tax() for checkout context');
                 FC.checkout.tax.get_tax();
+              } else if(currentContext === 'cart') {
+                console.log('In cart context - triggering cart update to propagate customer_type');
+                // Im cart Context: Cart-Update triggern, damit der customer_type übertragen wird
+                if(typeof FC !== 'undefined' && FC.cart && FC.cart.updateHash) {
+                  FC.cart.updateHash();
+                }
+                
+                // Zusätzlich: Direkten AJAX-Request an Tax-Endpoint (für sofortige Tax-Berechnung)
+                console.log('Making direct AJAX request to tax endpoint');
+                fetch('/api/foxy-validate', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    billing_company: customerType,
+                    billing_country: 'DE',
+                    locale_code: 'de_DE'
+                  })
+                })
+                .then(response => response.json())
+                .then(data => {
+                  console.log('Tax endpoint response:', data);
+                })
+                .catch(error => {
+                  console.error('Tax endpoint error:', error);
+                });
               } else {
-                console.log('FC.checkout.tax not available');
+                console.log('FC.checkout.tax not available for context:', currentContext);
               }
             } else {
               console.log('Not in checkout or cart context, skipping tax calculation');
