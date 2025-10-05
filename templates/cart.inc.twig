@@ -1087,6 +1087,27 @@
           // Tax-Berechnung beim Laden triggern
           triggerTaxCalculation();
           
+          // Diagnose: Stelle sicher, dass der Tax-Endpoint mindestens EINMAL requested wird
+          (function ensureTaxRequestedOnce(){
+            var triedDirect = false;
+            var started = Date.now();
+            (function wait(){
+              var isCheckout = document.querySelector('#fc-cart')?.getAttribute('data-context') === 'checkout';
+              if(!isCheckout){ return; }
+              if(window.FC && FC.checkout && FC.checkout.tax && typeof FC.checkout.tax.get_tax === 'function'){
+                try { FC.checkout.tax.get_tax(); } catch(_) {}
+                return;
+              }
+              // nach 2500ms: direkte Test-Anfrage an unseren Endpoint schicken, um Logging zu verifizieren
+              if(!triedDirect && Date.now() - started > 2500){
+                triedDirect = true;
+                fetch('/api/foxy-validate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ping: true, source: 'ensureTaxRequestedOnce' }) })
+                  .catch(function(_){});
+              }
+              setTimeout(wait, 250);
+            })();
+          })();
+          
           // Checkout: Listener für Firmenname, debounced Tax/Shipping Trigger
           function debounce(fn, wait){ let t; return function(){ clearTimeout(t); t = setTimeout(fn, wait); }; }
           function getVal(sel){ var el = document.querySelector(sel); return (el && el.value ? String(el.value).trim() : ''); }
