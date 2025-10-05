@@ -68,7 +68,18 @@ export default async function handler(req, res) {
 
     console.log('Detected company (business?):', { company: companyRaw, embeddedBillingCompany, embeddedShippingCompany, isBusiness });
 
-    const taxes = isBusiness ? [{ name: 'MwSt', rate: 0.19, amount: 0 }] : [];
+    // Adresse prüfen: Wenn keine Country + Postal Code in flachen oder embedded Feldern, immer 0%
+    const flatBillingCountry = getString(data?.billing_country).trim();
+    const flatBillingPostal = getString(data?.billing_postal_code).trim();
+    const flatShippingCountry = getString(data?.shipping_country).trim();
+    const flatShippingPostal = getString(data?.shipping_postal_code).trim();
+    const embBilling = data?._embedded?.['fx:billing_address'] || {};
+    const embShipping = data?._embedded?.['fx:shipping_address'] || data?._embedded?.['fx:shipment'] || {};
+    const hasBillingAddress = (getString(embBilling.country) || flatBillingCountry) && (getString(embBilling.postal_code) || flatBillingPostal);
+    const hasShippingAddress = (getString(embShipping.country) || flatShippingCountry) && (getString(embShipping.postal_code) || flatShippingPostal);
+
+    const addressValid = Boolean(hasBillingAddress || hasShippingAddress);
+    const taxes = addressValid && isBusiness ? [{ name: 'MwSt', rate: 0.19, amount: 0 }] : [];
 
     console.log('Tax response:', { taxes });
     return res.status(200).json({ taxes });

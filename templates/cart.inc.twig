@@ -1043,7 +1043,7 @@
             return 'privat';
           }
           
-          // Firmenname in Foxy setzen und Tax triggern (nur Checkout)
+          // Firmenname in Foxy setzen und (bei gültiger Adresse) Tax/Shipping debounced triggern
           function applyCompanyAndTriggerTax(){
             var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
             if(typeof FC === 'undefined' || !FC.cart) return;
@@ -1051,9 +1051,7 @@
                           document.querySelector('input[name="billing_company"]')?.value ||
                           document.querySelector('input[data-fc-name="billing_company"]')?.value || '').trim();
             FC.cart.billing_company = company;
-            if(currentContext === 'checkout' && FC.checkout && FC.checkout.tax){
-              FC.checkout.tax.get_tax();
-            }
+            if(currentContext === 'checkout') { maybeTriggerFoxy(); }
           }
           
           // Tax-Berechnung triggern wenn Kundentyp sich ändert
@@ -1089,8 +1087,24 @@
           // Tax-Berechnung beim Laden triggern
           triggerTaxCalculation();
           
-          // Checkout: Listener für Firmenname, debounced Tax-Trigger
+          // Checkout: Listener für Firmenname, debounced Tax/Shipping Trigger
           function debounce(fn, wait){ let t; return function(){ clearTimeout(t); t = setTimeout(fn, wait); }; }
+          function getVal(sel){ var el = document.querySelector(sel); return (el && el.value ? String(el.value).trim() : ''); }
+          function hasValidAddress(){
+            var bc = getVal('[data-fc-name="billing_country"], input[name="billing_country"]');
+            var bp = getVal('[data-fc-name="billing_postal_code"], input[name="billing_postal_code"]');
+            var sc = getVal('[data-fc-name="shipping_country"], input[name="shipping_country"]');
+            var sp = getVal('[data-fc-name="shipping_postal_code"], input[name="shipping_postal_code"]');
+            return (bc && bp) || (sc && sp);
+          }
+          var maybeTriggerFoxy = debounce(function(){
+            if(typeof FC === 'undefined') return;
+            var isCheckout = document.querySelector('#fc-cart')?.getAttribute('data-context') === 'checkout';
+            if(!isCheckout) return;
+            if(!hasValidAddress()) return; // keine gültige Adresse => nichts triggern (verhindert Flackern)
+            try{ FC.checkout && FC.checkout.tax && FC.checkout.tax.get_tax && FC.checkout.tax.get_tax(); }catch(_){ }
+            try{ FC.checkout && FC.checkout.shipping && FC.checkout.shipping.get_shipping_and_handling && FC.checkout.shipping.get_shipping_and_handling(); }catch(_){ }
+          }, 400);
           // Hilfsfunktion: hidden Inputs für billing_company / shipping_company sicherstellen
           function ensureCompanyHiddenInputs(){
             var form = document.querySelector('[data-fc-id="checkout-form"]') ||
@@ -1121,7 +1135,7 @@
             return { billing: billing, shipping: shipping };
           }
 
-          // Sync-Funktion: sichtbare Felder -> hidden Inputs -> FC.cart
+          // Sync-Funktion: sichtbare Felder -> hidden Inputs -> FC.cart (nur bei echten Änderungen)
           function syncCompanyFields(){
             var refs = ensureCompanyHiddenInputs();
             var visibleBilling = document.querySelector('#billing_company') ||
@@ -1132,11 +1146,20 @@
                                   document.querySelector('input[data-fc-name="shipping_company"]');
             var billingVal = (visibleBilling && visibleBilling !== refs.billing) ? (visibleBilling.value||'') : (refs.billing?.value||'');
             var shippingVal = (visibleShipping && visibleShipping !== refs.shipping) ? (visibleShipping.value||'') : (refs.shipping?.value||'');
-            if(refs.billing){ refs.billing.value = billingVal; try{ refs.billing.dispatchEvent(new Event('change',{bubbles:true})); }catch(e){} }
-            if(refs.shipping){ refs.shipping.value = shippingVal; try{ refs.shipping.dispatchEvent(new Event('change',{bubbles:true})); }catch(e){} }
+            var prevBill = window.__ukc_prev_billing_company || '';
+            var prevShip = window.__ukc_prev_shipping_company || '';
+            var changedBill = String(billingVal||'') !== String(prevBill||'');
+            var changedShip = String(shippingVal||'') !== String(prevShip||'');
+            if(refs.billing){ refs.billing.value = billingVal; if(changedBill){ try{ refs.billing.dispatchEvent(new Event('change',{bubbles:true})); }catch(_){ } } }
+            if(refs.shipping){ refs.shipping.value = shippingVal; if(changedShip){ try{ refs.shipping.dispatchEvent(new Event('change',{bubbles:true})); }catch(_){ } } }
             if(typeof FC !== 'undefined' && FC.cart){
-              if(billingVal != null) FC.cart.billing_company = billingVal;
-              if(shippingVal != null) FC.cart.shipping_company = shippingVal;
+              if(changedBill) FC.cart.billing_company = billingVal;
+              if(changedShip) FC.cart.shipping_company = shippingVal;
+            }
+            if(changedBill || changedShip){
+              window.__ukc_prev_billing_company = billingVal;
+              window.__ukc_prev_shipping_company = shippingVal;
+              maybeTriggerFoxy();
             }
           }
 
@@ -1158,8 +1181,8 @@
             }, 800);
           })();
 
-          // Periodischer Sync als Fallback gegen DOM-Replacements von Foxy
-          setInterval(syncCompanyFields, 1000);
+          // Seltener Fallback-Sync gegen DOM-Replacements
+          setInterval(syncCompanyFields, 3000);
           
           // Test-Funktion: Manuell Kundentyp setzen (für Debugging)
           window.testCustomerType = function(type) {
@@ -1411,8 +1434,9 @@
             try{
               var isCheckout = document.querySelector('#fc-cart')?.getAttribute('data-context') === 'checkout';
               if(!isCheckout) return;
+              if(!hasValidAddress()) return; // unvollständige Adresse -> nicht triggern (verhindert Flackern)
               if(window.FC && FC.checkout && FC.checkout.shipping && typeof FC.checkout.shipping.get_shipping_and_handling === 'function'){
-                FC.checkout.shipping.get_shipping_and_handling();
+                maybeTriggerFoxy();
               } else {
                 ['shipping_country','shipping_postal_code','shipping_city'].forEach(function(name){
                   var el = document.querySelector('[name="'+name+'"]');
