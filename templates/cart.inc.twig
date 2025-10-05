@@ -1167,16 +1167,40 @@
                                     document.querySelector('input[name="shipping_company"]')?.value ||
                                     document.querySelector('input[data-fc-name="shipping_company"]')?.value || '').trim();
               
-              if(billingCompany) formData.append('billing_company', billingCompany);
-              if(shippingCompany) formData.append('shipping_company', shippingCompany);
+              // Company-Daten IMMER hinzufügen (auch wenn leer)
+              formData.append('billing_company', billingCompany || '');
+              formData.append('shipping_company', shippingCompany || '');
+              
+              // Debug: FormData-Inhalt loggen
+              console.log('FormData contents:');
+              for (var pair of formData.entries()) {
+                console.log(pair[0] + ': ' + pair[1]);
+              }
               
               console.log('Direct tax request - billing_company:', billingCompany);
               console.log('Direct tax request - shipping_company:', shippingCompany);
               
-              // Tax-Endpoint direkt aufrufen
-              fetch('/api/foxy-validate', {
+              // Tax-Endpoint direkt aufrufen - mit absoluter URL
+              var taxEndpoint = window.location.origin + '/api/foxy-validate';
+              console.log('Making direct tax request to:', taxEndpoint);
+              
+              // Alternative: JSON-Request statt FormData
+              var jsonData = {
+                billing_company: billingCompany,
+                shipping_company: shippingCompany,
+                total_item_price: 0,
+                total_shipping: 0,
+                total_discount: 0
+              };
+              
+              console.log('Sending JSON data:', jsonData);
+              
+              fetch(taxEndpoint, {
                 method: 'POST',
-                body: formData
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(jsonData)
               }).then(function(response) {
                 console.log('Direct tax response status:', response.status);
                 console.log('Direct tax response headers:', response.headers.get('content-type'));
@@ -1612,6 +1636,47 @@
           
           // Tax-Trigger nach 6 Sekunden an alle Company-Felder anhängen
           setTimeout(attachTaxTriggersToCompanyFields, 6000);
+          
+          // Test-Funktion: Manuell Tax mit Test-Daten triggern
+          window.testTaxCalculation = function(companyName) {
+            console.log('=== MANUAL TAX TEST ===');
+            var testData = {
+              billing_company: companyName || 'Test Company',
+              shipping_company: companyName || 'Test Company',
+              total_item_price: 100,
+              total_shipping: 10,
+              total_discount: 0
+            };
+            
+            console.log('Testing with data:', testData);
+            
+            var taxEndpoint = window.location.origin + '/api/foxy-validate';
+            fetch(taxEndpoint, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(testData)
+            }).then(function(response) {
+              console.log('Test tax response status:', response.status);
+              return response.json();
+            }).then(function(data) {
+              console.log('Test tax response:', data);
+              console.log('Expected tax rate:', companyName ? '19%' : '0%');
+              console.log('Actual tax rate:', (data.total_rate * 100) + '%');
+            }).catch(function(error) {
+              console.error('Test tax request failed:', error);
+            });
+          };
+          
+          // Test-Funktion nach 8 Sekunden ausführen
+          setTimeout(function() {
+            console.log('Running automatic tax test...');
+            window.testTaxCalculation('Test Company');
+            setTimeout(function() {
+              window.testTaxCalculation(''); // Test mit leerem Company
+            }, 2000);
+          }, 8000);
           
           // Diagnose: Stelle sicher, dass der Tax-Endpoint mindestens EINMAL requested wird
           (function ensureTaxRequestedOnce(){
