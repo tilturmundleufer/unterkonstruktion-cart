@@ -22,7 +22,7 @@
 }
 
 .ukc-cart__container {
-  max-width: 1200px; /* Gesamtbreite deckeln */
+  max-width: 1300px; /* Gesamtbreite deckeln */
   margin: 0 auto;     /* zentrieren */
   padding: 16px;
   width: 100%;
@@ -31,14 +31,13 @@
 
 /* Two-column layout: items (left) + summary (right) */
 .ukc-cart__grid {
-  display: grid;
-  grid-template-columns: 1fr 400px; /* links: items, rechts: summary */
+  display: flex;
   gap: 32px;
   align-items: start;
 }
 @media (max-width: 960px){
   .ukc-cart__grid { 
-    grid-template-columns: 1fr; 
+    flex-direction: column; 
     gap: 24px;
   }
 }
@@ -60,6 +59,9 @@
   .ukc-summary { position: sticky; top: 24px; }
 }
 
+.ukc-items { 
+  flex: 1; /* Nimmt den verfügbaren Platz ein */
+}
 .ukc-items > * + * { border-top: 1px solid var(--border); }
 /* Falls Foxy-Header auftaucht, ausblenden */
 .fc-cart__items__header{ display:none !important; }
@@ -74,6 +76,7 @@
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   position: sticky;
   top: 24px;
+  flex: 0 0 400px; /* Feste Breite für Flex-Layout */
 }
 .ukc-summary .fc-logo{ display:none }
 .fc-sidebar__header .ukc-topvalue{ float:right; font-weight:700 }
