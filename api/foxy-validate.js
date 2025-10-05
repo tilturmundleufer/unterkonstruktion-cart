@@ -48,11 +48,25 @@ export default async function handler(req, res) {
 
     // Steuerlogik: Nur noch anhand Firma (leer => 0%, gesetzt => 19%)
     const getString = (v) => (v == null ? '' : String(v));
-    // Priorität: billing_company, dann shipping_company
-    const companyRaw = getString(data?.billing_company).trim() || getString(data?.shipping_company).trim();
+    // Aus _embedded zusätzliche Company-Werte lesen
+    let embeddedBillingCompany = '';
+    let embeddedShippingCompany = '';
+    try {
+      const emb = data?._embedded || {};
+      embeddedBillingCompany = getString(emb['fx:billing_address']?.company).trim();
+      embeddedShippingCompany = getString(emb['fx:shipment']?.company || emb['fx:shipping_address']?.company).trim();
+    } catch(e) {}
+
+    // Priorität: flache Felder, dann embedded
+    const companyRaw = (
+      getString(data?.billing_company).trim() ||
+      getString(data?.shipping_company).trim() ||
+      embeddedBillingCompany ||
+      embeddedShippingCompany
+    );
     const isBusiness = companyRaw.length > 0;
 
-    console.log('Detected company (business?):', { company: companyRaw, isBusiness });
+    console.log('Detected company (business?):', { company: companyRaw, embeddedBillingCompany, embeddedShippingCompany, isBusiness });
 
     const taxes = isBusiness ? [{ name: 'MwSt', rate: 0.19, amount: 0 }] : [];
 
