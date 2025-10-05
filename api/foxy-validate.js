@@ -40,55 +40,21 @@ export default async function handler(req, res) {
       keys: Object.keys(data || {}), 
       customer_type: data?.customer_type,
       billing_company: data?.billing_company,
+      shipping_company: data?.shipping_company,
       billing_address2: data?.billing_address2,
       customer_email: data?.customer_email,
       custom_fields: data?.custom_fields
     });
 
-    // Kunden-Typ ermitteln
-    const lower = (v) => (v || '').toString().toLowerCase();
-    let type = '';
-    
-    // Verschiedene Quellen für customer_type prüfen
-    if (data?.customer_type) type = lower(data.customer_type);
-    else if (data?.fields?.customer_type) type = lower(data.fields.customer_type);
-    else if (data?.custom_fields?.length) {
-      const field = data.custom_fields.find(f => 
-        lower(f.name) === 'customer_type' || lower(f.name) === 'customertype'
-      );
-      if (field) type = lower(field.value);
-    }
-    // Direkt aus billing_company (neue Hauptmethode)
-    else if (data?.billing_company) {
-      if (data.billing_company.startsWith('CUSTOMER_TYPE:')) {
-        type = lower(data.billing_company.replace('CUSTOMER_TYPE:', ''));
-      } else {
-        // billing_company enthält direkt den customer_type
-        type = lower(data.billing_company);
-      }
-    }
-    else if (data?.billing_address2?.startsWith('CUSTOMER_TYPE:')) {
-      type = lower(data.billing_address2.replace('CUSTOMER_TYPE:', ''));
-    }
-    else if (data?.customer_email?.startsWith('CUSTOMER_TYPE:')) {
-      type = lower(data.customer_email.replace('CUSTOMER_TYPE:', ''));
-    }
-    else if (req.query?.customer_type) type = lower(req.query.customer_type);
+    // Steuerlogik: Nur noch anhand Firma (leer => 0%, gesetzt => 19%)
+    const getString = (v) => (v == null ? '' : String(v));
+    // Priorität: billing_company, dann shipping_company
+    const companyRaw = getString(data?.billing_company).trim() || getString(data?.shipping_company).trim();
+    const isBusiness = companyRaw.length > 0;
 
-    console.log('Detected customer_type:', type);
+    console.log('Detected company (business?):', { company: companyRaw, isBusiness });
 
-    // Steuerlogik: Firmenkunden = 19%, Privat = 0%
-    const TAX_RATES = {
-      business: { name: 'MwSt', rate: 0.19 },
-      firma: { name: 'MwSt', rate: 0.19 },
-      firmenkunde: { name: 'MwSt', rate: 0.19 }
-    };
-    
-    const taxes = TAX_RATES[type] ? [{
-      name: TAX_RATES[type].name,
-      rate: TAX_RATES[type].rate,
-      amount: 0 // Foxy berechnet den Betrag automatisch
-    }] : [];
+    const taxes = isBusiness ? [{ name: 'MwSt', rate: 0.19, amount: 0 }] : [];
 
     console.log('Tax response:', { taxes });
     return res.status(200).json({ taxes });
