@@ -2086,6 +2086,14 @@
               if(inp){ inp.value = 0; }
               recalcSummary();
               ajaxUpdate();
+              
+              // Prüfen, ob noch Items vorhanden sind
+              setTimeout(function(){
+                var remainingRows = document.querySelectorAll('.ukc-row[data-fc-item-id]');
+                if(remainingRows.length === 0){
+                  showEmptyCartMessage();
+                }
+              }, 400);
             }
           }, false);
 
@@ -2111,13 +2119,43 @@
                 }, index * 100); // Gestaffelte Animation
               });
               
-              // Summary zurücksetzen
+              // Summary zurücksetzen und leere Nachricht anzeigen
               setTimeout(function(){
                 recalcSummary();
                 ajaxUpdate();
+                
+                // Leere Nachricht anzeigen, wenn alle Items entfernt wurden
+                showEmptyCartMessage();
               }, allRows.length * 100 + 400);
             }
           }, false);
+
+          // Funktion zum Anzeigen der leeren Warenkorb-Nachricht
+          function showEmptyCartMessage(){
+            var itemsContainer = document.querySelector('.ukc-items');
+            if(!itemsContainer) return;
+            
+            // Prüfen, ob bereits eine leere Nachricht vorhanden ist
+            var existingEmpty = itemsContainer.querySelector('.ukc-empty');
+            if(existingEmpty) return;
+            
+            // Leere Nachricht erstellen
+            var emptyDiv = document.createElement('div');
+            emptyDiv.className = 'ukc-empty';
+            emptyDiv.innerHTML = '<div class="ukc-empty__content"><p class="ukc-empty__title">Ihr Warenkorb ist leer</p><a class="ukc-btn ukc-btn--primary" href="https://unterkonstruktion.de/">Weiter einkaufen</a></div>';
+            
+            // Mit Animation einblenden
+            emptyDiv.style.opacity = '0';
+            emptyDiv.style.transform = 'translateY(20px)';
+            itemsContainer.appendChild(emptyDiv);
+            
+            // Animation starten
+            setTimeout(function(){
+              emptyDiv.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+              emptyDiv.style.opacity = '1';
+              emptyDiv.style.transform = 'translateY(0)';
+            }, 50);
+          }
 
           // Versand neu laden, wenn im CHECKOUT die Adresse per "Adresse suchen" gesetzt wird
           function triggerShippingRefresh(){

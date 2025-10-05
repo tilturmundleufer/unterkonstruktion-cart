@@ -342,7 +342,16 @@ button[type=submit] {
 .ukc-summary .ukc-remove-all a{ width:100%; }
 
 /* Empty cart box */
-.ukc-empty{ border:2px dashed var(--border); border-radius:16px; padding:36px; background:#fff; text-align:center; }
+.ukc-empty{ 
+  border:2px dashed var(--border); 
+  border-radius:16px; 
+  padding:36px; 
+  background:#fff; 
+  text-align:center; 
+  width: 700px;
+  max-width: 100%;
+  margin: 0 auto;
+}
 .ukc-empty__title{ margin:0 0 16px; font-size:20px; color:#9ca3af; }
 .ukc-empty .ukc-btn{ margin-top:8px; }
 
