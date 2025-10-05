@@ -1124,7 +1124,7 @@ body.ukc-cart-page{
 }
 
 .fc-input-group-container__title:has(input[value="paypal_platform_sepa"])::after {
-  content: "Bezahlen mit SEPA da." !important;
+  content: "Bezahlen mit SEPA" !important;
   font-size: 14px !important;
   font-weight: 600 !important;
   color: #0b1220 !important;
