@@ -1104,7 +1104,7 @@ body.ukc-cart-page{
 
 /* Payment Method Logos auf 28px Höhe anpassen */
 .fc-checkout__section--payment__method__logo img {
-  height: 28px !important;
+  height:35px !important;
   width: auto !important;
   max-width: none !important;
   object-fit: contain !important;
