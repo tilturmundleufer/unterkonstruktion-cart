@@ -1011,13 +1011,18 @@
           }
           // Kundentyp aus Cookie ermitteln
           function getCustomerType(){
+            console.log('All cookies:', document.cookie);
             var cookies = document.cookie.split(';');
             for(var i = 0; i < cookies.length; i++){
               var cookie = cookies[i].trim();
+              console.log('Checking cookie:', cookie);
               if(cookie.indexOf('ukc_customer_type=') === 0){
-                return cookie.substring('ukc_customer_type='.length);
+                var value = cookie.substring('ukc_customer_type='.length);
+                console.log('Found ukc_customer_type:', value);
+                return value;
               }
             }
+            console.log('No ukc_customer_type cookie found, using default: privat');
             return 'privat'; // Standard: Privatkunde
           }
           
@@ -1067,11 +1072,15 @@
           
           // Tax-Berechnung triggern wenn Kundentyp sich ändert
           function triggerTaxCalculation(){
+            console.log('triggerTaxCalculation called');
             var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
+            console.log('Current context:', currentContext);
             if(currentContext === 'checkout'){
               var customerTypeInput = document.getElementById('customer_type');
+              console.log('Customer type input found:', customerTypeInput);
               if(customerTypeInput){
                 var customerType = getCustomerType();
+                console.log('Retrieved customer type:', customerType);
                 customerTypeInput.value = customerType;
                 
                 // Customer Type in Foxy setzen (alle Methoden)
@@ -1079,14 +1088,35 @@
                 
                 // Foxy Tax-Berechnung triggern
                 if(typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
+                  console.log('Triggering FC.checkout.tax.get_tax()');
                   FC.checkout.tax.get_tax();
+                } else {
+                  console.log('FC.checkout.tax not available');
                 }
+              } else {
+                console.log('No customer_type input found');
               }
+            } else {
+              console.log('Not in checkout context, skipping tax calculation');
             }
           }
           
           // Tax-Berechnung beim Laden triggern
           triggerTaxCalculation();
+          
+          // Test-Funktion: Manuell Kundentyp setzen (für Debugging)
+          window.testCustomerType = function(type) {
+            console.log('Setting customer type to:', type);
+            document.cookie = 'ukc_customer_type=' + type + '; path=/';
+            triggerTaxCalculation();
+          };
+          
+          // Test-Funktion: Alle Cookies anzeigen
+          window.showCookies = function() {
+            console.log('All cookies:', document.cookie);
+            console.log('FC object:', typeof FC !== 'undefined' ? FC : 'FC not available');
+            console.log('FC.cart:', typeof FC !== 'undefined' && FC.cart ? FC.cart : 'FC.cart not available');
+          };
           
           // Tax-Berechnung bei Cookie-Änderungen triggern
           var originalSetCookie = document.cookie;
