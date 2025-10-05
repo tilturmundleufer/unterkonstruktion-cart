@@ -13,6 +13,10 @@ export default async function handler(req, res) {
     if (data?.cart && typeof data.cart === 'string') { try { data = JSON.parse(data.cart); } catch (_) {} }
 
     console.log('Tax request:', { keys: Object.keys(data || {}) });
+    console.log('Tax request billing_company:', data?.billing_company);
+    console.log('Tax request shipping_company:', data?.shipping_company);
+    console.log('Tax request embedded billing:', data?._embedded?.['fx:billing_address']?.company);
+    console.log('Tax request embedded shipping:', data?._embedded?.['fx:shipping_address']?.company);
 
     // Werte robust lesen (können als String kommen)
     const num = (v) => {

@@ -1089,6 +1089,21 @@ body.ukc-cart-page{
   display: block !important;
 }
 
+/* Force billing address fields to be visible */
+.fc-container__grid--billing,
+.fc-container__grid--billing-address,
+.fc-transaction__billing-address {
+  display: block !important;
+}
+
+/* Ensure billing company field is visible */
+input[name="billing_company"],
+input[data-fc-name="billing_company"],
+#billing_company {
+  display: block !important;
+  visibility: visible !important;
+}
+
 /* Purchase Order Label anpassen */
 .fc-container__grid--label--po {
   font-weight: 600 !important;

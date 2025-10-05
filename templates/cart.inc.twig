@@ -1047,10 +1047,30 @@
           function applyCompanyAndTriggerTax(){
             var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
             if(typeof FC === 'undefined' || !FC.cart) return;
-            var company = (document.querySelector('#billing_company')?.value ||
-                          document.querySelector('input[name="billing_company"]')?.value ||
-                          document.querySelector('input[data-fc-name="billing_company"]')?.value || '').trim();
-            FC.cart.billing_company = company;
+            
+            // Suche Company-Felder in verschiedenen Varianten
+            var billingCompany = (document.querySelector('#billing_company')?.value ||
+                                 document.querySelector('input[name="billing_company"]')?.value ||
+                                 document.querySelector('input[data-fc-name="billing_company"]')?.value || '').trim();
+            
+            var shippingCompany = (document.querySelector('#shipping_company')?.value ||
+                                  document.querySelector('input[name="shipping_company"]')?.value ||
+                                  document.querySelector('input[data-fc-name="shipping_company"]')?.value || '').trim();
+            
+            console.log('applyCompanyAndTriggerTax - billing_company:', billingCompany);
+            console.log('applyCompanyAndTriggerTax - shipping_company:', shippingCompany);
+            
+            // Setze beide Felder in FC.cart
+            FC.cart.billing_company = billingCompany;
+            FC.cart.shipping_company = shippingCompany;
+            
+            // Zusätzlich: Setze auch in den hidden inputs (falls vorhanden)
+            var hiddenBilling = document.querySelector('input[name="billing_company"], input[data-fc-name="billing_company"]');
+            var hiddenShipping = document.querySelector('input[name="shipping_company"], input[data-fc-name="shipping_company"]');
+            
+            if(hiddenBilling) hiddenBilling.value = billingCompany;
+            if(hiddenShipping) hiddenShipping.value = shippingCompany;
+            
             if(currentContext === 'checkout') { maybeTriggerFoxy(); }
           }
           
@@ -1086,6 +1106,49 @@
           
           // Tax-Berechnung beim Laden triggern
           triggerTaxCalculation();
+          
+          // Sicherstellen dass Billing-Adresse sichtbar ist
+          function ensureBillingAddressVisible() {
+            var billingBlocks = [
+              '[data-fc-id="block-billing-address"]',
+              '.fc-transaction__billing',
+              '.fc-container__grid--billing',
+              '.fc-container__grid--billing-address'
+            ];
+            
+            billingBlocks.forEach(function(selector) {
+              var elements = document.querySelectorAll(selector);
+              elements.forEach(function(el) {
+                if(el) {
+                  el.style.display = 'block';
+                  el.style.visibility = 'visible';
+                }
+              });
+            });
+            
+            // Billing company field sichtbar machen
+            var companyFields = [
+              'input[name="billing_company"]',
+              'input[data-fc-name="billing_company"]',
+              '#billing_company'
+            ];
+            
+            companyFields.forEach(function(selector) {
+              var field = document.querySelector(selector);
+              if(field) {
+                field.style.display = 'block';
+                field.style.visibility = 'visible';
+                console.log('Made billing company field visible:', selector);
+              }
+            });
+          }
+          
+          // Billing-Adresse beim Laden sichtbar machen
+          ensureBillingAddressVisible();
+          
+          // Auch nach AJAX-Updates
+          setTimeout(ensureBillingAddressVisible, 1000);
+          setTimeout(ensureBillingAddressVisible, 3000);
           
           // Diagnose: Stelle sicher, dass der Tax-Endpoint mindestens EINMAL requested wird
           (function ensureTaxRequestedOnce(){
@@ -1184,6 +1247,10 @@
             var prevShip = window.__ukc_prev_shipping_company || '';
             var changedBill = String(billingVal||'') !== String(prevBill||'');
             var changedShip = String(shippingVal||'') !== String(prevShip||'');
+            
+            console.log('syncCompanyFields - billingVal:', billingVal, 'shippingVal:', shippingVal);
+            console.log('syncCompanyFields - changedBill:', changedBill, 'changedShip:', changedShip);
+            
             if(refs.billing){ refs.billing.value = billingVal; if(changedBill){ try{ refs.billing.dispatchEvent(new Event('change',{bubbles:true})); }catch(_){ } } }
             if(refs.shipping){ refs.shipping.value = shippingVal; if(changedShip){ try{ refs.shipping.dispatchEvent(new Event('change',{bubbles:true})); }catch(_){ } } }
             if(typeof FC !== 'undefined' && FC.cart){
