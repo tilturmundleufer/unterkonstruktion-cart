@@ -14,8 +14,8 @@ export default async function handler(req, res) {
 
     console.log('Tax request:', { keys: Object.keys(data || {}) });
 
-    // Initial rollout: always return 0% so pipeline stabilisiert wird
-    const taxes = [];
+    // Test: Immer EINEN Tax zurückgeben (fix), ohne Betragserhöhung (amount=0)
+    const taxes = [{ name: 'MwSt', rate: 0.19, amount: 0 }];
 
     console.log('Tax response:', { taxes });
     return res.status(200).json({ taxes });
