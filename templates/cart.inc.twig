@@ -972,8 +972,8 @@
               }
               recalcSummary();
               
-              // Tax-Berechnung im Checkout triggern
-              if(currentContext === 'checkout'){
+              // Tax-Berechnung im Checkout und Cart triggern
+              if(currentContext === 'checkout' || currentContext === 'cart'){
                 var customerTypeInput = document.getElementById('customer_type');
                 if(customerTypeInput){
                   var customerType = getCustomerType();
@@ -982,8 +982,8 @@
                   // Customer Type in Foxy setzen (alle Methoden)
                   setCustomerTypeInFoxy(customerType);
                   
-                  // Foxy Tax-Berechnung triggern
-                  if(typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
+                  // Foxy Tax-Berechnung triggern (nur im checkout Context)
+                  if(currentContext === 'checkout' && typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
                     FC.checkout.tax.get_tax();
                   }
                 }
@@ -1075,7 +1075,9 @@
             console.log('triggerTaxCalculation called');
             var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
             console.log('Current context:', currentContext);
-            if(currentContext === 'checkout'){
+            
+            // Tax-Berechnung sowohl im cart als auch im checkout Context
+            if(currentContext === 'checkout' || currentContext === 'cart'){
               var customerTypeInput = document.getElementById('customer_type');
               console.log('Customer type input found:', customerTypeInput);
               if(customerTypeInput){
@@ -1086,10 +1088,12 @@
                 // Customer Type in Foxy setzen (alle Methoden)
                 setCustomerTypeInFoxy(customerType);
                 
-                // Foxy Tax-Berechnung triggern
-                if(typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
+                // Foxy Tax-Berechnung triggern (nur im checkout Context)
+                if(currentContext === 'checkout' && typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
                   console.log('Triggering FC.checkout.tax.get_tax()');
                   FC.checkout.tax.get_tax();
+                } else if(currentContext === 'cart') {
+                  console.log('In cart context - customer_type set, but tax calculation only happens in checkout');
                 } else {
                   console.log('FC.checkout.tax not available');
                 }
@@ -1097,7 +1101,7 @@
                 console.log('No customer_type input found');
               }
             } else {
-              console.log('Not in checkout context, skipping tax calculation');
+              console.log('Not in checkout or cart context, skipping tax calculation');
             }
           }
           
