@@ -1126,15 +1126,68 @@
               var customerTypeInput = document.getElementById('customer_type');
               if(customerTypeInput){ customerTypeInput.value = customerType; }
               
-              // Foxy Tax-Berechnung triggern
+              // Foxy Tax-Berechnung triggern - mit Fallback
               if(currentContext === 'checkout' && typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
                 console.log('Triggering FC.checkout.tax.get_tax() for checkout context');
                 FC.checkout.tax.get_tax();
               } else {
                 console.log('FC.checkout.tax not available for context:', currentContext);
+                // Fallback: Direkte Tax-Anfrage an unseren Endpoint
+                console.log('Using fallback: direct tax request');
+                triggerDirectTaxRequest();
               }
             } else {
               console.log('Not in checkout or cart context, skipping tax calculation');
+            }
+          }
+          
+          // Fallback: Direkte Tax-Anfrage an unseren Endpoint
+          function triggerDirectTaxRequest() {
+            try {
+              // Sammle alle relevanten Daten
+              var formData = new FormData();
+              var form = document.querySelector('form[action*="foxy"]') || document.querySelector('form');
+              
+              if(form) {
+                // Alle Form-Daten sammeln
+                var inputs = form.querySelectorAll('input, select, textarea');
+                inputs.forEach(function(input) {
+                  if(input.name && input.value) {
+                    formData.append(input.name, input.value);
+                  }
+                });
+              }
+              
+              // Zusätzlich: Company-Daten explizit hinzufügen
+              var billingCompany = (document.querySelector('#billing_company')?.value ||
+                                   document.querySelector('input[name="billing_company"]')?.value ||
+                                   document.querySelector('input[data-fc-name="billing_company"]')?.value || '').trim();
+              
+              var shippingCompany = (document.querySelector('#shipping_company')?.value ||
+                                    document.querySelector('input[name="shipping_company"]')?.value ||
+                                    document.querySelector('input[data-fc-name="shipping_company"]')?.value || '').trim();
+              
+              if(billingCompany) formData.append('billing_company', billingCompany);
+              if(shippingCompany) formData.append('shipping_company', shippingCompany);
+              
+              console.log('Direct tax request - billing_company:', billingCompany);
+              console.log('Direct tax request - shipping_company:', shippingCompany);
+              
+              // Tax-Endpoint direkt aufrufen
+              fetch('/api/foxy-validate', {
+                method: 'POST',
+                body: formData
+              }).then(function(response) {
+                return response.json();
+              }).then(function(data) {
+                console.log('Direct tax response:', data);
+                // Hier könnten wir die Tax-Werte in die UI einbauen
+              }).catch(function(error) {
+                console.error('Direct tax request failed:', error);
+              });
+              
+            } catch(e) {
+              console.error('Error in triggerDirectTaxRequest:', e);
             }
           }
           
@@ -1295,6 +1348,65 @@
           // Debug-Funktion nach 3 Sekunden ausführen
           setTimeout(window.debugFoxyFields, 3000);
           
+          // Billing Company Feld explizit erstellen falls nicht vorhanden
+          function ensureBillingCompanyField() {
+            var billingCompanyField = document.querySelector('#billing_company, input[name="billing_company"], input[data-fc-name="billing_company"]');
+            
+            if(!billingCompanyField) {
+              console.log('billing_company field not found, creating one');
+              
+              // Suche nach einem Container für das Billing-Feld
+              var billingContainer = document.querySelector('[data-fc-id="block-billing-address"]') ||
+                                   document.querySelector('.fc-transaction__billing') ||
+                                   document.querySelector('.fc-container__grid--billing') ||
+                                   document.querySelector('form');
+              
+              if(billingContainer) {
+                // Erstelle billing_company Feld
+                var fieldContainer = document.createElement('div');
+                fieldContainer.className = 'fc-form-group';
+                
+                var label = document.createElement('label');
+                label.setAttribute('for', 'billing_company');
+                label.textContent = 'Firmenname (optional)';
+                label.className = 'fc-form-group__label';
+                
+                var input = document.createElement('input');
+                input.type = 'text';
+                input.id = 'billing_company';
+                input.name = 'billing_company';
+                input.setAttribute('data-fc-name', 'billing_company');
+                input.setAttribute('data-fc-tax-trigger', 'true');
+                input.className = 'fc-form-group__input';
+                input.placeholder = 'Firmenname eingeben';
+                
+                fieldContainer.appendChild(label);
+                fieldContainer.appendChild(input);
+                
+                // Füge das Feld zum Container hinzu
+                billingContainer.appendChild(fieldContainer);
+                
+                console.log('Created billing_company field');
+                
+                // Event-Listener hinzufügen
+                input.addEventListener('input', function() {
+                  console.log('billing_company changed:', input.value);
+                  applyCompanyAndTriggerTax();
+                });
+                
+                input.addEventListener('change', function() {
+                  console.log('billing_company changed (change event):', input.value);
+                  applyCompanyAndTriggerTax();
+                });
+              }
+            } else {
+              console.log('billing_company field already exists');
+            }
+          }
+          
+          // Billing Company Feld nach 4 Sekunden erstellen
+          setTimeout(ensureBillingCompanyField, 4000);
+          
           // Diagnose: Stelle sicher, dass der Tax-Endpoint mindestens EINMAL requested wird
           (function ensureTaxRequestedOnce(){
             var triedDirect = false;
@@ -1330,12 +1442,27 @@
             if(typeof FC === 'undefined') return;
             var isCheckout = document.querySelector('#fc-cart')?.getAttribute('data-context') === 'checkout';
             if(!isCheckout) return;
+            
             // Bei Company-Änderung auch ohne vollständige Adresse Tax triggern, Foxy darf 0% liefern
             if(!hasValidAddress()){
-              try{ FC.checkout && FC.checkout.tax && FC.checkout.tax.get_tax && FC.checkout.tax.get_tax(); }catch(_){ }
+              if(FC.checkout && FC.checkout.tax && FC.checkout.tax.get_tax) {
+                try{ FC.checkout.tax.get_tax(); }catch(_){ }
+              } else {
+                console.log('FC.checkout.tax not available, using direct tax request');
+                triggerDirectTaxRequest();
+              }
               return;
             }
-            try{ FC.checkout && FC.checkout.tax && FC.checkout.tax.get_tax && FC.checkout.tax.get_tax(); }catch(_){ }
+            
+            // Tax triggern
+            if(FC.checkout && FC.checkout.tax && FC.checkout.tax.get_tax) {
+              try{ FC.checkout.tax.get_tax(); }catch(_){ }
+            } else {
+              console.log('FC.checkout.tax not available, using direct tax request');
+              triggerDirectTaxRequest();
+            }
+            
+            // Shipping triggern
             try{ FC.checkout && FC.checkout.shipping && FC.checkout.shipping.get_shipping_and_handling && FC.checkout.shipping.get_shipping_and_handling(); }catch(_){ }
           }, 400);
           // Hilfsfunktion: hidden Inputs für billing_company / shipping_company sicherstellen
