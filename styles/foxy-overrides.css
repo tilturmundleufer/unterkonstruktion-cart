@@ -1049,6 +1049,17 @@ body.ukc-cart-page{
   color: #0b1220 !important;
 }
 
+/* Spezielle Behandlung für fc-form-control--static Labels */
+.fc-form-group-multiple-inline .fc-form-label.fc-form-control--static {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  height: auto !important;
+  width: auto !important;
+  display: block !important;
+  cursor: default !important;
+}
+
 /* Labels für Block-Layout (Kartennummer) */
 .fc-form-group-multiple-inline[data-fc-error-for="cc_number"] .fc-form-label {
   margin: 0 0 8px 0 !important;
