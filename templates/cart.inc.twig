@@ -993,6 +993,11 @@
                     });
                   }
                   
+                  // Alternative: Als Standard-Field setzen (falls Custom Fields nicht funktionieren)
+                  if(typeof FC !== 'undefined' && FC.cart) {
+                    FC.cart.customer_type = customerType;
+                  }
+                  
                   // Foxy Tax-Berechnung triggern
                   if(typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
                     FC.checkout.tax.get_tax();
@@ -1055,6 +1060,12 @@
                     value: customerType
                   });
                   console.log('Updated FC.cart.custom_fields:', FC.cart.custom_fields);
+                }
+                
+                // Alternative: Als Standard-Field setzen (falls Custom Fields nicht funktionieren)
+                if(typeof FC !== 'undefined' && FC.cart) {
+                  FC.cart.customer_type = customerType;
+                  console.log('Set FC.cart.customer_type to:', customerType);
                 }
                 
                 // Foxy Tax-Berechnung triggern
