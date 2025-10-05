@@ -1046,16 +1046,50 @@
           // Firmenname in Foxy setzen und (bei gültiger Adresse) Tax/Shipping debounced triggern
           function applyCompanyAndTriggerTax(){
             var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
-            if(typeof FC === 'undefined' || !FC.cart) return;
+            if(typeof FC === 'undefined' || !FC.cart) {
+              console.log('FC not available in applyCompanyAndTriggerTax');
+              return;
+            }
             
-            // Suche Company-Felder in verschiedenen Varianten
-            var billingCompany = (document.querySelector('#billing_company')?.value ||
-                                 document.querySelector('input[name="billing_company"]')?.value ||
-                                 document.querySelector('input[data-fc-name="billing_company"]')?.value || '').trim();
+            // Erweitere Suche nach Company-Feldern
+            var billingSelectors = [
+              '#billing_company',
+              'input[name="billing_company"]',
+              'input[data-fc-name="billing_company"]',
+              'input[id*="billing"][id*="company"]',
+              'input[name*="billing"][name*="company"]'
+            ];
             
-            var shippingCompany = (document.querySelector('#shipping_company')?.value ||
-                                  document.querySelector('input[name="shipping_company"]')?.value ||
-                                  document.querySelector('input[data-fc-name="shipping_company"]')?.value || '').trim();
+            var shippingSelectors = [
+              '#shipping_company',
+              'input[name="shipping_company"]',
+              'input[data-fc-name="shipping_company"]',
+              'input[id*="shipping"][id*="company"]',
+              'input[name*="shipping"][name*="company"]'
+            ];
+            
+            var billingCompany = '';
+            var shippingCompany = '';
+            
+            // Suche billing company
+            for(var i = 0; i < billingSelectors.length; i++) {
+              var el = document.querySelector(billingSelectors[i]);
+              if(el && el.value) {
+                billingCompany = el.value.trim();
+                console.log('Found billing_company with selector:', billingSelectors[i], 'value:', billingCompany);
+                break;
+              }
+            }
+            
+            // Suche shipping company
+            for(var i = 0; i < shippingSelectors.length; i++) {
+              var el = document.querySelector(shippingSelectors[i]);
+              if(el && el.value) {
+                shippingCompany = el.value.trim();
+                console.log('Found shipping_company with selector:', shippingSelectors[i], 'value:', shippingCompany);
+                break;
+              }
+            }
             
             console.log('applyCompanyAndTriggerTax - billing_company:', billingCompany);
             console.log('applyCompanyAndTriggerTax - shipping_company:', shippingCompany);
@@ -1104,8 +1138,33 @@
             }
           }
           
-          // Tax-Berechnung beim Laden triggern
-          triggerTaxCalculation();
+          // Tax-Berechnung beim Laden triggern - WARTE auf Foxy-Initialisierung
+          function waitForFoxyAndTriggerTax() {
+            var attempts = 0;
+            var maxAttempts = 50; // 5 Sekunden warten
+            
+            function checkFoxy() {
+              attempts++;
+              console.log('Waiting for Foxy initialization, attempt:', attempts);
+              
+              if (typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax) {
+                console.log('Foxy is ready, triggering tax calculation');
+                triggerTaxCalculation();
+                return;
+              }
+              
+              if (attempts < maxAttempts) {
+                setTimeout(checkFoxy, 100);
+              } else {
+                console.log('Foxy not ready after 5 seconds, trying anyway');
+                triggerTaxCalculation();
+              }
+            }
+            
+            checkFoxy();
+          }
+          
+          waitForFoxyAndTriggerTax();
           
           // Sicherstellen dass Billing-Adresse sichtbar ist
           function ensureBillingAddressVisible() {
@@ -1149,6 +1208,92 @@
           // Auch nach AJAX-Updates
           setTimeout(ensureBillingAddressVisible, 1000);
           setTimeout(ensureBillingAddressVisible, 3000);
+          
+          // Nach Foxy-Initialisierung nochmal Company-Felder suchen und Tax triggern
+          function retryCompanyFieldsAfterFoxyInit() {
+            var attempts = 0;
+            var maxAttempts = 30; // 3 Sekunden
+            
+            function checkAndRetry() {
+              attempts++;
+              console.log('Retrying company fields after Foxy init, attempt:', attempts);
+              
+              if (typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax) {
+                // Foxy ist bereit, suche nochmal nach Company-Feldern
+                var billingFields = document.querySelectorAll('input[name="billing_company"], input[data-fc-name="billing_company"], #billing_company');
+                var shippingFields = document.querySelectorAll('input[name="shipping_company"], input[data-fc-name="shipping_company"], #shipping_company');
+                
+                console.log('Found billing fields:', billingFields.length);
+                console.log('Found shipping fields:', shippingFields.length);
+                
+                // Wenn Felder gefunden wurden, triggere Tax
+                if (billingFields.length > 0 || shippingFields.length > 0) {
+                  console.log('Company fields found, triggering tax calculation');
+                  applyCompanyAndTriggerTax();
+                  setTimeout(function() {
+                    if (typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax) {
+                      FC.checkout.tax.get_tax();
+                    }
+                  }, 100);
+                }
+                return;
+              }
+              
+              if (attempts < maxAttempts) {
+                setTimeout(checkAndRetry, 100);
+              }
+            }
+            
+            checkAndRetry();
+          }
+          
+          // Starte Retry nach kurzer Verzögerung
+          setTimeout(retryCompanyFieldsAfterFoxyInit, 2000);
+          
+          // Debug-Funktion: Alle verfügbaren Felder auflisten
+          window.debugFoxyFields = function() {
+            console.log('=== FOXY FIELDS DEBUG ===');
+            console.log('FC available:', typeof FC !== 'undefined');
+            console.log('FC.checkout available:', typeof FC !== 'undefined' && FC.checkout);
+            console.log('FC.checkout.tax available:', typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax);
+            
+            var allInputs = document.querySelectorAll('input');
+            console.log('Total inputs found:', allInputs.length);
+            
+            var companyInputs = [];
+            allInputs.forEach(function(input) {
+              if (input.name && (input.name.includes('company') || input.id && input.id.includes('company'))) {
+                companyInputs.push({
+                  name: input.name,
+                  id: input.id,
+                  value: input.value,
+                  type: input.type,
+                  visible: input.offsetParent !== null
+                });
+              }
+            });
+            
+            console.log('Company-related inputs:', companyInputs);
+            
+            var billingInputs = [];
+            allInputs.forEach(function(input) {
+              if (input.name && input.name.includes('billing')) {
+                billingInputs.push({
+                  name: input.name,
+                  id: input.id,
+                  value: input.value,
+                  type: input.type,
+                  visible: input.offsetParent !== null
+                });
+              }
+            });
+            
+            console.log('Billing-related inputs:', billingInputs);
+            console.log('=== END DEBUG ===');
+          };
+          
+          // Debug-Funktion nach 3 Sekunden ausführen
+          setTimeout(window.debugFoxyFields, 3000);
           
           // Diagnose: Stelle sicher, dass der Tax-Endpoint mindestens EINMAL requested wird
           (function ensureTaxRequestedOnce(){
