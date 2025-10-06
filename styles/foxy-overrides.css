@@ -1133,7 +1133,15 @@ body.ukc-cart-page{
 /* PayPal Pay Later Button (JS-SDK) ausblenden */
 [data-funding-source="paylater"],
 .paypal-button[data-funding-source="paylater"],
-.paypal-button.paypal-button-number-0[data-funding-source="paylater"]{
+.paypal-button.paypal-button-number-0[data-funding-source="paylater"],
+/* zusätzliche Kontexte/Container, die PayPal nutzt */
+.paypal-buttons [data-funding-source="paylater"],
+.paypal-button-tag [data-funding-source="paylater"],
+.fc-express-checkout [data-funding-source="paylater"],
+/* aria-label Fallback (DE: Später Bezahlen) */
+[aria-label="Später Bezahlen"],
+[aria-label*="Später Bezahlen"],
+.paypal-button[aria-label*="Später Bezahlen"]{
   display: none !important;
 }
 
