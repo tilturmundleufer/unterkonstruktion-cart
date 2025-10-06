@@ -687,6 +687,9 @@ body.ukc-cart-page{
 
 /* Inputs und Labels */
 .fc-checkout__main__form .fc-form-label{ color:#0b1220; font-weight:600; font-size:14px; margin-bottom:6px; }
+
+/* Versand: spezifisches Label 'Adresse' ausblenden */
+.fc-form-label--shipping-address1{ display:none !important; }
 .fc-checkout__main__form .fc-form-control{
   background:#fff;
   border:1px solid var(--border);
