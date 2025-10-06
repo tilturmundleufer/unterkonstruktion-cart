@@ -550,7 +550,8 @@
 
                 {% set enable_coupon_and_gift_cart_controls = ((has_eligible_coupons or has_eligible_gift_cards) and with_controls) %}
                 {% if context == 'checkout' %}
-                    {% set enable_coupon_and_gift_cart_controls = ((has_eligible_coupons or has_eligible_gift_cards) and config.template_config.custom_checkout_field_requirements.coupon_entry == 'enabled') %}
+                    {% set enable_coupon_and_gift_cart_controls = true %}
+                    {% set show_coupon_input_button = true %}
                 {% endif %}
                 {% if has_eligible_gift_cards and has_eligible_coupons %}
                     {% set discount_lang_string = config.lang.cart_add_coupon_and_gift_card %}
@@ -798,7 +799,7 @@
                     <tr>
                         <td class="ukc-summary-label">Mehrwertsteuer</td>
                         <td class="ukc-summary-value" data-ukc-tax-total>
-                            {% if total_tax > 0 %}{{ total_tax|money_format }}{% else %}0,00 €{% endif %}
+                            {% if total_tax > 0 %}{{ total_tax|money_format }}{% else %}0,00 €{% endif %}
                         </td>
                     </tr>
                     <tr class="ukc-summary-totalrow">
