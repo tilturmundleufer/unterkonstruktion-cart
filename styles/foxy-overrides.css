@@ -1145,6 +1145,13 @@ body.ukc-cart-page{
   display: none !important;
 }
 
+/* Spezifischer Foxy-Block: PayPal Pay Later Express Button ausblenden */
+#paypal_platform_paylater_button,
+.fc-express-option#paypal_platform_paylater_button,
+[id="paypal_platform_paylater_button"]{
+  display: none !important;
+}
+
 /* PayPal SEPA Text korrigieren */
 .fc-input-group-container__title:has(input[value="paypal_platform_sepa"]) {
   font-size: 0 !important; /* Original-Text ausblenden */
