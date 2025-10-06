@@ -560,31 +560,7 @@
                 {% elseif has_eligible_gift_cards %} 
                     {% set discount_lang_string = config.lang.cart_add_gift_card %}
                 {% endif %}
-                {% if context == 'checkout' %}
-                <li class="fc-transaction__discounts fc-transaction__section" style="display:block">
-                    <div data-fc-id="block-coupon-entry" style="display:block">
-                    {% block coupon_entry %}
-
-                    <div class="fc-transaction__ui">
-                        <h5 class="fc-transaction__ui__header">{{ config.lang.cart_discounts|raw }}</h5>
-                        <div class="fc-coupon-entry--input" style="display:block">
-                            <input type="text"
-                                name="coupon"
-                                id="coupon"
-                                value="{{ current_coupon_code }}"
-                                class="fc-coupon-entry__input fc-form-control"
-                                placeholder="{{ config.lang.cart_coupon_code }}"
-                                autocomplete="off">
-                            <span class="fc-input-group__button">
-                                <button class="fc-button fc-coupon-entry__apply" type="button" data-fc-id="add-coupon-button">{{ config.lang.cart_apply|raw }}</button>
-                            </span>
-                        </div>
-                    </div>
-
-                    {% endblock coupon_entry %}
-                    </div><!-- data-fc-id="block-coupon-entry" -->
-                </li>
-                {% elseif not is_subscription_cancel and (enable_coupon_and_gift_cart_controls or coupons|length > 0 or gift_cards|length > 0) %}
+                {% if not is_subscription_cancel and (enable_coupon_and_gift_cart_controls or coupons|length > 0 or gift_cards|length > 0) %}
                 <li class="fc-transaction__discounts fc-transaction__section">
                     <div data-fc-id="block-coupon-entry">
                     {% block coupon_entry %}
