@@ -1114,6 +1114,15 @@ body.ukc-cart-page{
   padding-right: 10px;
 }
 
+/* ===================== */
+/* Checkout — Coupons immer sichtbar machen (sanft, nur Anzeige) */
+/* ===================== */
+/* Im Checkout: Rabattbereich und Eingabe anzeigen, Toggle ausblenden */
+#fc-cart[data-context="checkout"] .fc-transaction__discounts{ display:block !important }
+#fc-cart[data-context="checkout"] [data-fc-id="block-coupon-entry"]{ display:block !important }
+#fc-cart[data-context="checkout"] .fc-coupon-entry--input{ display:flex !important; align-items:stretch; gap:8px }
+#fc-cart[data-context="checkout"] .fc-transaction__ui__toggle{ display:none !important }
+
 /* PayPal Pay Later Form-Block ausblenden */
 #fc-payment-method-paypal_platform_paylater,
 .fc-payment-method--paypal_platform_paylater,
