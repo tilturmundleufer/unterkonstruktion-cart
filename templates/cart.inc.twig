@@ -560,7 +560,7 @@
                 {% elseif has_eligible_gift_cards %} 
                     {% set discount_lang_string = config.lang.cart_add_gift_card %}
                 {% endif %}
-                {% if not is_subscription_cancel and (enable_coupon_and_gift_cart_controls or coupons|length > 0 or gift_cards|length > 0) %}
+                {% if (context == 'checkout') or (not is_subscription_cancel and (enable_coupon_and_gift_cart_controls or coupons|length > 0 or gift_cards|length > 0)) %}
                 <li class="fc-transaction__discounts fc-transaction__section">
                     <div data-fc-id="block-coupon-entry">
                     {% block coupon_entry %}
