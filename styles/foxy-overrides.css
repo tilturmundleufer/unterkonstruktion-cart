@@ -550,6 +550,11 @@ button[type=submit] {
   color:var(--brand-blue);
   font-size:18px;
 }
+.ukc-piece-price{
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #6b7280; /* grau */
+}
 .ukc-row__remove{ grid-column:5; text-align:right; width:max-content }
 .ukc-row__remove a{ 
   color:#999;

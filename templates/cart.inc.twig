@@ -293,15 +293,23 @@
                             <div class="fc-cart__item__total ukc-row__total">
                                 {% if has_inclusive_taxes %}
                                     {% if item.parent_code == '' or (item.parent_code != '' and item.price_with_tax > 0) %}
+                                    {% set piece_price = (item.custom_fields is defined and item.custom_fields.piece_price is defined) ? item.custom_fields.piece_price.value : null %}
                                     <p>
                                         {{ item.price_with_tax|money_format }}{% if item.price_with_tax_is_fractional %}<span title="{{ item.price_with_tax }}">…</span>{% endif %}
                                     </p>
+                                    {% if piece_price %}
+                                    <p class="ukc-piece-price">({{ piece_price }} / Stück)</p>
+                                    {% endif %}
                                     {% endif %}
                                 {% else %}
                                     {% if item.parent_code == '' or (item.parent_code != '' and item.price > 0) %}
+                                    {% set piece_price = (item.custom_fields is defined and item.custom_fields.piece_price is defined) ? item.custom_fields.piece_price.value : null %}
                                     <p>
                                         {{ item.price|money_format }}{% if item.price_is_fractional %}<span title="{{ item.price }}">…</span>{% endif %}
                                     </p>
+                                    {% if piece_price %}
+                                    <p class="ukc-piece-price">({{ piece_price }} / Stück)</p>
+                                    {% endif %}
                                     {% endif %}
                                 {% endif %}
                             </div>
