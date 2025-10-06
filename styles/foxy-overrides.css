@@ -1130,6 +1130,13 @@ body.ukc-cart-page{
   display: none !important;
 }
 
+/* PayPal Pay Later Button (JS-SDK) ausblenden */
+[data-funding-source="paylater"],
+.paypal-button[data-funding-source="paylater"],
+.paypal-button.paypal-button-number-0[data-funding-source="paylater"]{
+  display: none !important;
+}
+
 /* PayPal SEPA Text korrigieren */
 .fc-input-group-container__title:has(input[value="paypal_platform_sepa"]) {
   font-size: 0 !important; /* Original-Text ausblenden */
