@@ -302,6 +302,9 @@
                                             {% set piece_price = item.custom_fields.stuckpreis.value|default(item.custom_fields.stuckpreis)|default(null) %}
                                         {% endif %}
                                     {% endif %}
+                                    {% if not piece_price and item.code is defined and item.code %}
+                                        {% set piece_price = item.code %}
+                                    {% endif %}
                                     <p>
                                         {{ item.price_with_tax|money_format }}{% if item.price_with_tax_is_fractional %}<span title="{{ item.price_with_tax }}">…</span>{% endif %}
                                     </p>
@@ -319,6 +322,9 @@
                                         {% elseif item.custom_fields.stuckpreis is defined %}
                                             {% set piece_price = item.custom_fields.stuckpreis.value|default(item.custom_fields.stuckpreis)|default(null) %}
                                         {% endif %}
+                                    {% endif %}
+                                    {% if not piece_price and item.code is defined and item.code %}
+                                        {% set piece_price = item.code %}
                                     {% endif %}
                                     <p>
                                         {{ item.price|money_format }}{% if item.price_is_fractional %}<span title="{{ item.price }}">…</span>{% endif %}
