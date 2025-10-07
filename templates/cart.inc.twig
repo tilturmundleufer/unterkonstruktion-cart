@@ -1848,11 +1848,16 @@
           // nach kurzem Delay erneut (falls PO erst spät gerendert wird)
           setTimeout(generatePurchaseOrderNumber, 300);
           setTimeout(generatePurchaseOrderNumber, 1000);
+          // Observer aktivieren, falls Feld später in den DOM kommt
+          setTimeout(function(){ try{ setupPOFieldObserver(); }catch(_){ } }, 200);
           
           // Bestellnummer auch bei Payment-Method-Wechsel generieren
           document.addEventListener('change', function(ev){
             if(ev.target && ev.target.name === 'fc_payment_method' && ev.target.value === 'purchase_order'){
-              setTimeout(generatePurchaseOrderNumber, 100);
+              setTimeout(function(){
+                try{ generatePurchaseOrderNumber(); }catch(_){}
+                try{ setupPOFieldObserver(); }catch(_){}
+              }, 100);
             }
           });
           
@@ -1888,6 +1893,11 @@
                 });
               }, 300);
             }
+          });
+
+          // Sobald Foxy Checkout-Section Payment aktiv wird, nochmal setzen
+          document.addEventListener('fc:payment:method:ready', function(){
+            setTimeout(function(){ try{ generatePurchaseOrderNumber(); setupPOFieldObserver(); }catch(_){ } }, 50);
           });
           
           // MutationObserver für Purchase Order Feld - überwacht Änderungen am DOM
@@ -1957,7 +1967,8 @@
             var allPOInputs = getPOInputs();
             allPOInputs.forEach(function(input) {
               var storedPONumber = sessionStorage.getItem('ukc_po_number');
-              if(storedPONumber && (input.value !== storedPONumber || !input.readOnly)) {
+              if(!storedPONumber){ try{ generatePurchaseOrderNumber(); storedPONumber = sessionStorage.getItem('ukc_po_number'); }catch(_){ } }
+              if(storedPONumber && (input.value !== storedPONumber || !input.readOnly || !input.hasAttribute('readonly'))) {
                 input.value = storedPONumber;
                 setPOFieldReadonly(input);
               }
