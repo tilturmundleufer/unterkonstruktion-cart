@@ -756,7 +756,7 @@
             </div>
             {% endif %}
 
-            {% if (has_future_products|default(false)) and (not (is_subscription_cancel|default(false))) %}
+            {% if (has_future_products|default(false)) and (is_subscription_cancel|default(false) == false) %}
             {% block future_products %}
             <div class="fc-transaction fc-transaction--future">
                 {% set has_future_subscription_details = false %}
