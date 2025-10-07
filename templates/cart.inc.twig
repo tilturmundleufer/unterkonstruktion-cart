@@ -913,26 +913,9 @@
               var totalEl = row.querySelector('.ukc-row__total p');
               if(totalEl){ totalEl.textContent = formatMoney(each * qty); }
             });
-            var type = getCustomerType();
-            // Derzeit 0% MwSt laut Vorgabe; bei Bedarf hier 0.19 o.ä. setzen
-            var taxRate = (type === 'firma') ? 0 : 0;
-            var tax = subtotal * taxRate;
-            
-            // Lieferkosten aus Foxy-Daten extrahieren
-            var shipping = 0;
-            var shippingEl = document.querySelector('[data-ukc-shipping]');
-            if(shippingEl){
-              var shippingText = shippingEl.textContent || '0,00 €';
-              shipping = parseFloat(shippingText.replace(/[^0-9,.-]/g,'').replace('.', '').replace(',', '.')) || 0;
-            }
-            
-            var total = subtotal + tax + shipping;
             var subEl = document.querySelector('[data-ukc-subtotal]');
-            var taxEl = document.querySelector('[data-ukc-tax-total]');
-            var totalEl = document.querySelector('[data-ukc-total-order]');
             if(subEl) subEl.textContent = formatMoney(subtotal);
-            if(taxEl) taxEl.textContent = formatMoney(tax);
-            if(totalEl) totalEl.textContent = formatMoney(total);
+            // Steuern und Gesamtsumme werden nativ von Foxy berechnet/aktualisiert
           }
           function findQtyInput(itemId){
             return document.querySelector('input[data-fc-id="item-quantity-input"][data-fc-item-id="'+itemId+'"]');
@@ -1032,10 +1015,8 @@
                   customerTypeInput.value = customerType;
                 }
                 
-                // Foxy Tax-Berechnung triggern
-                if(currentContext === 'checkout' && typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
-                  FC.checkout.tax.get_tax();
-                } else if(currentContext === 'cart') {
+                // Keine manuellen Steuer-Trigger mehr
+                if(currentContext === 'cart') {
                   // Im cart Context: Cart-Update triggern, damit der customer_type übertragen wird
                   if(typeof FC !== 'undefined' && FC.cart && FC.cart.updateHash) {
                     FC.cart.updateHash();
@@ -1083,7 +1064,7 @@
             return 'privat';
           }
           
-          // Firmenname in Foxy setzen und (bei gültiger Adresse) Tax/Shipping debounced triggern
+          // Firmenname in Foxy setzen (Foxy berechnet Steuern nativ)
           function applyCompanyAndTriggerTax(){
             var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
             if(typeof FC === 'undefined' || !FC.cart) {
@@ -1148,7 +1129,7 @@
             if(currentContext === 'checkout') { maybeTriggerFoxy(); }
           }
           
-          // Tax-Berechnung triggern wenn Kundentyp sich ändert
+          // Kundentyp-Änderung behandeln (ohne eigene Tax-Aufrufe)
           function triggerTaxCalculation(){
             console.log('triggerTaxCalculation called');
             var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
@@ -1166,112 +1147,16 @@
               var customerTypeInput = document.getElementById('customer_type');
               if(customerTypeInput){ customerTypeInput.value = customerType; }
               
-              // Foxy Tax-Berechnung triggern - mit Fallback
-              if(currentContext === 'checkout' && typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
-                console.log('Triggering FC.checkout.tax.get_tax() for checkout context');
-                FC.checkout.tax.get_tax();
-              } else {
-                console.log('FC.checkout.tax not available for context:', currentContext);
-                // Fallback: Direkte Tax-Anfrage an unseren Endpoint
-                console.log('Using fallback: direct tax request');
-                triggerDirectTaxRequest();
-              }
+              // Keine manuellen Steuer-Requests mehr – Foxy aktualisiert die Beträge selbst
             } else {
               console.log('Not in checkout or cart context, skipping tax calculation');
             }
           }
           
-          // Fallback: Direkte Tax-Anfrage an unseren Endpoint
-          function triggerDirectTaxRequest() {
-            try {
-              // Sammle alle relevanten Daten
-              var formData = new FormData();
-              var form = document.querySelector('form[action*="foxy"]') || document.querySelector('form');
-              
-              if(form) {
-                // Alle Form-Daten sammeln
-                var inputs = form.querySelectorAll('input, select, textarea');
-                inputs.forEach(function(input) {
-                  if(input.name && input.value) {
-                    formData.append(input.name, input.value);
-                  }
-                });
-              }
-              
-              // Zusätzlich: Company-Daten explizit hinzufügen
-              var billingCompany = (document.querySelector('#billing_company')?.value ||
-                                   document.querySelector('input[name="billing_company"]')?.value ||
-                                   document.querySelector('input[data-fc-name="billing_company"]')?.value || '').trim();
-              
-              var shippingCompany = (document.querySelector('#shipping_company')?.value ||
-                                    document.querySelector('input[name="shipping_company"]')?.value ||
-                                    document.querySelector('input[data-fc-name="shipping_company"]')?.value || '').trim();
-              
-              // Company-Daten IMMER hinzufügen (auch wenn leer)
-              formData.append('billing_company', billingCompany || '');
-              formData.append('shipping_company', shippingCompany || '');
-              
-              // Debug: FormData-Inhalt loggen
-              console.log('FormData contents:');
-              for (var pair of formData.entries()) {
-                console.log(pair[0] + ': ' + pair[1]);
-              }
-              
-              console.log('Direct tax request - billing_company:', billingCompany);
-              console.log('Direct tax request - shipping_company:', shippingCompany);
-              
-              // Tax-Endpoint direkt aufrufen - mit absoluter URL
-              var taxEndpoint = window.location.origin + '/api/foxy-validate';
-              console.log('Making direct tax request to:', taxEndpoint);
-              
-              // Alternative: JSON-Request statt FormData
-              var jsonData = {
-                billing_company: billingCompany,
-                shipping_company: shippingCompany,
-                total_item_price: 0,
-                total_shipping: 0,
-                total_discount: 0
-              };
-              
-              console.log('Sending JSON data:', jsonData);
-              
-              fetch(taxEndpoint, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(jsonData)
-              }).then(function(response) {
-                console.log('Direct tax response status:', response.status);
-                console.log('Direct tax response headers:', response.headers.get('content-type'));
-                
-                if (!response.ok) {
-                  throw new Error('HTTP ' + response.status + ': ' + response.statusText);
-                }
-                
-                return response.text().then(function(text) {
-                  console.log('Direct tax response text:', text);
-                  try {
-                    return JSON.parse(text);
-                  } catch (e) {
-                    console.error('Failed to parse JSON response:', e);
-                    console.error('Response text was:', text);
-                    throw new Error('Invalid JSON response: ' + text.substring(0, 100));
-                  }
-                });
-              }).then(function(data) {
-                console.log('Direct tax response parsed:', data);
-                // Hier könnten wir die Tax-Werte in die UI einbauen
-              }).catch(function(error) {
-                console.error('Direct tax request failed:', error);
-              });
-              
-            } catch(e) {
-              console.error('Error in triggerDirectTaxRequest:', e);
-            }
-          }
+          // Kein direkter Tax-Endpoint mehr – Funktion entfernt
+          function triggerDirectTaxRequest() {}
           
-          // Tax-Berechnung beim Laden triggern - WARTE auf Foxy-Initialisierung
+          // Beim Laden nur Initialisierungs-Checks; keine eigenen Tax-Requests
           function waitForFoxyAndTriggerTax() {
             var attempts = 0;
             var maxAttempts = 50; // 5 Sekunden warten
@@ -1280,17 +1165,10 @@
               attempts++;
               console.log('Waiting for Foxy initialization, attempt:', attempts);
               
-              if (typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax) {
-                console.log('Foxy is ready, triggering tax calculation');
-                triggerTaxCalculation();
-                return;
-              }
+              if (typeof FC !== 'undefined' && FC.checkout) { return; }
               
               if (attempts < maxAttempts) {
                 setTimeout(checkFoxy, 100);
-              } else {
-                console.log('Foxy not ready after 5 seconds, trying anyway');
-                triggerTaxCalculation();
               }
             }
             
@@ -1342,7 +1220,7 @@
           setTimeout(ensureBillingAddressVisible, 1000);
           setTimeout(ensureBillingAddressVisible, 3000);
           
-          // Nach Foxy-Initialisierung nochmal Company-Felder suchen und Tax triggern
+                // Nach Foxy-Initialisierung nochmal Company-Felder suchen (ohne Tax-Trigger)
           function retryCompanyFieldsAfterFoxyInit() {
             var attempts = 0;
             var maxAttempts = 30; // 3 Sekunden
@@ -1359,15 +1237,10 @@
                 console.log('Found billing fields:', billingFields.length);
                 console.log('Found shipping fields:', shippingFields.length);
                 
-                // Wenn Felder gefunden wurden, triggere Tax
+                // Wenn Felder gefunden wurden, nur Company synchronisieren
                 if (billingFields.length > 0 || shippingFields.length > 0) {
-                  console.log('Company fields found, triggering tax calculation');
+                  console.log('Company fields found, syncing');
                   applyCompanyAndTriggerTax();
-                  setTimeout(function() {
-                    if (typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax) {
-                      FC.checkout.tax.get_tax();
-                    }
-                  }, 100);
                 }
                 return;
               }
@@ -1667,10 +1540,9 @@
           function handleCompanyFieldChange(event) {
             console.log('Company field changed:', event.target.name || event.target.id, 'new value:', event.target.value);
             
-            // Kurze Verzögerung, dann Tax triggern
+            // Kurze Verzögerung nach Company-Änderung (keine Tax-Requests)
             setTimeout(function() {
-              console.log('Triggering tax calculation due to company field change');
-              triggerDirectTaxRequest();
+              console.log('Company field changed');
             }, 500);
           }
           
@@ -1756,21 +1628,7 @@
             
             // Bei Company-Änderung auch ohne vollständige Adresse Tax triggern, Foxy darf 0% liefern
             if(!hasValidAddress()){
-              if(FC.checkout && FC.checkout.tax && FC.checkout.tax.get_tax) {
-                try{ FC.checkout.tax.get_tax(); }catch(_){ }
-              } else {
-                console.log('FC.checkout.tax not available, using direct tax request');
-                triggerDirectTaxRequest();
-              }
               return;
-            }
-            
-            // Tax triggern
-            if(FC.checkout && FC.checkout.tax && FC.checkout.tax.get_tax) {
-              try{ FC.checkout.tax.get_tax(); }catch(_){ }
-            } else {
-              console.log('FC.checkout.tax not available, using direct tax request');
-              triggerDirectTaxRequest();
             }
             
             // Shipping triggern
