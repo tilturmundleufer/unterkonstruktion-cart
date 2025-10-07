@@ -2117,6 +2117,52 @@
             if(el){ el.addEventListener('change', function(){ setTimeout(triggerShippingRefresh, 100); }); }
           });
 
+          // Checkbox "abweichende Rechnungsadresse" für Gäste sicherstellen
+          function ensureDifferentBillingCheckbox(){
+            try{
+              var isCheckout = document.querySelector('#fc-cart')?.getAttribute('data-context') === 'checkout';
+              if(!isCheckout) return;
+              var shippingSection = document.querySelector('[data-fc-id="block-customer-shipping"]') || document.querySelector('.fc-checkout__section--customer-shipping-address');
+              if(!shippingSection) return;
+              var existing = document.querySelector('#use_different_addresses') || document.querySelector('[name="use_different_addresses"]');
+              if(existing){
+                // Sichtbar stellen
+                var wrap = existing.closest('.fc-form-group');
+                if(wrap){ wrap.style.display = ''; wrap.classList.remove('hidden'); }
+                return;
+              }
+              var container = document.createElement('div');
+              container.className = 'fc-form-group fc-checkout__section--customer-billing-address__use-different-address';
+              container.innerHTML = '<div class="fc-container__grid--use-different-address">\
+                <div class="fc-input-group-container--checkbox">\
+                  <label for="use_different_addresses" class="fc-form-label fc-form-label--different-address">\
+                    <input type="hidden" name="use_different_addresses" value="0" />\
+                    <input type="checkbox" id="use_different_addresses" name="use_different_addresses" value="1" checked />\
+                    Verwenden Sie eine andere Rechnungsadresse\
+                  </label>\
+                </div>\
+              </div>';
+              // Einfügen am Ende des Shipping-Blocks
+              shippingSection.appendChild(container);
+              // Toggle-Logik
+              var billingSection = document.querySelector('[data-fc-id="block-customer-billing"]') || document.querySelector('.fc-checkout__section--customer-billing-address');
+              var cb = container.querySelector('#use_different_addresses');
+              if(cb){
+                cb.addEventListener('change', function(){
+                  if(!billingSection) return;
+                  billingSection.style.display = cb.checked ? '' : 'none';
+                });
+                // Initial anwenden
+                if(billingSection){ billingSection.style.display = cb.checked ? '' : 'none'; }
+              }
+            }catch(_){ }
+          }
+          // beim Laden und nach möglichen DOM-Updates ausführen
+          setTimeout(ensureDifferentBillingCheckbox, 100);
+          setTimeout(ensureDifferentBillingCheckbox, 600);
+          var moDiff = new MutationObserver(function(){ ensureDifferentBillingCheckbox(); });
+          try{ moDiff.observe(document.body, { childList:true, subtree:true }); }catch(_){ }
+
           // Wenn Versand-Raten geladen sind, automatisch erste Option wählen (falls keine gewählt)
           function autoSelectFirstShipping(){
             var isCheckout = document.querySelector('#fc-cart')?.getAttribute('data-context') === 'checkout';
