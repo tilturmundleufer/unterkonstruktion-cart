@@ -352,6 +352,10 @@ button[type=submit] {
   max-width: 100%;
   margin: 0 auto;
 }
+.ukc-empty{ box-sizing:border-box }
+@media (max-width: 768px){
+  .ukc-empty{ width:100%; }
+}
 .ukc-empty__title{ margin:0 0 16px; font-size:20px; color:#9ca3af; }
 .ukc-empty .ukc-btn{ margin-top:8px; }
 
