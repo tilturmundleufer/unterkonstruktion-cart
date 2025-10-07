@@ -650,7 +650,7 @@
                             {% endif %}
                             {% set coupon_code = key %}
                             {% for i, coupon in coupon_data %}
-                                <tr class="fc-subtotal--row {# if not coupon.is_applied %}fc-subtotal--row--inactive{% endif #}" data-fc-coupon-container-id="{{ coupon.id }}">
+                                <tr class="fc-subtotal--row{% if coupon.is_applied is defined and (coupon.is_applied == false) %} fc-subtotal--row--inactive{% endif %}" data-fc-coupon-container-id="{{ coupon.id }}">
                                     <td class="fc-subtotal__label">
                                         <span class="fc-coupon__name">{{ coupon.name }}</span>:
                                         <span class="fc-coupon__code">{{ coupon_code }}</span>
