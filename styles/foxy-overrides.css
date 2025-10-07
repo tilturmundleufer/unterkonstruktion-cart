@@ -528,6 +528,32 @@ button[type=submit] {
 #fc-cart[data-context="cart"] .fc-sidebar--cart.ukc-summary ul.fc-transaction{ display:none !important; }
 #fc-cart[data-context="checkout"] .fc-sidebar--cart.ukc-summary ul.fc-transaction{ display:block !important; }
 
+/* Checkout: Versand-Zeile im Transaktions-Block ausblenden (nur Zusammenfassung) */
+#fc-cart[data-context="checkout"] .fc-transaction__shipping.fc-transaction__section{ display:none !important; }
+
+/* Checkout: Transaktionsliste ohne linkes Padding */
+#fc-cart[data-context="checkout"] ul.fc-transaction{ padding-left:0 !important; margin-left:0 !important; }
+
+/* Coupon-Eingabe: untereinander und volle Breite */
+#fc-cart[data-context="checkout"] .fc-coupon-entry--input{ flex-direction:column !important; gap:8px !important; width:100% !important; }
+#fc-cart[data-context="checkout"] .fc-coupon-entry--input input[type="text"],
+#fc-cart[data-context="checkout"] .fc-coupon-entry--input .fc-input-group__button,
+#fc-cart[data-context="checkout"] .fc-coupon-entry--input .fc-button{ width:100% !important; display:block !important; }
+
+/* Coupon Button an Checkout-Stil angleichen */
+#fc-cart[data-context="checkout"] .fc-coupon-entry--input .fc-button{
+  background: var(--brand-yellow) !important;
+  color: var(--brand-blue) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  height: 46px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 16px rgba(255,177,1,.25) !important;
+}
+#fc-cart[data-context="checkout"] .fc-coupon-entry--input .fc-button:hover{
+  background:#e6a000 !important;
+}
+
 /* Remove-all button look */
 .ukc-remove-all{ text-align:center; margin:12px 0 0 }
 .ukc-remove-all a{
