@@ -2147,6 +2147,25 @@
         </form>
         {% endif %}
         {% endblock cart_form_end %}
+        <script>
+        (function(){
+          function getPOInputs(){
+            var nodes=[]; try{ ['#purchase_order','[name="purchase_order"]','[data-fc-name="purchase_order"]'].forEach(function(sel){ document.querySelectorAll(sel).forEach(function(n){ if(n&&nodes.indexOf(n)===-1) nodes.push(n); }); }); }catch(_){}
+            return nodes;
+          }
+          function setRO(el){ try{ el.readOnly=true; el.setAttribute('readonly','readonly'); el.style.cursor='not-allowed'; }catch(_){} }
+          function gen(){ try{ console.log('[PO-mini] gen()'); }catch(_){}
+            var ins=getPOInputs(); if(ins.length===0) return;
+            var stored=null; try{ stored=sessionStorage.getItem('ukc_po_number'); }catch(_){}
+            if(!stored){ var d=new Date(); var p=function(n){return String(n).padStart(2,'0');}; var po='UKC-'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())+'-'+String(Math.floor(Math.random()*10000)).padStart(4,'0'); try{ sessionStorage.setItem('ukc_po_number',po);}catch(_){} stored=po; }
+            ins.forEach(function(i){ if(i.value!==stored) i.value=stored; setRO(i); });
+          }
+          function arm(){ setTimeout(gen,50); setTimeout(gen,250); setTimeout(gen,800); }
+          document.addEventListener('change',function(e){ if(e.target && e.target.name==='fc_payment_method' && e.target.value==='purchase_order'){ arm(); }});
+          arm();
+          try{ var mo=new MutationObserver(function(){ gen(); }); mo.observe(document.body,{childList:true,subtree:true}); }catch(_){}
+        })();
+        </script>
     </div>{# .fc-cart-container #}
 
     {% endif %} {# not is_updateinfo #}
