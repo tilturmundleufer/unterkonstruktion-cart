@@ -566,6 +566,20 @@ button[type=submit] {
   background:#e6a000 !important;
 }
 
+/* ===================== */
+/* Checkout — Pflichtfeld-Highlighting */
+/* ===================== */
+/* Rote Hervorhebung für ungültige/fehlende Werte (per JS Klasse .ukc-invalid) */
+.fc-checkout__main__form .ukc-invalid,
+.fc-checkout__main__form .fc-form-control.ukc-invalid{
+  border-color:#dc2626 !important; /* red-600 */
+  box-shadow:0 0 0 2px rgba(220,38,38,.15) !important;
+}
+.fc-checkout__main__form .fc-form-group.ukc-has-error .fc-form-label{
+  color:#dc2626 !important;
+}
+.fc-checkout__main__form .ukc-invalid::placeholder{ color:rgba(220,38,38,.65) !important; }
+
 /* Remove-all button look */
 .ukc-remove-all{ text-align:center; margin:12px 0 0 }
 .ukc-remove-all a{

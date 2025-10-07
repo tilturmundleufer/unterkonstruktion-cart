@@ -2117,6 +2117,38 @@
             if(el){ el.addEventListener('change', function(){ setTimeout(triggerShippingRefresh, 100); }); }
           });
 
+          // Pflichtfeld-Validierung: Beim Klick auf Kaufen-Buttons fehlende Werte rot markieren
+          function markInvalidRequiredFields(){
+            try{
+              var form = document.querySelector('#fc-cart-form') || document.querySelector('form[action*="/checkout"]') || document.querySelector('form');
+              if(!form) return;
+              var requiredSelectors = [
+                '[data-fc-required]',
+                '[required]'
+              ];
+              var inputs = form.querySelectorAll(requiredSelectors.join(','));
+              inputs.forEach(function(input){
+                var val = (input.value || '').trim();
+                var isCheckbox = input.type === 'checkbox' || input.type === 'radio';
+                var invalid = isCheckbox ? !input.checked : val.length === 0;
+                if(invalid){
+                  input.classList.add('ukc-invalid');
+                  var group = input.closest('.fc-form-group');
+                  if(group){ group.classList.add('ukc-has-error'); }
+                } else {
+                  input.classList.remove('ukc-invalid');
+                  var group2 = input.closest('.fc-form-group');
+                  if(group2){ group2.classList.remove('ukc-has-error'); }
+                }
+              });
+            }catch(_){ }
+          }
+          // Auf alle relevanten Submit-/Kaufen-Buttons hängen
+          document.addEventListener('click', function(e){
+            var submitBtn = e.target.closest('.fc-button--submit, [data-fc-id="cart-continue-button"], [type="submit"], .fc-actions .fc-button--checkout');
+            if(submitBtn){ markInvalidRequiredFields(); }
+          }, true);
+
           // Checkbox "abweichende Rechnungsadresse" für Gäste sicherstellen
           function ensureDifferentBillingCheckbox(){
             try{
