@@ -886,6 +886,13 @@
         {% if with_controls %}
         <script>
         (function(){
+          // Laufzeit-Guard: Dieser Block soll den Checkout nicht beeinflussen.
+          // Wenn wir nicht im Cart-Kontext sind, brich ab (verhindert Checkout-Fehler).
+          var fcRoot = document.querySelector('#fc-cart');
+          var __ukc_ctx = fcRoot ? fcRoot.getAttribute('data-context') : null;
+          if(__ukc_ctx !== 'cart') {
+            return; // Checkout ausklammern
+          }
           var form = document.getElementById('fc-cart-form');
           var updating = false;
           function getLocale(){ return document.querySelector('#fc-cart')?.dataset.locale || 'de-DE'; }
