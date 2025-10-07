@@ -522,7 +522,11 @@ button[type=submit] {
 /* Verhindert, dass die Standard-Foxy-Transaktionsliste im Warenkorb sichtbar ist */
 /* Sidebar-Liste generell im Cart ausblenden (fall-back) */
 #fc-cart[data-context="cart"] ul.fc-transaction{ display:none !important; }
-.fc-sidebar--cart.ukc-summary ul.fc-transaction{ display:none !important; }
+/* WICHTIG: Im Checkout darf die Transaktionsliste sichtbar sein */
+#fc-cart[data-context="checkout"] ul.fc-transaction{ display:block !important; }
+/* Cart-spezifisches Ausblenden im Sidebar-Container, aber nicht im Checkout */
+#fc-cart[data-context="cart"] .fc-sidebar--cart.ukc-summary ul.fc-transaction{ display:none !important; }
+#fc-cart[data-context="checkout"] .fc-sidebar--cart.ukc-summary ul.fc-transaction{ display:block !important; }
 
 /* Remove-all button look */
 .ukc-remove-all{ text-align:center; margin:12px 0 0 }
