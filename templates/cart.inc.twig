@@ -1134,8 +1134,7 @@
               }
             }
             
-            console.log('applyCompanyAndTriggerTax - billing_company:', billingCompany);
-            console.log('applyCompanyAndTriggerTax - shipping_company:', shippingCompany);
+            
             
             // Setze beide Felder in FC.cart
             FC.cart.billing_company = billingCompany;
@@ -1153,14 +1152,11 @@
           
           // Tax-Berechnung triggern wenn Kundentyp sich ändert
           function triggerTaxCalculation(){
-            console.log('triggerTaxCalculation called');
             var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
-            console.log('Current context:', currentContext);
             
             // Tax-Berechnung sowohl im cart als auch im checkout Context
             if(currentContext === 'checkout' || currentContext === 'cart'){
               var customerType = getCustomerType();
-              console.log('Retrieved customer type:', customerType);
               
               // Firmenname aus Eingabe übernehmen (falls Feld vorhanden)
               try { applyCompanyAndTriggerTax(); } catch(e) {}
@@ -1171,16 +1167,12 @@
               
               // Foxy Tax-Berechnung triggern - mit Fallback
               if(currentContext === 'checkout' && typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
-                console.log('Triggering FC.checkout.tax.get_tax() for checkout context');
                 FC.checkout.tax.get_tax();
               } else {
-                console.log('FC.checkout.tax not available for context:', currentContext);
-                // Fallback: Direkte Tax-Anfrage an unseren Endpoint
-                console.log('Using fallback: direct tax request');
-                triggerDirectTaxRequest();
+                // Fallback entfernt: keine direkten Tax-Calls
               }
             } else {
-              console.log('Not in checkout or cart context, skipping tax calculation');
+              // außerhalb checkout/cart: kein Tax
             }
           }
           
@@ -1281,10 +1273,8 @@
             
             function checkFoxy() {
               attempts++;
-              console.log('Waiting for Foxy initialization, attempt:', attempts);
               
               if (typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax) {
-                console.log('Foxy is ready, triggering tax calculation');
                 triggerTaxCalculation();
                 return;
               }
@@ -1292,7 +1282,6 @@
               if (attempts < maxAttempts) {
                 setTimeout(checkFoxy, 100);
               } else {
-                console.log('Foxy not ready after 5 seconds, trying anyway');
                 triggerTaxCalculation();
               }
             }
@@ -1352,19 +1341,14 @@
             
             function checkAndRetry() {
               attempts++;
-              console.log('Retrying company fields after Foxy init, attempt:', attempts);
               
               if (typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax) {
                 // Foxy ist bereit, suche nochmal nach Company-Feldern
                 var billingFields = document.querySelectorAll('input[name="billing_company"], input[data-fc-name="billing_company"], #billing_company');
                 var shippingFields = document.querySelectorAll('input[name="shipping_company"], input[data-fc-name="shipping_company"], #shipping_company');
                 
-                console.log('Found billing fields:', billingFields.length);
-                console.log('Found shipping fields:', shippingFields.length);
-                
                 // Wenn Felder gefunden wurden, triggere Tax
                 if (billingFields.length > 0 || shippingFields.length > 0) {
-                  console.log('Company fields found, triggering tax calculation');
                   applyCompanyAndTriggerTax();
                   setTimeout(function() {
                     if (typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax) {
