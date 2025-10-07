@@ -6,18 +6,6 @@
 {# ===================================================== #}
 {% block cart %}
 
-{# Schutz-Defaults gegen undefined-Variablen #}
-{% set context = context|default('cart') %}
-{% set is_subscription_cancel = is_subscription_cancel|default(false) %}
-{% set has_future_products = has_future_products|default(false) %}
-{% set has_eligible_coupons = has_eligible_coupons|default(false) %}
-{% set has_eligible_gift_cards = has_eligible_gift_cards|default(false) %}
-{% set enable_coupon_and_gift_cart_controls = enable_coupon_and_gift_cart_controls|default(false) %}
-{% set coupons = coupons|default({}) %}
-{% set gift_cards = gift_cards|default({}) %}
-{% set payment_info_required = payment_info_required|default(false) %}
-{% set order_payment_options = order_payment_options|default([]) %}
-
 {# Entfernt: Sidecart-Fixed-Buttons, die im Fullpage-Cart das Layout überlagern #}
 
 <div id="fc-cart" {% if context == 'cart' %}class="fc-container ukc-shell"{% endif %} data-currency="EUR" data-locale="de-DE" data-context="{{ context }}">
@@ -61,7 +49,7 @@
 <div id="{{ container_id }}">
     {% if context != 'checkout' %}
     <header class="fc-cart__header fc-container__row" role="banner">
-        {% if (is_updateinfo|default(false) == false) %}
+        {% if not is_updateinfo %}
         <div class="fc-cart__title fc-container__grid">
             {% block cart_title %}
                 <h2 class="fc-cart__title__header">{{ config.lang.cart_caption|raw }}</h2>
@@ -95,7 +83,7 @@
     </header>
     {% endif %}
 
-    {% if (is_updateinfo|default(false) == false) %}
+    {% if not is_updateinfo %}
 
     {% if cart_is_fullpage %}
     <div class="fc-cart-container fc-cart__main fc-container__row" role="main">
@@ -142,7 +130,7 @@
 
             <div data-fc-id="block-cart-items-divs">
             {% block cart_items_divs %}
-{% set checkout_sub_cancel = ((context|default('cart') == 'checkout') and (is_subscription_cancel|default(false))) %}
+            {% set checkout_sub_cancel = (context == 'checkout' and is_subscription_cancel) %}
             <div class="fc-cart__items {% if has_product_images %}fc-cart__items--with-images{% else %} fc-cart__items--without-images{% endif %}">
 
                 {% if false and (items|length > 0) %}
@@ -602,7 +590,7 @@
                 {% elseif has_eligible_gift_cards %} 
                     {% set discount_lang_string = config.lang.cart_add_gift_card %}
                 {% endif %}
-                {% if ((context|default('cart') == 'checkout') or (not (is_subscription_cancel|default(false)) and ((enable_coupon_and_gift_cart_controls|default(false)) or ((coupons|default({}))|length > 0) or ((gift_cards|default({}))|length > 0)))) %}
+                {% if (context == 'checkout') or (not is_subscription_cancel and (enable_coupon_and_gift_cart_controls or coupons|length > 0 or gift_cards|length > 0)) %}
                 <li class="fc-transaction__discounts fc-transaction__section">
                     <div data-fc-id="block-coupon-entry">
                     {% block coupon_entry %}
@@ -756,7 +744,7 @@
             </div>
             {% endif %}
 
-            {% if (has_future_products|default(false)) and (is_subscription_cancel|default(false) == false) %}
+            {% if has_future_products and not is_subscription_cancel %}
             {% block future_products %}
             <div class="fc-transaction fc-transaction--future">
                 {% set has_future_subscription_details = false %}
@@ -1134,7 +1122,8 @@
               }
             }
             
-            
+            console.log('applyCompanyAndTriggerTax - billing_company:', billingCompany);
+            console.log('applyCompanyAndTriggerTax - shipping_company:', shippingCompany);
             
             // Setze beide Felder in FC.cart
             FC.cart.billing_company = billingCompany;
@@ -1152,11 +1141,14 @@
           
           // Tax-Berechnung triggern wenn Kundentyp sich ändert
           function triggerTaxCalculation(){
+            console.log('triggerTaxCalculation called');
             var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
+            console.log('Current context:', currentContext);
             
             // Tax-Berechnung sowohl im cart als auch im checkout Context
             if(currentContext === 'checkout' || currentContext === 'cart'){
               var customerType = getCustomerType();
+              console.log('Retrieved customer type:', customerType);
               
               // Firmenname aus Eingabe übernehmen (falls Feld vorhanden)
               try { applyCompanyAndTriggerTax(); } catch(e) {}
@@ -1167,12 +1159,16 @@
               
               // Foxy Tax-Berechnung triggern - mit Fallback
               if(currentContext === 'checkout' && typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax){
+                console.log('Triggering FC.checkout.tax.get_tax() for checkout context');
                 FC.checkout.tax.get_tax();
               } else {
-                // Fallback entfernt: keine direkten Tax-Calls
+                console.log('FC.checkout.tax not available for context:', currentContext);
+                // Fallback: Direkte Tax-Anfrage an unseren Endpoint
+                console.log('Using fallback: direct tax request');
+                triggerDirectTaxRequest();
               }
             } else {
-              // außerhalb checkout/cart: kein Tax
+              console.log('Not in checkout or cart context, skipping tax calculation');
             }
           }
           
@@ -1273,8 +1269,10 @@
             
             function checkFoxy() {
               attempts++;
+              console.log('Waiting for Foxy initialization, attempt:', attempts);
               
               if (typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax) {
+                console.log('Foxy is ready, triggering tax calculation');
                 triggerTaxCalculation();
                 return;
               }
@@ -1282,6 +1280,7 @@
               if (attempts < maxAttempts) {
                 setTimeout(checkFoxy, 100);
               } else {
+                console.log('Foxy not ready after 5 seconds, trying anyway');
                 triggerTaxCalculation();
               }
             }
@@ -1341,14 +1340,19 @@
             
             function checkAndRetry() {
               attempts++;
+              console.log('Retrying company fields after Foxy init, attempt:', attempts);
               
               if (typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax) {
                 // Foxy ist bereit, suche nochmal nach Company-Feldern
                 var billingFields = document.querySelectorAll('input[name="billing_company"], input[data-fc-name="billing_company"], #billing_company');
                 var shippingFields = document.querySelectorAll('input[name="shipping_company"], input[data-fc-name="shipping_company"], #shipping_company');
                 
+                console.log('Found billing fields:', billingFields.length);
+                console.log('Found shipping fields:', shippingFields.length);
+                
                 // Wenn Felder gefunden wurden, triggere Tax
                 if (billingFields.length > 0 || shippingFields.length > 0) {
+                  console.log('Company fields found, triggering tax calculation');
                   applyCompanyAndTriggerTax();
                   setTimeout(function() {
                     if (typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax) {
