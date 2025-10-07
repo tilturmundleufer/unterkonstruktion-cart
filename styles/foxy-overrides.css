@@ -1133,6 +1133,14 @@ body.ukc-cart-page{
 #fc-cart[data-context="checkout"] [data-fc-id="block-coupon-entry"]{ display:block !important }
 #fc-cart[data-context="checkout"] .fc-coupon-entry--input{ display:flex !important; align-items:stretch; gap:8px }
 #fc-cart[data-context="checkout"] .fc-transaction__ui__toggle{ display:none !important }
+/* Sicherstellen, dass der innere UI-Container (der sonst zugeklappt sein kann) sichtbar ist */
+#fc-cart[data-context="checkout"] [data-fc-id="block-coupon-entry"] .fc-transaction__ui{
+  display:block !important;
+  visibility:visible !important;
+}
+#fc-cart[data-context="checkout"] [data-fc-id="block-coupon-entry"] .fc-transaction__ui[hidden]{
+  display:block !important;
+}
 
 /* PayPal Pay Later Form-Block ausblenden */
 #fc-payment-method-paypal_platform_paylater,
