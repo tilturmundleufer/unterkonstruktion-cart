@@ -557,6 +557,10 @@ button[type=submit] {
   height: 46px !important;
   font-weight: 700 !important;
   box-shadow: 0 4px 16px rgba(255,177,1,.25) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
 }
 #fc-cart[data-context="checkout"] .fc-coupon-entry--input .fc-button:hover{
   background:#e6a000 !important;
