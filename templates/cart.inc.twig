@@ -6,6 +6,18 @@
 {# ===================================================== #}
 {% block cart %}
 
+{# Schutz-Defaults gegen undefined-Variablen #}
+{% set context = context|default('cart') %}
+{% set is_subscription_cancel = is_subscription_cancel|default(false) %}
+{% set has_future_products = has_future_products|default(false) %}
+{% set has_eligible_coupons = has_eligible_coupons|default(false) %}
+{% set has_eligible_gift_cards = has_eligible_gift_cards|default(false) %}
+{% set enable_coupon_and_gift_cart_controls = enable_coupon_and_gift_cart_controls|default(false) %}
+{% set coupons = coupons|default({}) %}
+{% set gift_cards = gift_cards|default({}) %}
+{% set payment_info_required = payment_info_required|default(false) %}
+{% set order_payment_options = order_payment_options|default([]) %}
+
 {# Entfernt: Sidecart-Fixed-Buttons, die im Fullpage-Cart das Layout überlagern #}
 
 <div id="fc-cart" {% if context == 'cart' %}class="fc-container ukc-shell"{% endif %} data-currency="EUR" data-locale="de-DE" data-context="{{ context }}">
@@ -130,7 +142,7 @@
 
             <div data-fc-id="block-cart-items-divs">
             {% block cart_items_divs %}
-            {% set checkout_sub_cancel = (context == 'checkout' and is_subscription_cancel) %}
+{% set checkout_sub_cancel = ((context|default('cart') == 'checkout') and (is_subscription_cancel|default(false))) %}
             <div class="fc-cart__items {% if has_product_images %}fc-cart__items--with-images{% else %} fc-cart__items--without-images{% endif %}">
 
                 {% if false and (items|length > 0) %}
@@ -590,7 +602,7 @@
                 {% elseif has_eligible_gift_cards %} 
                     {% set discount_lang_string = config.lang.cart_add_gift_card %}
                 {% endif %}
-                {% if (context == 'checkout') or (not is_subscription_cancel and (enable_coupon_and_gift_cart_controls or coupons|length > 0 or gift_cards|length > 0)) %}
+                {% if ((context|default('cart') == 'checkout') or (not (is_subscription_cancel|default(false)) and ((enable_coupon_and_gift_cart_controls|default(false)) or ((coupons|default({}))|length > 0) or ((gift_cards|default({}))|length > 0)))) %}
                 <li class="fc-transaction__discounts fc-transaction__section">
                     <div data-fc-id="block-coupon-entry">
                     {% block coupon_entry %}
@@ -744,7 +756,7 @@
             </div>
             {% endif %}
 
-            {% if has_future_products and not is_subscription_cancel %}
+            {% if (has_future_products|default(false)) and (not (is_subscription_cancel|default(false))) %}
             {% block future_products %}
             <div class="fc-transaction fc-transaction--future">
                 {% set has_future_subscription_details = false %}
