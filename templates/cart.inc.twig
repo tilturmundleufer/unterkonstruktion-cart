@@ -61,7 +61,7 @@
 <div id="{{ container_id }}">
     {% if context != 'checkout' %}
     <header class="fc-cart__header fc-container__row" role="banner">
-        {% if not is_updateinfo %}
+        {% if (is_updateinfo|default(false) == false) %}
         <div class="fc-cart__title fc-container__grid">
             {% block cart_title %}
                 <h2 class="fc-cart__title__header">{{ config.lang.cart_caption|raw }}</h2>
@@ -95,7 +95,7 @@
     </header>
     {% endif %}
 
-    {% if not is_updateinfo %}
+    {% if (is_updateinfo|default(false) == false) %}
 
     {% if cart_is_fullpage %}
     <div class="fc-cart-container fc-cart__main fc-container__row" role="main">
