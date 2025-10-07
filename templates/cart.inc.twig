@@ -1749,6 +1749,17 @@
             }
           }, 1000);
           
+          // Hilfsfunktion: alle möglichen Purchase-Order-Felder finden (verschiedene Renderpfade)
+          function getPOInputs(){
+            var nodes = [];
+            try{
+              ['#purchase_order','[name="purchase_order"]','[data-fc-name="purchase_order"]'].forEach(function(sel){
+                document.querySelectorAll(sel).forEach(function(n){ if(n && nodes.indexOf(n) === -1) nodes.push(n); });
+              });
+            }catch(_){ }
+            return nodes;
+          }
+          
           // Purchase Order Feld permanent readonly machen
           function setPOFieldReadonly(poInput) {
             if(poInput) {
@@ -1770,7 +1781,8 @@
           
           // Automatische Bestellnummer für Purchase Order generieren
           function generatePurchaseOrderNumber(){
-            var poInput = document.getElementById('purchase_order');
+            var inputs = getPOInputs();
+            var poInput = inputs[0];
             if(poInput){
               // Prüfe ob bereits eine Bestellnummer im Session Storage gespeichert ist
               var storedPONumber = sessionStorage.getItem('ukc_po_number');
@@ -1825,8 +1837,8 @@
                 // Speichere Bestellnummer im Session Storage
                 sessionStorage.setItem('ukc_po_number', poNumber);
                 
-                poInput.value = poNumber;
-                setPOFieldReadonly(poInput);
+                // auf alle gefundenen Felder anwenden
+                inputs.forEach(function(input){ input.value = poNumber; setPOFieldReadonly(input); });
               }
             }
           }
@@ -1846,7 +1858,7 @@
             // Prüfe ob es ein Versandmethoden-Radio-Button ist
             if(ev.target && ev.target.type === 'radio' && ev.target.name && ev.target.name.includes('shipping')) {
               setTimeout(function(){
-                var allPOInputs = document.querySelectorAll('#purchase_order');
+                var allPOInputs = getPOInputs();
                 allPOInputs.forEach(function(input) {
                   var storedPONumber = sessionStorage.getItem('ukc_po_number');
                   if(storedPONumber) {
@@ -1863,7 +1875,7 @@
             // Prüfe ob auf eine Versandoption geklickt wurde
             if(ev.target && (ev.target.closest('.fc-shipping-rates__rate') || ev.target.closest('[data-fc-id="shipping-results"]'))) {
               setTimeout(function(){
-                var allPOInputs = document.querySelectorAll('#purchase_order');
+                var allPOInputs = getPOInputs();
                 allPOInputs.forEach(function(input) {
                   var storedPONumber = sessionStorage.getItem('ukc_po_number');
                   if(storedPONumber) {
@@ -1877,7 +1889,7 @@
           
           // MutationObserver für Purchase Order Feld - überwacht Änderungen am DOM
           function setupPOFieldObserver() {
-            var poInput = document.getElementById('purchase_order');
+            var poInput = document.getElementById('purchase_order') || document.querySelector('[name="purchase_order"]') || document.querySelector('[data-fc-name="purchase_order"]');
             if(poInput) {
               // Observer für das spezifische Feld
               var observer = new MutationObserver(function(mutations) {
@@ -1903,7 +1915,10 @@
                   if(mutation.type === 'childList') {
                     mutation.addedNodes.forEach(function(node) {
                       if(node.nodeType === 1) { // Element node
-                        var newPOInput = node.querySelector ? node.querySelector('#purchase_order') : null;
+                        var newPOInput = null;
+                        try{
+                          newPOInput = node.querySelector ? (node.querySelector('#purchase_order') || node.querySelector('[name="purchase_order"]') || node.querySelector('[data-fc-name="purchase_order"]')) : null;
+                        }catch(_){ }
                         if(newPOInput || node.id === 'purchase_order') {
                           var targetInput = newPOInput || node;
                           setTimeout(function() {
@@ -1933,7 +1948,7 @@
           
           // Kontinuierlicher Check alle 2 Sekunden
           setInterval(function(){
-            var allPOInputs = document.querySelectorAll('#purchase_order');
+            var allPOInputs = getPOInputs();
             allPOInputs.forEach(function(input) {
               var storedPONumber = sessionStorage.getItem('ukc_po_number');
               if(storedPONumber && (input.value !== storedPONumber || !input.readOnly)) {
