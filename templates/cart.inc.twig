@@ -130,7 +130,7 @@
 
             <div data-fc-id="block-cart-items-divs">
             {% block cart_items_divs %}
-            {% set checkout_sub_cancel = (context == 'checkout' and is_subscription_cancel) %}
+            {% set checkout_sub_cancel = (context == 'checkout' and (is_subscription_cancel is defined and is_subscription_cancel)) %}
             <div class="fc-cart__items {% if has_product_images %}fc-cart__items--with-images{% else %} fc-cart__items--without-images{% endif %}">
 
                 {% if false and (items|length > 0) %}
@@ -590,7 +590,7 @@
                 {% elseif has_eligible_gift_cards %} 
                     {% set discount_lang_string = config.lang.cart_add_gift_card %}
                 {% endif %}
-                {% if (context == 'checkout') or (not is_subscription_cancel and (enable_coupon_and_gift_cart_controls or coupons|length > 0 or gift_cards|length > 0)) %}
+                {% if (context == 'checkout') or ((is_subscription_cancel is not defined or not is_subscription_cancel) and (enable_coupon_and_gift_cart_controls or (coupons is defined and coupons|length > 0) or (gift_cards is defined and gift_cards|length > 0))) %}
                 <li class="fc-transaction__discounts fc-transaction__section">
                     <div data-fc-id="block-coupon-entry">
                     {% block coupon_entry %}
@@ -642,7 +642,7 @@
                     {% endblock coupon_entry %}
                     </div><!-- data-fc-id="block-coupon-entry" -->
 
-                    {% if coupons|length > 0 %}
+                    {% if coupons is defined and coupons|length > 0 %}
                     <table>
                         {% for key,coupon_data in coupons %}
                             {% if coupon_data is not array %}
@@ -668,7 +668,7 @@
                         {% endfor %}
                     </table>
                     {% endif %}
-                    {% if gift_cards|length > 0 %}
+                    {% if gift_cards is defined and gift_cards|length > 0 %}
                     <table>
                         {% for key,gift_card_data in gift_cards %}
                             {% if gift_card_data is not array %}
@@ -703,7 +703,7 @@
             </ul>
             {% endif %}
 
-            {% if context == "checkout" and has_multiple_addresses and multiship_data|length > 1 %}
+            {% if context == "checkout" and (has_multiple_addresses is defined and has_multiple_addresses) and (multiship_data is defined and multiship_data|length > 1) %}
             <div class="fc-transaction fc-transaction--multiship">
                 <button type="button" class="fc-button fc-transaction__ui__toggle" data-fc-id="button-toggle-multiship-details">{{ config.lang.cart_details|raw }}</button>
                 {% for multiship in multiship_data %}
@@ -744,17 +744,17 @@
             </div>
             {% endif %}
 
-            {% if has_future_products and not is_subscription_cancel %}
+            {% if (has_future_products is defined and has_future_products) and (is_subscription_cancel is not defined or not is_subscription_cancel) %}
             {% block future_products %}
             <div class="fc-transaction fc-transaction--future">
                 {% set has_future_subscription_details = false %}
-                {% if future_subscription_totals_by_date|length > 0 and (has_future_shipping or future_coupons|length > 0 or has_future_taxes) %}
+                {% if (future_subscription_totals_by_date is defined and future_subscription_totals_by_date|length > 0) and ((has_future_shipping is defined and has_future_shipping) or (future_coupons is defined and future_coupons|length > 0) or (has_future_taxes is defined and has_future_taxes)) %}
                     {% set has_future_subscription_details = true %}
                 {% endif %}
                 {% if (context == "cart" or context == "checkout") and has_future_subscription_details %}
                 <button type="button" class="fc-button fc-transaction__ui__toggle" data-fc-id="button-toggle-future-subscription-details">{{ config.lang.cart_details|raw }}</button>
                 {% endif %}
-                    {% if future_subscription_totals_by_date|length > 0 %}
+                    {% if future_subscription_totals_by_date is defined and future_subscription_totals_by_date|length > 0 %}
                     <h5 class="fc-transaction__ui__header">
                     {% if future_subscription_totals_by_date|length > 1 %}
                         {{ config.lang.cart_future_charges|raw }}
@@ -768,7 +768,7 @@
                             <h5 class="fc-transaction__ui__header">{{ key|date("F jS, Y") }}
                                 <span class="fc-transaction__ui__header__value">{{ subscription_item_total.total|money_format }}</span>
                             </h5>
-                        {% if has_future_subscription_details and show_future_subscriptions_details %}
+                        {% if has_future_subscription_details and (show_future_subscriptions_details is defined and show_future_subscriptions_details) %}
                             <table>
                                 <tr class="fc-subtotal--row">
                                     <td class="fc-subtotal__label"> {{ config.lang.cart_subtotal|raw }}: </td>
@@ -780,13 +780,15 @@
                                     {% endif %}
                                     </td>
                                 </tr>
+                                {% if future_coupons is defined and future_coupons|length > 0 %}
                                 {% for key,coupon in future_coupons %}
                                 <tr class="fc-subtotal--row fc-transaction--future__discounts">
                                     <td class="fc-subtotal__label">{{ coupon.name }}: {{ key }}</td>
                                     <td class="fc-subtotal__value">{{ coupon.display }}</td>
                                 </tr>
                                 {% endfor %}
-                                {% if has_future_shipping %}
+                                {% endif %}
+                                {% if has_future_shipping is defined and has_future_shipping %}
                                 <tr class="fc-subtotal--row">
                                     <td class="fc-subtotal__label"> {{ shipping_address.future_shipping_service_description|raw }}: </td>
                                     <td class="fc-subtotal__value">
@@ -798,7 +800,7 @@
                                     </td>
                                 </tr>
                                 {% endif %}
-                                {% if has_future_taxes %}
+                                {% if has_future_taxes is defined and has_future_taxes %}
                                     <tr class="fc-subtotal--row">
                                         <td class="fc-subtotal__label"> {{ config.lang.cart_tax|raw }}: </td>
                                         <td class="fc-subtotal__value"> {{ subscription_item_total.total_tax|money_format }} </td>
