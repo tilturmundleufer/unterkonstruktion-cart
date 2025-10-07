@@ -1764,6 +1764,7 @@
           function setPOFieldReadonly(poInput) {
             if(poInput) {
               poInput.readOnly = true;
+              try{ poInput.setAttribute('readonly','readonly'); }catch(_){}
               poInput.disabled = false; // disabled = true würde das Feld grau machen, aber wir wollen es nur readonly
               poInput.style.backgroundColor = '#f8f9fa';
               poInput.style.cursor = 'not-allowed';
@@ -1789,8 +1790,7 @@
               
               if(storedPONumber) {
                 // Verwende gespeicherte Bestellnummer
-                poInput.value = storedPONumber;
-                setPOFieldReadonly(poInput);
+                inputs.forEach(function(input){ input.value = storedPONumber; setPOFieldReadonly(input); });
               } else if(!poInput.value) {
                 // Generiere neue Bestellnummer nur wenn keine vorhanden ist
                 var now = new Date();
@@ -1845,6 +1845,9 @@
           
           // Bestellnummer beim Laden generieren
           generatePurchaseOrderNumber();
+          // nach kurzem Delay erneut (falls PO erst spät gerendert wird)
+          setTimeout(generatePurchaseOrderNumber, 300);
+          setTimeout(generatePurchaseOrderNumber, 1000);
           
           // Bestellnummer auch bei Payment-Method-Wechsel generieren
           document.addEventListener('change', function(ev){
@@ -1926,6 +1929,9 @@
                             if(storedPONumber) {
                               targetInput.value = storedPONumber;
                               setPOFieldReadonly(targetInput);
+                            } else {
+                              // Noch keine Nummer vorhanden -> jetzt erzeugen
+                              try{ generatePurchaseOrderNumber(); }catch(_){ }
                             }
                           }, 50);
                         }
