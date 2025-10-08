@@ -130,7 +130,7 @@
 
             <div data-fc-id="block-cart-items-divs">
             {% block cart_items_divs %}
-            {% set checkout_sub_cancel = (context == 'checkout' and (is_subscription_cancel is defined and is_subscription_cancel)) %}
+            {% set checkout_sub_cancel = (context == 'checkout' and (is_subscription_cancel is defined and is_subscription_cancel == true)) %}
             <div class="fc-cart__items {% if has_product_images %}fc-cart__items--with-images{% else %} fc-cart__items--without-images{% endif %}">
 
                 {% if false and (items|length > 0) %}
@@ -157,6 +157,7 @@
                 {% endif %}
 
 
+                {% if items is defined and items|length > 0 %}
                 {% for item in items %}
                 {% if has_multiship and item.multiship != "-1" %}
                 {# The first item per multiship shipto will != -1. All others will == -1 #}
@@ -382,6 +383,7 @@
                 </div>
 
                 {% endfor %}
+                {% endif %}
             </div>
 
             {% set info_string = utils.get_info_string('quantity', messages.info) %}
@@ -598,7 +600,7 @@
                 {% elseif has_eligible_gift_cards %} 
                     {% set discount_lang_string = config.lang.cart_add_gift_card %}
                 {% endif %}
-                {% if (context == 'checkout') or ((is_subscription_cancel is not defined or not is_subscription_cancel) and (enable_coupon_and_gift_cart_controls or (coupons is defined and coupons|length > 0) or (gift_cards is defined and gift_cards|length > 0))) %}
+                {% if (context == 'checkout') or ((is_subscription_cancel is not defined or is_subscription_cancel != true) and (enable_coupon_and_gift_cart_controls or (coupons is defined and coupons|length > 0) or (gift_cards is defined and gift_cards|length > 0))) %}
                 <li class="fc-transaction__discounts fc-transaction__section">
                     <div data-fc-id="block-coupon-entry">
                     {% block coupon_entry %}
@@ -752,7 +754,7 @@
             </div>
             {% endif %}
 
-            {% if (has_future_products is defined and has_future_products) and (is_subscription_cancel is not defined or not is_subscription_cancel) %}
+            {% if (has_future_products is defined and has_future_products) and (is_subscription_cancel is not defined or is_subscription_cancel != true) %}
             {% block future_products %}
             <div class="fc-transaction fc-transaction--future">
                 {% set has_future_subscription_details = false %}
