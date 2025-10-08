@@ -1983,6 +1983,24 @@
             });
           }, 2000);
           
+          // Event-Listener für direkte Input-Änderungen bei Produktmengen
+          document.addEventListener('input', function(ev){
+            var input = ev.target;
+            if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
+              var id = input.getAttribute('data-fc-item-id');
+              if(id){
+                // Mindestwert sicherstellen
+                var value = parseInt(input.value || '1', 10) || 1;
+                if(value < 1) value = 1;
+                input.value = value;
+                
+                // Sofortige UI-Aktualisierung
+                recalcSummary();
+                ajaxUpdate();
+              }
+            }
+          });
+          
           document.addEventListener('click', function(ev){
             var btn = ev.target.closest('.ukc-qty-btn');
             if(btn){
