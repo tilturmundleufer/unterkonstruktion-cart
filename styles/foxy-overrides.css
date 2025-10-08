@@ -1194,6 +1194,15 @@ body.ukc-cart-page{
 #fc-cart[data-context="checkout"] tr.fc-subtotal--row[data-fc-coupon-container-id]{
   display: none !important;
 }
+
+/* Coupon-Discount in ukc-summary-table stylen */
+.ukc-summary-discount .ukc-summary-label{
+  color: #10b981 !important; /* grün für Rabatt */
+}
+.ukc-summary-discount .ukc-summary-value{
+  color: #10b981 !important; /* grün für Rabatt */
+  font-weight: 600 !important;
+}
 /* Sicherstellen, dass der innere UI-Container (der sonst zugeklappt sein kann) sichtbar ist */
 #fc-cart[data-context="checkout"] [data-fc-id="block-coupon-entry"] .fc-transaction__ui{
   display:block !important;

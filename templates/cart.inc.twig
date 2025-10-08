@@ -482,6 +482,14 @@
                             {% if total_shipping > 0 %}{{ total_shipping|money_format }}{% else %}0,00 €{% endif %}
                         </td>
                     </tr>
+                    {% if coupons is defined and coupons|length > 0 %}
+                    {% for coupon in coupons %}
+                    <tr class="ukc-summary-discount">
+                        <td class="ukc-summary-label">{{ coupon.name }}{% if coupon.code %} ({{ coupon.code }}){% endif %}</td>
+                        <td class="ukc-summary-value" data-ukc-discount>{{ coupon.discount_amount|money_format }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
                     <tr class="ukc-summary-totalrow">
                         <td class="ukc-summary-label ukc-bold">Gesamtpreis inkl. MwSt.</td>
                         <td class="ukc-summary-value ukc-bold" data-ukc-total-order>{{ total_order|money_format }}</td>
@@ -2149,8 +2157,8 @@
             if(submitBtn){ markInvalidRequiredFields(); }
           }, true);
 
-          // Coupon-Discount korrekt positionieren (unter Lieferkosten, wie Mehrwertsteuer)
-          function repositionCouponDiscount(){
+          // Coupon-Discount in ukc-summary-table aktualisieren
+          function updateCouponInSummaryTable(){
             try{
               var context = document.querySelector('#fc-cart')?.getAttribute('data-context');
               if(context !== 'checkout') return;
@@ -2166,48 +2174,57 @@
               
               if(!couponName || !couponValue) return;
               
-              // Transaction-Liste finden
-              var transactionList = document.querySelector('ul.fc-transaction');
-              if(!transactionList) return;
+              // ukc-summary-table finden
+              var summaryTable = document.querySelector('.ukc-summary-table tbody');
+              if(!summaryTable) return;
               
-              // Neue korrekt platzierte Coupon-Zeile erstellen
-              var newCouponRow = document.createElement('li');
-              newCouponRow.className = 'fc-transaction__discount fc-transaction__section';
-              newCouponRow.innerHTML = '<table><tbody class="fc-subtotal--discount"><tr class="fc-subtotal--row"><td class="fc-subtotal__label">' + 
-                couponName + (couponCode ? ' (' + couponCode + ')' : '') + 
-                '</td><td class="fc-subtotal__value" data-ukc-discount="">' + couponValue + '</td></tr></tbody></table>';
-              
-              // Nach Lieferkosten einfügen (oder am Ende, falls keine Lieferkosten)
-              var shippingRow = transactionList.querySelector('.fc-transaction__shipping');
-              if(shippingRow && shippingRow.nextSibling){
-                transactionList.insertBefore(newCouponRow, shippingRow.nextSibling);
+              // Prüfen ob Coupon-Zeile bereits existiert
+              var existingCouponRow = summaryTable.querySelector('.ukc-summary-discount');
+              if(existingCouponRow){
+                // Bestehende Zeile aktualisieren
+                var labelCell = existingCouponRow.querySelector('.ukc-summary-label');
+                var valueCell = existingCouponRow.querySelector('.ukc-summary-value');
+                if(labelCell) labelCell.textContent = couponName + (couponCode ? ' (' + couponCode + ')' : '');
+                if(valueCell) valueCell.textContent = couponValue;
               } else {
-                transactionList.appendChild(newCouponRow);
+                // Neue Coupon-Zeile erstellen und nach Lieferkosten einfügen
+                var shippingRow = summaryTable.querySelector('tr:has(.ukc-summary-label:contains("Lieferkosten"))');
+                var totalRow = summaryTable.querySelector('.ukc-summary-totalrow');
+                
+                var newCouponRow = document.createElement('tr');
+                newCouponRow.className = 'ukc-summary-discount';
+                newCouponRow.innerHTML = '<td class="ukc-summary-label">' + couponName + (couponCode ? ' (' + couponCode + ')' : '') + '</td><td class="ukc-summary-value" data-ukc-discount>' + couponValue + '</td>';
+                
+                if(totalRow){
+                  summaryTable.insertBefore(newCouponRow, totalRow);
+                } else {
+                  summaryTable.appendChild(newCouponRow);
+                }
               }
               
               // Falsch platzierte Zeile entfernen
               wrongCouponRow.remove();
               
-              console.log('[UKC] Coupon-Discount repositioniert:', couponName, couponValue);
+              console.log('[UKC] Coupon-Discount in Summary-Table aktualisiert:', couponName, couponValue);
             }catch(e){
-              console.error('[UKC] Fehler beim Repositionieren des Coupon-Discounts:', e);
+              console.error('[UKC] Fehler beim Aktualisieren des Coupon-Discounts in Summary-Table:', e);
             }
           }
           
           // Coupon-Repositionierung bei DOM-Änderungen
           var couponObserver = new MutationObserver(function(mutations){
-            var shouldReposition = false;
+            var shouldUpdate = false;
             mutations.forEach(function(mutation){
               if(mutation.type === 'childList'){
                 mutation.addedNodes.forEach(function(node){
                   if(node.nodeType === 1 && node.querySelector && node.querySelector('tr[data-fc-coupon-container-id]')){
-                    shouldReposition = true;
+                    shouldUpdate = true;
                   }
                 });
               }
             });
-            if(shouldReposition){
-              setTimeout(repositionCouponDiscount, 100);
+            if(shouldUpdate){
+              setTimeout(updateCouponInSummaryTable, 100);
             }
           });
           
@@ -2216,7 +2233,7 @@
             var target = document.querySelector('ul.fc-transaction') || document.body;
             if(target){
               couponObserver.observe(target, { childList: true, subtree: true });
-              repositionCouponDiscount(); // Initial ausführen
+              updateCouponInSummaryTable(); // Initial ausführen
             }
           }, 500);
 
