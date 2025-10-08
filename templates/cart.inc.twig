@@ -1076,7 +1076,6 @@
           function applyCompanyAndTriggerTax(){
             var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
             if(typeof FC === 'undefined' || !FC.cart) {
-              console.log('FC not available in applyCompanyAndTriggerTax');
               return;
             }
             
@@ -1105,7 +1104,6 @@
               var el = document.querySelector(billingSelectors[i]);
               if(el && el.value) {
                 billingCompany = el.value.trim();
-                console.log('Found billing_company with selector:', billingSelectors[i], 'value:', billingCompany);
                 break;
               }
             }
@@ -1115,13 +1113,10 @@
               var el = document.querySelector(shippingSelectors[i]);
               if(el && el.value) {
                 shippingCompany = el.value.trim();
-                console.log('Found shipping_company with selector:', shippingSelectors[i], 'value:', shippingCompany);
                 break;
               }
             }
             
-            console.log('applyCompanyAndTriggerTax - billing_company:', billingCompany);
-            console.log('applyCompanyAndTriggerTax - shipping_company:', shippingCompany);
             
             // Setze beide Felder in FC.cart
             FC.cart.billing_company = billingCompany;
@@ -1139,14 +1134,11 @@
           
           // Kundentyp-Änderung behandeln (ohne eigene Tax-Aufrufe)
           function triggerTaxCalculation(){
-            console.log('triggerTaxCalculation called');
             var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
-            console.log('Current context:', currentContext);
             
             // Tax-Berechnung sowohl im cart als auch im checkout Context
             if(currentContext === 'checkout' || currentContext === 'cart'){
               var customerType = getCustomerType();
-              console.log('Retrieved customer type:', customerType);
               
               // Firmenname aus Eingabe übernehmen (falls Feld vorhanden)
               try { applyCompanyAndTriggerTax(); } catch(e) {}
@@ -1157,33 +1149,10 @@
               
               // Keine manuellen Steuer-Requests mehr – Foxy aktualisiert die Beträge selbst
             } else {
-              console.log('Not in checkout or cart context, skipping tax calculation');
             }
           }
           
-          // Kein direkter Tax-Endpoint mehr – Funktion entfernt
-          function triggerDirectTaxRequest() {}
           
-          // Beim Laden nur Initialisierungs-Checks; keine eigenen Tax-Requests
-          function waitForFoxyAndTriggerTax() {
-            var attempts = 0;
-            var maxAttempts = 50; // 5 Sekunden warten
-            
-            function checkFoxy() {
-              attempts++;
-              console.log('Waiting for Foxy initialization, attempt:', attempts);
-              
-              if (typeof FC !== 'undefined' && FC.checkout) { return; }
-              
-              if (attempts < maxAttempts) {
-                setTimeout(checkFoxy, 100);
-              }
-            }
-            
-            checkFoxy();
-          }
-          
-          waitForFoxyAndTriggerTax();
           
           // Sicherstellen dass Billing-Adresse sichtbar ist
           function ensureBillingAddressVisible() {
@@ -1216,7 +1185,6 @@
               if(field) {
                 field.style.display = 'block';
                 field.style.visibility = 'visible';
-                console.log('Made billing company field visible:', selector);
               }
             });
           }
@@ -1228,396 +1196,13 @@
           setTimeout(ensureBillingAddressVisible, 1000);
           setTimeout(ensureBillingAddressVisible, 3000);
           
-                // Nach Foxy-Initialisierung nochmal Company-Felder suchen (ohne Tax-Trigger)
-          function retryCompanyFieldsAfterFoxyInit() {
-            var attempts = 0;
-            var maxAttempts = 30; // 3 Sekunden
-            
-            function checkAndRetry() {
-              attempts++;
-              console.log('Retrying company fields after Foxy init, attempt:', attempts);
-              
-              if (typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax) {
-                // Foxy ist bereit, suche nochmal nach Company-Feldern
-                var billingFields = document.querySelectorAll('input[name="billing_company"], input[data-fc-name="billing_company"], #billing_company');
-                var shippingFields = document.querySelectorAll('input[name="shipping_company"], input[data-fc-name="shipping_company"], #shipping_company');
-                
-                console.log('Found billing fields:', billingFields.length);
-                console.log('Found shipping fields:', shippingFields.length);
-                
-                // Wenn Felder gefunden wurden, nur Company synchronisieren
-                if (billingFields.length > 0 || shippingFields.length > 0) {
-                  console.log('Company fields found, syncing');
-                  applyCompanyAndTriggerTax();
-                }
-                return;
-              }
-              
-              if (attempts < maxAttempts) {
-                setTimeout(checkAndRetry, 100);
-              }
-            }
-            
-            checkAndRetry();
-          }
           
-          // Starte Retry nach kurzer Verzögerung
-          setTimeout(retryCompanyFieldsAfterFoxyInit, 2000);
           
-          // Debug-Funktion: Alle verfügbaren Felder auflisten
-          window.debugFoxyFields = function() {
-            console.log('=== FOXY FIELDS DEBUG ===');
-            console.log('FC available:', typeof FC !== 'undefined');
-            console.log('FC.checkout available:', typeof FC !== 'undefined' && FC.checkout);
-            console.log('FC.checkout.tax available:', typeof FC !== 'undefined' && FC.checkout && FC.checkout.tax);
-            
-            var allInputs = document.querySelectorAll('input');
-            console.log('Total inputs found:', allInputs.length);
-            
-            var companyInputs = [];
-            allInputs.forEach(function(input) {
-              if (input.name && (input.name.includes('company') || input.id && input.id.includes('company'))) {
-                companyInputs.push({
-                  name: input.name,
-                  id: input.id,
-                  value: input.value,
-                  type: input.type,
-                  visible: input.offsetParent !== null
-                });
-              }
-            });
-            
-            console.log('Company-related inputs:', companyInputs);
-            
-            var billingInputs = [];
-            allInputs.forEach(function(input) {
-              if (input.name && input.name.includes('billing')) {
-                billingInputs.push({
-                  name: input.name,
-                  id: input.id,
-                  value: input.value,
-                  type: input.type,
-                  visible: input.offsetParent !== null
-                });
-              }
-            });
-            
-            console.log('Billing-related inputs:', billingInputs);
-            console.log('=== END DEBUG ===');
-          };
           
-          // Debug-Funktion nach 3 Sekunden ausführen
-          setTimeout(window.debugFoxyFields, 3000);
           
-          // Erweiterte Debug-Funktion: Company-Felder detailliert anzeigen
-          window.debugCompanyFields = function() {
-            console.log('=== COMPANY FIELDS DETAILED DEBUG ===');
-            
-            var allInputs = document.querySelectorAll('input');
-            var companyInputs = [];
-            var billingInputs = [];
-            var allFields = [];
-            
-            // Erweiterte Suche nach allen möglichen Feldern
-            allInputs.forEach(function(input) {
-              var fieldInfo = {
-                name: input.name,
-                id: input.id,
-                value: input.value,
-                type: input.type,
-                visible: input.offsetParent !== null,
-                placeholder: input.placeholder,
-                className: input.className,
-                element: input
-              };
-              
-              allFields.push(fieldInfo);
-              
-              // Company-Felder suchen
-              if (input.name && (input.name.includes('company') || input.id && input.id.includes('company'))) {
-                companyInputs.push(fieldInfo);
-              }
-              
-              // Billing-Felder suchen (erweitert)
-              if (input.name && (input.name.includes('billing') || input.id && input.id.includes('billing'))) {
-                billingInputs.push(fieldInfo);
-              }
-            });
-            
-            console.log('All input fields:', allFields);
-            console.log('Company inputs details:', companyInputs);
-            console.log('Billing inputs details:', billingInputs);
-            
-            // Suche nach versteckten oder dynamischen Feldern
-            var hiddenInputs = document.querySelectorAll('input[type="hidden"]');
-            console.log('Hidden inputs:', hiddenInputs.length);
-            hiddenInputs.forEach(function(input) {
-              if (input.name && (input.name.includes('company') || input.name.includes('billing'))) {
-                console.log('Hidden field found:', input.name, '=', input.value);
-              }
-            });
-            
-            // Teste direkten Tax-Request mit gefundenen Werten
-            if(companyInputs.length > 0) {
-              console.log('Testing direct tax request with found company values...');
-              triggerDirectTaxRequest();
-            }
-            
-            console.log('=== END COMPANY DEBUG ===');
-          };
           
-          // Erweiterte Debug-Funktion nach 5 Sekunden ausführen
-          setTimeout(window.debugCompanyFields, 5000);
           
-          // Billing Company Feld explizit erstellen falls nicht vorhanden
-          function ensureBillingCompanyField() {
-            var billingCompanyField = document.querySelector('#billing_company, input[name="billing_company"], input[data-fc-name="billing_company"]');
-            
-            if(!billingCompanyField) {
-              console.log('billing_company field not found, creating one');
-              
-              // Suche nach einem Container für das Billing-Feld
-              var billingContainer = document.querySelector('[data-fc-id="block-billing-address"]') ||
-                                   document.querySelector('.fc-transaction__billing') ||
-                                   document.querySelector('.fc-container__grid--billing') ||
-                                   document.querySelector('form');
-              
-              if(billingContainer) {
-                // Erstelle billing_company Feld
-                var fieldContainer = document.createElement('div');
-                fieldContainer.className = 'fc-form-group';
-                
-                var label = document.createElement('label');
-                label.setAttribute('for', 'billing_company');
-                label.textContent = 'Firmenname (optional)';
-                label.className = 'fc-form-group__label';
-                
-                var input = document.createElement('input');
-                input.type = 'text';
-                input.id = 'billing_company';
-                input.name = 'billing_company';
-                input.setAttribute('data-fc-name', 'billing_company');
-                input.setAttribute('data-fc-tax-trigger', 'true');
-                input.className = 'fc-form-group__input';
-                input.placeholder = 'Firmenname eingeben';
-                
-                fieldContainer.appendChild(label);
-                fieldContainer.appendChild(input);
-                
-                // Füge das Feld zum Container hinzu
-                billingContainer.appendChild(fieldContainer);
-                
-                console.log('Created billing_company field');
-                
-                // Event-Listener hinzufügen
-                input.addEventListener('input', function() {
-                  console.log('billing_company changed:', input.value);
-                  applyCompanyAndTriggerTax();
-                });
-                
-                input.addEventListener('change', function() {
-                  console.log('billing_company changed (change event):', input.value);
-                  applyCompanyAndTriggerTax();
-                });
-              }
-            } else {
-              console.log('billing_company field already exists');
-            }
-          }
           
-          // Billing Company Feld nach 4 Sekunden erstellen
-          setTimeout(ensureBillingCompanyField, 4000);
-          
-          // Erweiterte Funktion: Billing Company Feld mit besserer Positionierung erstellen
-          function createBillingCompanyFieldAdvanced() {
-            var billingCompanyField = document.querySelector('#billing_company, input[name="billing_company"], input[data-fc-name="billing_company"]');
-            
-            if(!billingCompanyField) {
-              console.log('billing_company field not found, creating advanced version');
-              
-              // Suche nach verschiedenen möglichen Containern
-              var possibleContainers = [
-                '[data-fc-id="block-billing-address"]',
-                '.fc-transaction__billing',
-                '.fc-container__grid--billing',
-                '.fc-form-group',
-                'form',
-                'body'
-              ];
-              
-              var container = null;
-              for(var i = 0; i < possibleContainers.length; i++) {
-                container = document.querySelector(possibleContainers[i]);
-                if(container) {
-                  console.log('Found container:', possibleContainers[i]);
-                  break;
-                }
-              }
-              
-              if(container) {
-                // Erstelle ein sichtbares billing_company Feld
-                var fieldContainer = document.createElement('div');
-                fieldContainer.className = 'fc-form-group ukc-billing-company-field';
-                fieldContainer.style.cssText = 'margin: 10px 0; padding: 10px; border: 1px solid #ddd; background: #f9f9f9;';
-                
-                var label = document.createElement('label');
-                label.setAttribute('for', 'billing_company');
-                label.textContent = 'Firmenname (für Steuerberechnung)';
-                label.className = 'fc-form-group__label';
-                label.style.cssText = 'display: block; margin-bottom: 5px; font-weight: bold;';
-                
-                var input = document.createElement('input');
-                input.type = 'text';
-                input.id = 'billing_company';
-                input.name = 'billing_company';
-                input.setAttribute('data-fc-name', 'billing_company');
-                input.setAttribute('data-fc-tax-trigger', 'true');
-                input.className = 'fc-form-group__input';
-                input.placeholder = 'Firmenname eingeben (optional)';
-                input.style.cssText = 'width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;';
-                
-                var helpText = document.createElement('small');
-                helpText.textContent = 'Leer lassen für Privatkunden (0% MwSt), ausfüllen für Firmenkunden (19% MwSt)';
-                helpText.style.cssText = 'display: block; margin-top: 5px; color: #666; font-size: 12px;';
-                
-                fieldContainer.appendChild(label);
-                fieldContainer.appendChild(input);
-                fieldContainer.appendChild(helpText);
-                
-                // Füge das Feld zum Container hinzu
-                container.appendChild(fieldContainer);
-                
-                console.log('Created advanced billing_company field');
-                
-                // Event-Listener hinzufügen
-                input.addEventListener('input', function() {
-                  console.log('billing_company changed:', input.value);
-                  setTimeout(function() {
-                    triggerDirectTaxRequest();
-                  }, 500);
-                });
-                
-                input.addEventListener('change', function() {
-                  console.log('billing_company changed (change event):', input.value);
-                  setTimeout(function() {
-                    triggerDirectTaxRequest();
-                  }, 500);
-                });
-                
-                // Teste das Feld
-                setTimeout(function() {
-                  console.log('Testing created billing_company field...');
-                  input.value = 'Test Company';
-                  input.dispatchEvent(new Event('input', { bubbles: true }));
-                }, 1000);
-                
-              } else {
-                console.log('No suitable container found for billing_company field');
-              }
-            } else {
-              console.log('billing_company field already exists');
-            }
-          }
-          
-          // Erweiterte Billing Company Feld-Erstellung nach 7 Sekunden
-          setTimeout(createBillingCompanyFieldAdvanced, 7000);
-          
-          // Automatische Tax-Trigger für alle Company-Felder
-          function attachTaxTriggersToCompanyFields() {
-            var allInputs = document.querySelectorAll('input');
-            var attachedCount = 0;
-            
-            allInputs.forEach(function(input) {
-              if (input.name && (input.name.includes('company') || input.id && input.id.includes('company'))) {
-                // Entferne alte Event-Listener
-                input.removeEventListener('input', handleCompanyFieldChange);
-                input.removeEventListener('change', handleCompanyFieldChange);
-                
-                // Füge neue Event-Listener hinzu
-                input.addEventListener('input', handleCompanyFieldChange);
-                input.addEventListener('change', handleCompanyFieldChange);
-                
-                attachedCount++;
-                console.log('Attached tax trigger to field:', input.name || input.id, 'value:', input.value);
-              }
-            });
-            
-            console.log('Attached tax triggers to', attachedCount, 'company fields');
-          }
-          
-          function handleCompanyFieldChange(event) {
-            console.log('Company field changed:', event.target.name || event.target.id, 'new value:', event.target.value);
-            
-            // Kurze Verzögerung nach Company-Änderung (keine Tax-Requests)
-            setTimeout(function() {
-              console.log('Company field changed');
-            }, 500);
-          }
-          
-          // Tax-Trigger nach 6 Sekunden an alle Company-Felder anhängen
-          setTimeout(attachTaxTriggersToCompanyFields, 6000);
-          
-          // Test-Funktion: Manuell Tax mit Test-Daten triggern
-          window.testTaxCalculation = function(companyName) {
-            console.log('=== MANUAL TAX TEST ===');
-            var testData = {
-              billing_company: companyName || 'Test Company',
-              shipping_company: companyName || 'Test Company',
-              total_item_price: 100,
-              total_shipping: 10,
-              total_discount: 0
-            };
-            
-            console.log('Testing with data:', testData);
-            
-            var taxEndpoint = window.location.origin + '/api/foxy-validate';
-            fetch(taxEndpoint, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(testData)
-            }).then(function(response) {
-              console.log('Test tax response status:', response.status);
-              return response.json();
-            }).then(function(data) {
-              console.log('Test tax response:', data);
-              console.log('Expected tax rate:', companyName ? '19%' : '0%');
-              console.log('Actual tax rate:', (data.total_rate * 100) + '%');
-            }).catch(function(error) {
-              console.error('Test tax request failed:', error);
-            });
-          };
-          
-          // Test-Funktion nach 8 Sekunden ausführen
-          setTimeout(function() {
-            console.log('Running automatic tax test...');
-            window.testTaxCalculation('Test Company');
-            setTimeout(function() {
-              window.testTaxCalculation(''); // Test mit leerem Company
-            }, 2000);
-          }, 8000);
-          
-          // Diagnose: Stelle sicher, dass der Tax-Endpoint mindestens EINMAL requested wird
-          (function ensureTaxRequestedOnce(){
-            var triedDirect = false;
-            var started = Date.now();
-            (function wait(){
-              var isCheckout = document.querySelector('#fc-cart')?.getAttribute('data-context') === 'checkout';
-              if(!isCheckout){ return; }
-              if(window.FC && FC.checkout && FC.checkout.tax && typeof FC.checkout.tax.get_tax === 'function'){
-                try { FC.checkout.tax.get_tax(); } catch(_) {}
-                return;
-              }
-              // nach 2500ms: direkte Test-Anfrage an unseren Endpoint schicken, um Logging zu verifizieren
-              if(!triedDirect && Date.now() - started > 2500){
-                triedDirect = true;
-                fetch('/api/foxy-validate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ping: true, source: 'ensureTaxRequestedOnce' }) })
-                  .catch(function(_){});
-              }
-              setTimeout(wait, 250);
-            })();
-          })();
           
           // Checkout: Listener für Firmenname, debounced Tax/Shipping Trigger
           function debounce(fn, wait){ let t; return function(){ clearTimeout(t); t = setTimeout(fn, wait); }; }
