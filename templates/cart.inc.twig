@@ -306,6 +306,12 @@
                                     {% if not piece_price and item.alt_name is defined and item.alt_name %}
                                         {% set piece_price = item.alt_name %}
                                     {% endif %}
+                                    {% if not piece_price and item.code is defined and item.code and '-' in item.code %}
+                                        {% set code_parts = item.code|split('-') %}
+                                        {% if code_parts|length > 1 %}
+                                            {% set piece_price = code_parts[1:]|join('-') %}
+                                        {% endif %}
+                                    {% endif %}
                                     <p>
                                         {{ item.price_with_tax|money_format }}
                                     </p>
@@ -326,6 +332,12 @@
                                     {% endif %}
                                     {% if not piece_price and item.alt_name is defined and item.alt_name %}
                                         {% set piece_price = item.alt_name %}
+                                    {% endif %}
+                                    {% if not piece_price and item.code is defined and item.code and '-' in item.code %}
+                                        {% set code_parts = item.code|split('-') %}
+                                        {% if code_parts|length > 1 %}
+                                            {% set piece_price = code_parts[1:]|join('-') %}
+                                        {% endif %}
                                     {% endif %}
                                     <p>
                                         {{ item.price|money_format }}
