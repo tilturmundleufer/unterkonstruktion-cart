@@ -1870,9 +1870,16 @@
               
               // Coupon-Input-Feld und Button finden
               var couponInput = document.querySelector('#coupon');
-              var applyButton = document.querySelector('[data-fc-id="add-coupon-button"]');
+              var applyButton = document.querySelector('[data-fc-id="add-coupon-button"]') || document.querySelector('.fc-coupon-entry__apply');
               
-              if(!couponInput || !applyButton) return;
+              console.log('[UKC] Debug - Coupon Input gefunden:', !!couponInput);
+              console.log('[UKC] Debug - Apply Button gefunden:', !!applyButton);
+              console.log('[UKC] Debug - Gefundene Produkt-Codes:', productCodes);
+              
+              if(!couponInput || !applyButton) {
+                console.log('[UKC] Debug - Fehler: Input oder Button nicht gefunden');
+                return;
+              }
               
               // Alle gefundenen Codes als Coupons anwenden
               function applyNextCoupon(index){
@@ -1882,6 +1889,7 @@
                 
                 // Coupon-Code eintragen
                 couponInput.value = couponCode;
+                console.log('[UKC] Debug - Coupon-Code eingetragen:', couponCode);
                 
                 // Event für Foxy.io auslösen
                 var inputEvent = new Event('input', { bubbles: true });
@@ -1889,6 +1897,7 @@
                 
                 // Kurz warten und dann anwenden
                 setTimeout(function(){
+                  console.log('[UKC] Debug - Klicke Apply-Button für:', couponCode);
                   applyButton.click();
                   
                   // Nach Anwendung zum nächsten Coupon
