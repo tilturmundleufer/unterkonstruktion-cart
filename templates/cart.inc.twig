@@ -294,19 +294,9 @@
                             <div class="fc-cart__item__total ukc-row__total">
                                 {% if has_inclusive_taxes %}
                                     {% if item.parent_code == '' or (item.parent_code != '' and item.price_with_tax > 0) %}
-                                    {# Stückpreis ermitteln: zuerst piece_price, dann stuckpreis; akzeptiere .value oder direkten Wert #}
+                                    {# Stückpreis aus code-Feld nach '-' extrahieren #}
                                     {% set piece_price = null %}
-                                    {% if item.custom_fields is defined %}
-                                        {% if item.custom_fields.piece_price is defined %}
-                                            {% set piece_price = item.custom_fields.piece_price.value|default(item.custom_fields.piece_price)|default(null) %}
-                                        {% elseif item.custom_fields.stuckpreis is defined %}
-                                            {% set piece_price = item.custom_fields.stuckpreis.value|default(item.custom_fields.stuckpreis)|default(null) %}
-                                        {% endif %}
-                                    {% endif %}
-                                    {% if not piece_price and item.alt_name is defined and item.alt_name %}
-                                        {% set piece_price = item.alt_name %}
-                                    {% endif %}
-                                    {% if not piece_price and item.code is defined and item.code and '-' in item.code %}
+                                    {% if item.code is defined and item.code and '-' in item.code %}
                                         {% set code_parts = item.code|split('-') %}
                                         {% if code_parts|length > 1 %}
                                             {% set piece_price = code_parts[1:]|join('-') %}
@@ -321,19 +311,9 @@
                                     {% endif %}
                                 {% else %}
                                     {% if item.parent_code == '' or (item.parent_code != '' and item.price > 0) %}
-                                    {# Stückpreis ermitteln: zuerst piece_price, dann stuckpreis; akzeptiere .value oder direkten Wert #}
+                                    {# Stückpreis aus code-Feld nach '-' extrahieren #}
                                     {% set piece_price = null %}
-                                    {% if item.custom_fields is defined %}
-                                        {% if item.custom_fields.piece_price is defined %}
-                                            {% set piece_price = item.custom_fields.piece_price.value|default(item.custom_fields.piece_price)|default(null) %}
-                                        {% elseif item.custom_fields.stuckpreis is defined %}
-                                            {% set piece_price = item.custom_fields.stuckpreis.value|default(item.custom_fields.stuckpreis)|default(null) %}
-                                        {% endif %}
-                                    {% endif %}
-                                    {% if not piece_price and item.alt_name is defined and item.alt_name %}
-                                        {% set piece_price = item.alt_name %}
-                                    {% endif %}
-                                    {% if not piece_price and item.code is defined and item.code and '-' in item.code %}
+                                    {% if item.code is defined and item.code and '-' in item.code %}
                                         {% set code_parts = item.code|split('-') %}
                                         {% if code_parts|length > 1 %}
                                             {% set piece_price = code_parts[1:]|join('-') %}
@@ -500,7 +480,7 @@
                     {% for coupon in coupons %}
                     <tr class="ukc-summary-discount">
                         <td class="ukc-summary-label">{{ coupon.name }}{% if coupon.code %} ({{ coupon.code }}){% endif %}</td>
-                        <td class="ukc-summary-value" data-ukc-discount>{{ coupon.discount_amount|money_format }}</td>
+                        <td class="ukc-summary-value" data-ukc-discount>{{ coupon.discount_amount|default(0)|money_format }}</td>
                     </tr>
                     {% endfor %}
                     {% endif %}
