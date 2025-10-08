@@ -1838,7 +1838,62 @@
               couponObserver.observe(target, { childList: true, subtree: true });
               updateCouponInSummaryTable(); // Initial ausführen
             }
+            
+            // Automatischen Coupon nach kurzer Verzögerung anwenden
+            setTimeout(autoApplyCouponFromProductCodes, 1000);
           }, 500);
+
+          // Automatischer Coupon-Code aus Produkt-Codes generieren
+          function autoApplyCouponFromProductCodes(){
+            try{
+              var context = document.querySelector('#fc-cart')?.getAttribute('data-context');
+              if(context !== 'checkout') return;
+              
+              // Alle Produkt-Codes sammeln
+              var productCodes = [];
+              var itemElements = document.querySelectorAll('[data-item-code]');
+              
+              itemElements.forEach(function(item){
+                var code = item.getAttribute('data-item-code');
+                if(code && code.includes('-')){
+                  var codeParts = code.split('-');
+                  if(codeParts.length > 1){
+                    var prefix = codeParts[0].trim();
+                    if(prefix && !productCodes.includes(prefix)){
+                      productCodes.push(prefix);
+                    }
+                  }
+                }
+              });
+              
+              if(productCodes.length === 0) return;
+              
+              // Ersten gefundenen Code als Coupon verwenden
+              var couponCode = productCodes[0];
+              
+              // Coupon-Input-Feld finden
+              var couponInput = document.querySelector('#coupon');
+              var applyButton = document.querySelector('[data-fc-id="add-coupon-button"]');
+              
+              if(couponInput && applyButton && !couponInput.value){
+                // Coupon-Code eintragen
+                couponInput.value = couponCode;
+                
+                // Event für Foxy.io auslösen
+                var inputEvent = new Event('input', { bubbles: true });
+                couponInput.dispatchEvent(inputEvent);
+                
+                // Kurz warten und dann anwenden
+                setTimeout(function(){
+                  applyButton.click();
+                }, 100);
+                
+                console.log('[UKC] Automatischer Coupon angewendet:', couponCode);
+              }
+            }catch(e){
+              console.error('[UKC] Fehler beim automatischen Coupon-Anwenden:', e);
+            }
+          }
 
           // Checkbox "abweichende Rechnungsadresse" für Gäste sicherstellen
           function ensureDifferentBillingCheckbox(){
