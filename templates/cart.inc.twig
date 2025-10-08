@@ -2149,6 +2149,77 @@
             if(submitBtn){ markInvalidRequiredFields(); }
           }, true);
 
+          // Coupon-Discount korrekt positionieren (unter Lieferkosten, wie Mehrwertsteuer)
+          function repositionCouponDiscount(){
+            try{
+              var context = document.querySelector('#fc-cart')?.getAttribute('data-context');
+              if(context !== 'checkout') return;
+              
+              // Falsch platzierte Coupon-Zeile finden
+              var wrongCouponRow = document.querySelector('tr.fc-subtotal--row[data-fc-coupon-container-id]');
+              if(!wrongCouponRow) return;
+              
+              // Coupon-Info extrahieren
+              var couponName = wrongCouponRow.querySelector('.fc-coupon__name')?.textContent?.trim();
+              var couponCode = wrongCouponRow.querySelector('.fc-coupon__code')?.textContent?.trim();
+              var couponValue = wrongCouponRow.querySelector('.fc-subtotal__value')?.textContent?.trim();
+              
+              if(!couponName || !couponValue) return;
+              
+              // Transaction-Liste finden
+              var transactionList = document.querySelector('ul.fc-transaction');
+              if(!transactionList) return;
+              
+              // Neue korrekt platzierte Coupon-Zeile erstellen
+              var newCouponRow = document.createElement('li');
+              newCouponRow.className = 'fc-transaction__discount fc-transaction__section';
+              newCouponRow.innerHTML = '<table><tbody class="fc-subtotal--discount"><tr class="fc-subtotal--row"><td class="fc-subtotal__label">' + 
+                couponName + (couponCode ? ' (' + couponCode + ')' : '') + 
+                '</td><td class="fc-subtotal__value" data-ukc-discount="">' + couponValue + '</td></tr></tbody></table>';
+              
+              // Nach Lieferkosten einfügen (oder am Ende, falls keine Lieferkosten)
+              var shippingRow = transactionList.querySelector('.fc-transaction__shipping');
+              if(shippingRow && shippingRow.nextSibling){
+                transactionList.insertBefore(newCouponRow, shippingRow.nextSibling);
+              } else {
+                transactionList.appendChild(newCouponRow);
+              }
+              
+              // Falsch platzierte Zeile entfernen
+              wrongCouponRow.remove();
+              
+              console.log('[UKC] Coupon-Discount repositioniert:', couponName, couponValue);
+            }catch(e){
+              console.error('[UKC] Fehler beim Repositionieren des Coupon-Discounts:', e);
+            }
+          }
+          
+          // Coupon-Repositionierung bei DOM-Änderungen
+          var couponObserver = new MutationObserver(function(mutations){
+            var shouldReposition = false;
+            mutations.forEach(function(mutation){
+              if(mutation.type === 'childList'){
+                mutation.addedNodes.forEach(function(node){
+                  if(node.nodeType === 1 && node.querySelector && node.querySelector('tr[data-fc-coupon-container-id]')){
+                    shouldReposition = true;
+                  }
+                });
+              }
+            });
+            if(shouldReposition){
+              setTimeout(repositionCouponDiscount, 100);
+            }
+          });
+          
+          // Observer starten
+          setTimeout(function(){
+            var target = document.querySelector('ul.fc-transaction') || document.body;
+            if(target){
+              couponObserver.observe(target, { childList: true, subtree: true });
+              repositionCouponDiscount(); // Initial ausführen
+            }
+          }, 500);
+
           // Checkbox "abweichende Rechnungsadresse" für Gäste sicherstellen
           function ensureDifferentBillingCheckbox(){
             try{

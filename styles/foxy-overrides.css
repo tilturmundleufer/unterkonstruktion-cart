@@ -1189,6 +1189,11 @@ body.ukc-cart-page{
 #fc-cart[data-context="checkout"] [data-fc-id="block-coupon-entry"]{ display:block !important }
 #fc-cart[data-context="checkout"] .fc-coupon-entry--input{ display:flex !important; align-items:stretch; gap:8px }
 #fc-cart[data-context="checkout"] .fc-transaction__ui__toggle{ display:none !important }
+
+/* Coupon-Discount Zeile ausblenden (falsch platziert, wird durch JS korrekt positioniert) */
+#fc-cart[data-context="checkout"] tr.fc-subtotal--row[data-fc-coupon-container-id]{
+  display: none !important;
+}
 /* Sicherstellen, dass der innere UI-Container (der sonst zugeklappt sein kann) sichtbar ist */
 #fc-cart[data-context="checkout"] [data-fc-id="block-coupon-entry"] .fc-transaction__ui{
   display:block !important;
