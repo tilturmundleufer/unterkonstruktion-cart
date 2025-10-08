@@ -1868,14 +1868,18 @@
               
               if(productCodes.length === 0) return;
               
-              // Ersten gefundenen Code als Coupon verwenden
-              var couponCode = productCodes[0];
-              
-              // Coupon-Input-Feld finden
+              // Coupon-Input-Feld und Button finden
               var couponInput = document.querySelector('#coupon');
               var applyButton = document.querySelector('[data-fc-id="add-coupon-button"]');
               
-              if(couponInput && applyButton && !couponInput.value){
+              if(!couponInput || !applyButton) return;
+              
+              // Alle gefundenen Codes als Coupons anwenden
+              function applyNextCoupon(index){
+                if(index >= productCodes.length) return;
+                
+                var couponCode = productCodes[index];
+                
                 // Coupon-Code eintragen
                 couponInput.value = couponCode;
                 
@@ -1886,10 +1890,19 @@
                 // Kurz warten und dann anwenden
                 setTimeout(function(){
                   applyButton.click();
+                  
+                  // Nach Anwendung zum nächsten Coupon
+                  setTimeout(function(){
+                    applyNextCoupon(index + 1);
+                  }, 500);
                 }, 100);
                 
-                console.log('[UKC] Automatischer Coupon angewendet:', couponCode);
+                console.log('[UKC] Automatischer Coupon angewendet:', couponCode, '(' + (index + 1) + '/' + productCodes.length + ')');
               }
+              
+              // Ersten Coupon anwenden
+              applyNextCoupon(0);
+              
             }catch(e){
               console.error('[UKC] Fehler beim automatischen Coupon-Anwenden:', e);
             }
