@@ -226,6 +226,236 @@ button[type=submit] {
   font-weight: 700;
 }
 
+/* Sidecart mit modernem UKC-Layout */
+.ukc-cart {
+  font-family: var(--font-family);
+  color: var(--text);
+  background: var(--bg);
+}
+
+.ukc-cart__container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.ukc-cart__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  min-height: 100vh;
+}
+
+/* Sidecart spezifische Anpassungen */
+.ukc-cart .fc-sidecart-only-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ukc-cart .fc-sidecart-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--brand-blue);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.ukc-cart .fc-sidecart-button:hover {
+  background: var(--brand-blue-dark);
+  transform: translateY(-1px);
+}
+
+.ukc-cart .fc-fixed-button-left .fc-sidecart-button {
+  background: var(--bg-secondary);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.ukc-cart .fc-fixed-button-left .fc-sidecart-button:hover {
+  background: var(--bg-hover);
+}
+
+/* Sidecart Content Padding */
+.ukc-cart #fc-cart {
+  padding-top: 60px; /* Platz für Fixed Navigation */
+}
+
+/* Sidecart Summary Styling */
+.ukc-cart .ukc-summary {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.1);
+}
+
+.ukc-cart .ukc-summary .fc-logo {
+  text-align: center;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ukc-cart .ukc-summary .fc-logo__image {
+  max-height: 60px;
+  width: auto;
+}
+
+.ukc-cart .ukc-summary .fc-logotype {
+  color: var(--brand-blue);
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Sidecart Produktzeilen Styling */
+.ukc-cart .fc-cart__item {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+}
+
+.ukc-cart .fc-cart__item:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,.1);
+  transform: translateY(-2px);
+}
+
+.ukc-cart .fc-cart__item__image__img {
+  border-radius: 8px;
+  max-width: 80px;
+  height: auto;
+}
+
+.ukc-cart .fc-cart__item__name {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.ukc-cart .fc-cart__item__options {
+  margin: 8px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ukc-cart .fc-cart__item__option {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.ukc-cart .fc-cart__item__quantity__input {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  text-align: center;
+  width: 80px;
+  font-weight: 600;
+}
+
+.ukc-cart .fc-cart__item__total p {
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--brand-blue);
+  margin: 0;
+}
+
+/* Sidecart Buttons */
+.ukc-cart .fc-cart__item__actions a {
+  color: var(--danger);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.ukc-cart .fc-cart__item__actions a:hover {
+  color: var(--danger-dark);
+  text-decoration: underline;
+}
+
+/* Sidecart Transaction Summary */
+.ukc-cart .fc-transaction {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.ukc-cart .fc-transaction__header {
+  color: var(--brand-blue);
+  font-weight: 700;
+  font-size: 20px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border);
+}
+
+.ukc-cart .fc-subtotal--row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.ukc-cart .fc-subtotal--row:last-child {
+  border-bottom: none;
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--brand-blue);
+}
+
+.ukc-cart .fc-subtotal__label {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.ukc-cart .fc-subtotal__value {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Sidecart Checkout Button */
+.ukc-cart .fc-action--checkout--button {
+  display: block;
+  width: 100%;
+  background: var(--brand-blue);
+  color: white;
+  text-decoration: none;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 18px;
+  text-align: center;
+  transition: all 0.2s ease;
+  margin-top: 20px;
+}
+
+.ukc-cart .fc-action--checkout--button:hover {
+  background: var(--brand-blue-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,.15);
+}
+
 /* Cart (full page) summary header */
 .ukc-summary .fc-sidebar__header,
 .ukc-summary .fc-sidebar__title,
@@ -691,6 +921,113 @@ button[type=submit] {
 
 /* Hide the sidecart fixed nav on the full cart page */
 .ukc-cart-page nav.fc-sidecart-only-fixed{ display:none !important; }
+
+/* Sidecart Navigation für Cart-Context */
+.ukc-cart nav.fc-sidecart-only-fixed {
+  display: flex !important;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+}
+
+.ukc-cart nav.fc-sidecart-only-fixed .fc-sidecart-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--brand-blue);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.ukc-cart nav.fc-sidecart-only-fixed .fc-sidecart-button:hover {
+  background: var(--brand-blue-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
+}
+
+.ukc-cart nav.fc-sidecart-only-fixed .fc-fixed-button-left .fc-sidecart-button {
+  background: var(--bg-secondary);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.ukc-cart nav.fc-sidecart-only-fixed .fc-fixed-button-left .fc-sidecart-button:hover {
+  background: var(--bg-hover);
+  transform: translateY(-1px);
+}
+
+.ukc-cart nav.fc-sidecart-only-fixed .fc-fixed-button-left--text {
+  margin-left: 4px;
+}
+
+/* Sidecart Content Padding */
+.ukc-cart #fc-cart {
+  padding-top: 60px; /* Platz für Fixed Navigation */
+}
+
+/* Sidecart spezifische Anpassungen für bessere UX */
+.ukc-cart .fc-sidecart-only-fixed .fc-svg-icon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.ukc-cart .fc-sidecart-only-fixed .fc-fixed-button-left .fc-svg-icon {
+  fill: var(--text);
+}
+
+.ukc-cart .fc-sidecart-only-fixed .fc-fixed-button-right .fc-svg-icon {
+  fill: white;
+}
+
+/* Responsive Anpassungen für Sidecart */
+@media (max-width: 768px) {
+  .ukc-cart nav.fc-sidecart-only-fixed {
+    padding: 8px 12px;
+  }
+  
+  .ukc-cart nav.fc-sidecart-only-fixed .fc-sidecart-button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  .ukc-cart nav.fc-sidecart-only-fixed .fc-fixed-button-left--text {
+    display: none; /* Text auf mobilen Geräten ausblenden */
+  }
+  
+  .ukc-cart #fc-cart {
+    padding-top: 50px; /* Weniger Padding auf mobilen Geräten */
+  }
+}
+
+/* Sidecart Animationen */
+.ukc-cart nav.fc-sidecart-only-fixed {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
 
 /* Page background + type rhythm closer to CI */
 body.ukc-cart-page{

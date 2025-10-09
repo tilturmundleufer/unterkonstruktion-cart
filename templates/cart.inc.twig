@@ -6,7 +6,28 @@
 {# ===================================================== #}
 {% block cart %}
 
-{# Entfernt: Sidecart-Fixed-Buttons, die im Fullpage-Cart das Layout überlagern #}
+{% if context == 'cart' %}
+    {% include 'svg.inc.twig' %}
+
+    <nav class="fc-sidecart-only-fixed" role="navigation">
+        {# block sidecart_top_fixed_actions #}
+        <div class="fc-fixed-button-left">
+            <a data-fc-sidecart-dismiss  class="fc-sidecart-button fc-btn-action">
+                <svg class="fc-svg-icon" role="presentation" title="Checkout Icon">
+                    <use xlink:href="#fa-caret-left" />
+                </svg><span class="fc-fixed-button-left--text">{{ config.lang.cart_keep_shopping|raw }}</span></a>
+        </div>
+        <div class="fc-fixed-button-right">
+            <a class="fc-sidecart-button fc-btn-action" href="https://{{ config.store_domain }}/checkout?{{ session_name }}={{ session_id }}" target="_top">
+                {{ config.lang.cart_checkout|raw }}
+                <svg class="fc-svg-icon" role="presentation" title="Checkout Icon">
+                    <use xlink:href="#fa-caret-right" />
+                </svg>
+            </a>
+        </div>
+        {# endblock sidecart_top_fixed_actions #}
+    </nav>
+{% endif %}
 
 <div id="fc-cart" {% if context == 'cart' %}class="fc-container ukc-shell"{% endif %} data-currency="EUR" data-locale="de-DE" data-context="{{ context }}">
 {% import "utils.inc.twig" as utils %}
