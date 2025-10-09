@@ -364,8 +364,8 @@ button[type=submit] {
 [data-fc-sidecart] .fc-btn-action,
 [data-fc-sidecart] a[href*="checkout"],
 [data-fc-sidecart] button[type="submit"] {
-  background: var(--brand-blue) !important;
-  color: white !important;
+  background: #FFD700 !important; /* Gelb statt blau */
+  color: #000 !important; /* Schwarzer Text für bessere Lesbarkeit */
   border: none !important;
 }
 
@@ -383,8 +383,8 @@ button[type=submit] {
 [data-fc-sidecart] .fc-transaction .fc-action--checkout,
 [data-fc-sidecart] .fc-transaction .fc-btn,
 [data-fc-sidecart] .fc-transaction .fc-btn-action {
-  background: var(--brand-blue) !important;
-  color: white !important;
+  background: #FFD700 !important; /* Gelb statt blau */
+  color: #000 !important; /* Schwarzer Text für bessere Lesbarkeit */
   border: none !important;
 }
 
@@ -406,11 +406,21 @@ button[type=submit] {
 [data-fc-sidecart] .fc-cart__items {
   width: 100%;
   max-width: 100%;
+  margin-bottom: 0 !important; /* Entferne Abstand zur Bestellübersicht */
+  padding-bottom: 0 !important;
 }
 
 /* Sidecart Items Header ausblenden */
 [data-fc-sidecart] .fc-cart__items__header {
   display: none;
+}
+
+/* Entferne Abstand zwischen Produkten und Bestellübersicht */
+[data-fc-sidecart] .fc-cart__items + .fc-transaction,
+[data-fc-sidecart] .fc-cart__items + .ukc-summary,
+[data-fc-sidecart] .fc-cart__items + .fc-sidebar__content {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
 }
 
 .ukc-cart .ukc-summary .fc-logo {
@@ -432,7 +442,7 @@ button[type=submit] {
   margin: 0;
 }
 
-/* Sidecart Produktzeilen Styling - NUR für Sidecart */
+/* Sidecart Produktzeilen Styling - NUR für Sidecart - basierend auf DOM */
 [data-fc-sidecart] .fc-cart__item {
   background: white;
   border: 1px solid var(--border);
@@ -440,18 +450,17 @@ button[type=submit] {
   padding: 16px;
   margin-bottom: 12px;
   transition: all 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: block !important;
   width: 100%;
   max-width: 100%;
 }
 
-/* Zeile 1: Bild und Name nebeneinander */
-[data-fc-sidecart] .fc-cart__item__row1 {
-  display: flex;
+/* Zeile 1: Bild und Name nebeneinander - basierend auf DOM */
+[data-fc-sidecart] .fc-cart__item__details-and-image {
+  display: flex !important;
   gap: 12px;
   align-items: center;
+  margin-bottom: 12px;
 }
 
 [data-fc-sidecart] .fc-cart__item__image {
@@ -461,22 +470,27 @@ button[type=submit] {
   justify-content: center;
 }
 
-[data-fc-sidecart] .fc-cart__item__name {
+[data-fc-sidecart] .fc-cart__item__details {
   flex: 1;
-  display: flex !important;
-  align-items: center;
+  display: block !important;
+}
+
+[data-fc-sidecart] .fc-cart__item__name {
+  display: block !important;
   font-weight: 600;
   color: var(--text);
   font-size: 16px;
   line-height: 1.4;
+  margin: 0 0 8px 0;
 }
 
-/* Zeile 2: Menge und Preis nebeneinander */
-[data-fc-sidecart] .fc-cart__item__row2 {
-  display: flex;
+/* Zeile 2: Menge und Preis nebeneinander - basierend auf DOM */
+[data-fc-sidecart] .fc-cart__item__totals {
+  display: flex !important;
   gap: 12px;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 12px;
 }
 
 [data-fc-sidecart] .fc-cart__item__quantity {
@@ -493,24 +507,51 @@ button[type=submit] {
   justify-content: center;
 }
 
-/* Zeile 3: Entfernen Button über volle Breite */
-[data-fc-sidecart] .fc-cart__item__actions {
+/* Zeile 3: Entfernen Button über volle Breite - basierend auf DOM */
+[data-fc-sidecart] .ukc-row__remove {
   display: flex !important;
   justify-content: center;
   margin-top: 8px;
 }
 
 /* Verstecke nur die ursprünglichen Layout-Elemente, die wir ersetzen wollen */
-[data-fc-sidecart] .fc-cart__item__details-and-image {
-  display: none !important;
-}
-
-[data-fc-sidecart] .fc-cart__item__totals {
-  display: none !important;
-}
-
 [data-fc-sidecart] .fc-cart__item__price {
   display: none !important;
+}
+
+/* Stelle sicher, dass die ursprünglichen Elemente sichtbar sind - basierend auf DOM */
+[data-fc-sidecart] .fc-cart__item {
+  display: block !important;
+}
+
+[data-fc-sidecart] .fc-cart__item__image,
+[data-fc-sidecart] .fc-cart__item__details,
+[data-fc-sidecart] .fc-cart__item__name,
+[data-fc-sidecart] .fc-cart__item__quantity,
+[data-fc-sidecart] .fc-cart__item__total,
+[data-fc-sidecart] .fc-cart__item__actions,
+[data-fc-sidecart] .ukc-row__remove,
+[data-fc-sidecart] .ukc-row__thumb,
+[data-fc-sidecart] .ukc-row__details,
+[data-fc-sidecart] .ukc-row__actions,
+[data-fc-sidecart] .ukc-row__total,
+[data-fc-sidecart] .ukc-row__qty {
+  display: block !important;
+  visibility: visible !important;
+}
+
+/* Zusätzliche Selektoren für alle möglichen Produktinhalte */
+[data-fc-sidecart] .fc-cart__item * {
+  visibility: visible !important;
+}
+
+[data-fc-sidecart] .fc-cart__item img,
+[data-fc-sidecart] .fc-cart__item p,
+[data-fc-sidecart] .fc-cart__item input,
+[data-fc-sidecart] .fc-cart__item button,
+[data-fc-sidecart] .fc-cart__item a {
+  display: block !important;
+  visibility: visible !important;
 }
 
 [data-fc-sidecart] .fc-cart__item:hover {
@@ -668,12 +709,12 @@ button[type=submit] {
   font-weight: 600;
 }
 
-/* Sidecart Checkout Button - wie Fullpage Cart */
+/* Sidecart Checkout Button - gelb statt blau */
 [data-fc-sidecart] .fc-action--checkout--button {
   display: block;
   width: 100%;
-  background: var(--brand-blue) !important;
-  color: white !important;
+  background: #FFD700 !important; /* Gelb statt blau */
+  color: #000 !important; /* Schwarzer Text für bessere Lesbarkeit */
   text-decoration: none;
   padding: 16px 24px;
   border-radius: 12px;
@@ -686,7 +727,7 @@ button[type=submit] {
 }
 
 [data-fc-sidecart] .fc-action--checkout--button:hover {
-  background: var(--brand-blue-dark) !important;
+  background: #FFC107 !important; /* Dunkleres Gelb beim Hover */
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0,0,0,.15);
 }
