@@ -332,13 +332,46 @@ button[type=submit] {
 
 /* Sidecart Summary Styling - NUR für Sidecart */
 [data-fc-sidecart] .ukc-summary {
-  background: white;
+  background: white !important;
   border-radius: 12px;
   padding: 20px;
   margin: 20px;
   box-shadow: 0 4px 12px rgba(0,0,0,.1);
   width: calc(100% - 40px);
   max-width: 460px;
+}
+
+/* Sidecart Bestellübersicht Hintergrund - alle grauen Bereiche weiß machen */
+[data-fc-sidecart] .fc-transaction,
+[data-fc-sidecart] .fc-sidebar__content,
+[data-fc-sidecart] .fc-sidebar__header,
+[data-fc-sidecart] .fc-sidebar__title,
+[data-fc-sidecart] .fc-sidebar,
+[data-fc-sidecart] .fc-sidebar--cart,
+[data-fc-sidecart] .fc-cart__summary,
+[data-fc-sidecart] .fc-cart__summary__content,
+[data-fc-sidecart] .fc-cart__summary__header,
+[data-fc-sidecart] .fc-cart__summary__title,
+[data-fc-sidecart] .fc-cart__summary__body,
+[data-fc-sidecart] .fc-cart__summary__footer {
+  background: white !important;
+}
+
+/* Sidecart alle Buttons und Links */
+[data-fc-sidecart] .fc-action--checkout--button,
+[data-fc-sidecart] .fc-action--remove-all--button,
+[data-fc-sidecart] .fc-action--checkout,
+[data-fc-sidecart] .fc-action--remove-all,
+[data-fc-sidecart] .fc-btn,
+[data-fc-sidecart] .fc-btn-action {
+  background: var(--brand-blue) !important;
+  color: white !important;
+  border: none !important;
+}
+
+[data-fc-sidecart] .fc-action--remove-all--button,
+[data-fc-sidecart] .fc-action--remove-all {
+  background: var(--danger) !important;
 }
 
 /* Sidecart Container anpassen */
@@ -394,6 +427,14 @@ button[type=submit] {
   max-width: 100%;
 }
 
+/* Verstecke alle ursprünglichen Layout-Elemente im Sidecart */
+[data-fc-sidecart] .fc-cart__item__details-and-image,
+[data-fc-sidecart] .fc-cart__item__totals,
+[data-fc-sidecart] .fc-cart__item__price,
+[data-fc-sidecart] .fc-cart__item__actions {
+  display: none !important;
+}
+
 [data-fc-sidecart] .fc-cart__item:hover {
   box-shadow: 0 4px 12px rgba(0,0,0,.1);
   transform: translateY(-2px);
@@ -403,7 +444,7 @@ button[type=submit] {
 [data-fc-sidecart] .fc-cart__item__image {
   grid-row: 1;
   grid-column: 1;
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
 }
@@ -411,7 +452,8 @@ button[type=submit] {
 [data-fc-sidecart] .fc-cart__item__image__img {
   border-radius: 8px;
   max-width: 100%;
-  max-height: 80px;
+  max-height: 120px;
+  min-height: 100px;
   width: auto;
   height: auto;
   object-fit: cover;
@@ -426,7 +468,7 @@ button[type=submit] {
   margin: 0;
   font-size: 16px;
   line-height: 1.4;
-  display: flex;
+  display: flex !important;
   align-items: center;
 }
 
@@ -434,7 +476,7 @@ button[type=submit] {
 [data-fc-sidecart] .fc-cart__item__quantity {
   grid-row: 2;
   grid-column: 1;
-  display: flex;
+  display: flex !important;
   align-items: center;
 }
 
@@ -452,7 +494,7 @@ button[type=submit] {
 [data-fc-sidecart] .fc-cart__item__total {
   grid-row: 2;
   grid-column: 2;
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   align-items: flex-end;
   justify-content: center;
@@ -471,11 +513,11 @@ button[type=submit] {
   margin: 0;
 }
 
-/* Row 3, Both Columns: Entfernen Button */
+/* Row 3, Both Columns: Entfernen Button - NEUES LAYOUT */
 [data-fc-sidecart] .fc-cart__item__actions {
   grid-row: 3;
   grid-column: 1 / -1;
-  display: flex;
+  display: flex !important;
   justify-content: center;
   margin-top: 8px;
 }
@@ -593,12 +635,12 @@ button[type=submit] {
   font-weight: 600;
 }
 
-/* Sidecart Checkout Button */
+/* Sidecart Checkout Button - wie Fullpage Cart */
 [data-fc-sidecart] .fc-action--checkout--button {
   display: block;
   width: 100%;
-  background: var(--brand-blue);
-  color: white;
+  background: var(--brand-blue) !important;
+  color: white !important;
   text-decoration: none;
   padding: 16px 24px;
   border-radius: 12px;
@@ -607,12 +649,36 @@ button[type=submit] {
   text-align: center;
   transition: all 0.2s ease;
   margin-top: 20px;
+  border: none;
 }
 
 [data-fc-sidecart] .fc-action--checkout--button:hover {
-  background: var(--brand-blue-dark);
+  background: var(--brand-blue-dark) !important;
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0,0,0,.15);
+}
+
+/* Sidecart "Alle Artikel entfernen" Button - wie Fullpage Cart */
+[data-fc-sidecart] .fc-action--remove-all--button {
+  display: block;
+  width: 100%;
+  background: var(--danger) !important;
+  color: white !important;
+  text-decoration: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 16px;
+  text-align: center;
+  transition: all 0.2s ease;
+  margin-top: 12px;
+  border: none;
+}
+
+[data-fc-sidecart] .fc-action--remove-all--button:hover {
+  background: var(--danger-dark) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
 }
 
 /* Cart (full page) summary header */
