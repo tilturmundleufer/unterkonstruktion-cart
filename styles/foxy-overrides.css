@@ -472,6 +472,13 @@ button[type=submit] {
   max-width: 100%;
 }
 
+/* fc-container__row fc-cart__item ukc-row muss flex-direction: column haben */
+[data-fc-sidecart] .fc-container__row.fc-cart__item.ukc-row {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px;
+}
+
 /* Wrapper 1: Bild und Name nebeneinander */
 [data-fc-sidecart] .fc-cart__item__details-and-image {
   display: flex !important;
@@ -507,37 +514,54 @@ button[type=submit] {
   gap: 12px;
 }
 
-/* Menge und Preis nebeneinander */
-[data-fc-sidecart] .fc-cart__item__totals .fc-container__row {
-  display: flex !important;
+/* Grid-Layout für fc-container__row ukc-row__actions */
+[data-fc-sidecart] .fc-cart__item__totals .fc-container__row.ukc-row__actions {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
   gap: 12px;
-  align-items: center;
-  justify-content: space-between;
 }
 
-[data-fc-sidecart] .fc-cart__item__quantity {
-  flex: 0 0 auto;
-  display: flex !important;
-  align-items: center;
-}
-
-[data-fc-sidecart] .fc-cart__item__total {
-  flex: 0 0 auto;
+/* Row 1, Column 1: fc-cart__item__total ukc-row__total und fc-cart__item__price ukc-row__price */
+[data-fc-sidecart] .fc-cart__item__total.ukc-row__total {
+  grid-row: 1;
+  grid-column: 1;
   display: flex !important;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: center;
 }
 
-/* Entfernen-Button unter Menge und Preis */
+[data-fc-sidecart] .fc-cart__item__price.ukc-row__price {
+  grid-row: 1;
+  grid-column: 1;
+  display: flex !important;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+/* Row 1, Column 2: fc-cart__item__quantity ukc-row__qty */
+[data-fc-sidecart] .fc-cart__item__quantity.ukc-row__qty {
+  grid-row: 1;
+  grid-column: 2;
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* Row 2, Column 1-2: ukc-row__remove */
 [data-fc-sidecart] .ukc-row__remove {
+  grid-row: 2;
+  grid-column: 1 / -1;
   display: flex !important;
   justify-content: center;
   margin-top: 0;
 }
 
 /* Verstecke nur die ursprünglichen Layout-Elemente, die wir ersetzen wollen */
-[data-fc-sidecart] .fc-cart__item__price {
+[data-fc-sidecart] .fc-cart__item__price:not(.ukc-row__price) {
   display: none !important;
 }
 
@@ -573,6 +597,21 @@ button[type=submit] {
 [data-fc-sidecart] .fc-cart__item button,
 [data-fc-sidecart] .fc-cart__item a {
   display: block !important;
+  visibility: visible !important;
+}
+
+/* Spezifische Grid-Elemente sichtbar machen */
+[data-fc-sidecart] .fc-cart__item__total.ukc-row__total,
+[data-fc-sidecart] .fc-cart__item__price.ukc-row__price,
+[data-fc-sidecart] .fc-cart__item__quantity.ukc-row__qty,
+[data-fc-sidecart] .ukc-row__remove {
+  display: flex !important;
+  visibility: visible !important;
+}
+
+/* Grid-Container sichtbar machen */
+[data-fc-sidecart] .fc-container__row.ukc-row__actions {
+  display: grid !important;
   visibility: visible !important;
 }
 
