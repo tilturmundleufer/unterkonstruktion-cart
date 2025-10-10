@@ -522,17 +522,18 @@ button[type=submit] {
   gap: 6px; /* Kleinere Gaps */
 }
 
-/* Row 1, Column 1: Total */
+/* Row 1, Column 1: Total (oben) */
 [data-fc-sidecart] .fc-cart__item__total.ukc-row__total {
   grid-row: 1;
   grid-column: 1;
   display: flex !important;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: center;
+  justify-content: flex-start;
+  order: 1; /* Gesamtpreis zuerst */
 }
 
-/* Row 2, Column 1: Price */
+/* Row 1, Column 1: Price (unten) */
 [data-fc-sidecart] .fc-cart__item__price.ukc-row__price {
   grid-row: 1;
   grid-column: 1;
@@ -541,6 +542,7 @@ button[type=submit] {
   align-items: flex-start;
   justify-content: flex-start;
   margin-top: 2px; /* Minimaler Abstand zwischen Total und Price */
+  order: 2; /* Stückpreis danach */
 }
 
 /* Quantity rechts, oben */
@@ -552,12 +554,12 @@ button[type=submit] {
   justify-content: flex-end;
 }
 
-/* Remove-Button rechts, unten */
+/* Remove-Button rechts, unten - zentriert */
 [data-fc-sidecart] .fc-cart__item__totals .fc-container__row.ukc-row__actions .ukc-row__remove {
   grid-row: 1;
   grid-column: 2;
   display: flex !important;
-  justify-content: flex-end;
+  justify-content: center; /* Zentriert statt rechtsbündig */
   align-items: flex-end;
   margin-top: 4px; /* Kleiner Abstand zwischen Qty und Remove */
 }
