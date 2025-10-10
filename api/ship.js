@@ -97,7 +97,6 @@ export default async function handler(req, res) {
     const noShippable = (!items.length || totalG <= 0);
 
     // Debug: Log für Entwicklung (ohne sensible Daten)
-    console.log('Shipping request:', { keys: Object.keys(req.body||{}), itemCount: items.length, totalG, currency, country: address.country || address.country_code, postal_code: address.postal_code || address.postalcode || address.zip });
 
     // Beispiel: eine Standard-Speditionsrate; flexibel erweiterbar
     const basePrice = priceForWeight(noShippable ? 1 : totalG);
@@ -159,12 +158,9 @@ export default async function handler(req, res) {
     };
 
     res.setHeader('Access-Control-Allow-Origin', '*');
-    console.log('Shipping response:', { count: response.rates.length, first: response.rates[0] });
-    console.log('Full response:', JSON.stringify(response, null, 2));
     return res.status(200).json(response);
 
   } catch (error) {
-    console.error('Shipping endpoint error:', error);
     return res.status(500).json({ 
       error: 'Internal Server Error',
       message: error.message 

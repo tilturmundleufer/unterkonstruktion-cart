@@ -1067,7 +1067,6 @@
                 });
               }, 100);
             }catch(e){
-              console.error('Cart update failed', e);
               if(form) form.submit();
             }finally{
               updating = false;
@@ -1303,8 +1302,6 @@
             var changedBill = String(billingVal||'') !== String(prevBill||'');
             var changedShip = String(shippingVal||'') !== String(prevShip||'');
             
-            console.log('syncCompanyFields - billingVal:', billingVal, 'shippingVal:', shippingVal);
-            console.log('syncCompanyFields - changedBill:', changedBill, 'changedShip:', changedShip);
             
             if(refs.billing){ refs.billing.value = billingVal; if(changedBill){ try{ refs.billing.dispatchEvent(new Event('change',{bubbles:true})); }catch(_){ } } }
             if(refs.shipping){ refs.shipping.value = shippingVal; if(changedShip){ try{ refs.shipping.dispatchEvent(new Event('change',{bubbles:true})); }catch(_){ } } }
@@ -1342,16 +1339,12 @@
           
           // Test-Funktion: Manuell Kundentyp setzen (für Debugging)
           window.testCustomerType = function(type) {
-            console.log('Setting customer type to:', type);
             document.cookie = 'ukc_customer_type=' + type + '; path=/';
             triggerTaxCalculation();
           };
           
           // Test-Funktion: Alle Cookies anzeigen
           window.showCookies = function() {
-            console.log('All cookies:', document.cookie);
-            console.log('FC object:', typeof FC !== 'undefined' ? FC : 'FC not available');
-            console.log('FC.cart:', typeof FC !== 'undefined' && FC.cart ? FC.cart : 'FC.cart not available');
           };
           
           // Tax-Berechnung bei Cookie-Änderungen triggern
@@ -1435,7 +1428,6 @@
                       }
                     }
                   } catch(e) {
-                    console.log('PBI-Attribut nicht gefunden');
                   }
                 }
                 
@@ -1829,9 +1821,7 @@
               // Falsch platzierte Zeile entfernen
               wrongCouponRow.remove();
               
-              console.log('[UKC] Coupon-Discount in Summary-Table aktualisiert:', couponName, couponValue);
             }catch(e){
-              console.error('[UKC] Fehler beim Aktualisieren des Coupon-Discounts in Summary-Table:', e);
             }
           }
           
@@ -1893,12 +1883,8 @@
               var couponInput = document.querySelector('#coupon');
               var applyButton = document.querySelector('[data-fc-id="add-coupon-button"]') || document.querySelector('.fc-coupon-entry__apply');
               
-              console.log('[UKC] Debug - Coupon Input gefunden:', !!couponInput);
-              console.log('[UKC] Debug - Apply Button gefunden:', !!applyButton);
-              console.log('[UKC] Debug - Gefundene Produkt-Codes:', productCodes);
               
               if(!couponInput || !applyButton) {
-                console.log('[UKC] Debug - Fehler: Input oder Button nicht gefunden');
                 return;
               }
               
@@ -1910,7 +1896,6 @@
                 
                 // Coupon-Code eintragen
                 couponInput.value = couponCode;
-                console.log('[UKC] Debug - Coupon-Code eingetragen:', couponCode);
                 
                 // Event für Foxy.io auslösen
                 var inputEvent = new Event('input', { bubbles: true });
@@ -1918,7 +1903,6 @@
                 
                 // Kurz warten und dann anwenden
                 setTimeout(function(){
-                  console.log('[UKC] Debug - Klicke Apply-Button für:', couponCode);
                   applyButton.click();
                   
                   // Nach Anwendung zum nächsten Coupon
@@ -1927,14 +1911,12 @@
                   }, 500);
                 }, 100);
                 
-                console.log('[UKC] Automatischer Coupon angewendet:', couponCode, '(' + (index + 1) + '/' + productCodes.length + ')');
               }
               
               // Ersten Coupon anwenden
               applyNextCoupon(0);
               
             }catch(e){
-              console.error('[UKC] Fehler beim automatischen Coupon-Anwenden:', e);
             }
           }
 
@@ -2021,7 +2003,7 @@
             return nodes;
           }
           function setRO(el){ try{ el.readOnly=true; el.setAttribute('readonly','readonly'); el.style.cursor='not-allowed'; }catch(_){} }
-          function gen(){ try{ console.log('[PO-mini] gen()'); }catch(_){}
+          function gen(){ try{ }catch(_){}
             var ins=getPOInputs(); if(ins.length===0) return;
             var stored=null; try{ stored=sessionStorage.getItem('ukc_po_number'); }catch(_){}
             if(!stored){ var d=new Date(); var p=function(n){return String(n).padStart(2,'0');}; var po='UKC-'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())+'-'+String(Math.floor(Math.random()*10000)).padStart(4,'0'); try{ sessionStorage.setItem('ukc_po_number',po);}catch(_){} stored=po; }

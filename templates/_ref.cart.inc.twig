@@ -1,3 +1,6 @@
+<div class="ukc-cart" data-ukc="cart">
+  <div class="ukc-cart__container">
+    <div class="ukc-cart__grid">
 {# BEGIN CART TWIG TEMPLATE #}
 
 {# ===================================================== #}
@@ -26,7 +29,7 @@
     </nav>
 {% endif %}
 
-<div id="fc-cart" {% if context == 'cart' %}class="fc-container"{% endif %}>
+<div id="fc-cart" {% if context == 'cart' %}class="fc-container ukc-shell"{% endif %} data-currency="EUR" data-locale="de-DE" data-context="{{ context }}">
 {% import "utils.inc.twig" as utils %}
 {#
     Blocks within "cart" block:
@@ -372,7 +375,8 @@
 
 
 
-        <div class="fc-sidebar fc-sidebar--cart">
+        <div class="fc-sidebar fc-sidebar--cart ukc-summary">
+            {% if context != 'checkout' %}
             {% block logo %}
             <div class="fc-logo">
                 {% if config.store_logo_url %}
@@ -382,6 +386,7 @@
                 {% endif %}
             </div>
             {% endblock logo %}
+            {% endif %}
 
             <div data-fc-id="block-address-entry">
             {% block address_entry %}
@@ -894,6 +899,104 @@
 
         {% block cart_form_end %}
         {% if with_controls %}
+        <script>
+        (function(){
+          // Laufzeit-Guard: Dieser Block soll den Checkout nicht beeinflussen.
+          // Wenn wir nicht im Cart-Kontext sind, brich ab (verhindert Checkout-Fehler).
+          var fcRoot = document.querySelector('#fc-cart');
+          var __ukc_ctx = fcRoot ? fcRoot.getAttribute('data-context') : null;
+          if(__ukc_ctx !== 'cart') {
+            return; // Checkout ausklammern
+          }
+          var form = document.getElementById('fc-cart-form');
+          var updating = false;
+          function getLocale(){ return document.querySelector('#fc-cart')?.dataset.locale || 'de-DE'; }
+          function getCurrency(){ return document.querySelector('#fc-cart')?.dataset.currency || 'EUR'; }
+          function getCustomerType(){
+            try{ var m = document.cookie.match(/(?:^|; )ukc_customer_type=([^;]+)/); return m ? decodeURIComponent(m[1]) : ''; }catch(_){ return ''; }
+          }
+          function formatMoney(num){ return new Intl.NumberFormat(getLocale(), { style: 'currency', currency: getCurrency() }).format(num); }
+          function recalcSummary(){
+            var subtotal = 0;
+            document.querySelectorAll('.ukc-row').forEach(function(row){
+              var qtyInput = row.querySelector('input[data-fc-id="item-quantity-input"]');
+              var qty = parseInt(qtyInput?.value || '0', 10) || 0;
+              var each = parseFloat(row.getAttribute('data-price-each') || '0') || 0;
+              subtotal += each * qty;
+              var totalEl = row.querySelector('.ukc-row__total p');
+              if(totalEl){ totalEl.textContent = formatMoney(each * qty); }
+            });
+            var subEl = document.querySelector('[data-ukc-subtotal]');
+            if(subEl) subEl.textContent = formatMoney(subtotal);
+            // Steuern und Gesamtsumme werden nativ von Foxy berechnet/aktualisiert
+          }
+          function findQtyInput(itemId){
+            return document.querySelector('input[data-fc-id="item-quantity-input"][data-fc-item-id="'+itemId+'"]');
+          }
+          async function ajaxUpdate(){
+            if(!form || updating) return;
+            updating = true;
+            try{
+              var fd = new FormData(form);
+              fd.set('cart','update');
+              // Kundentyp aus Cookie in Hidden-Field spiegeln und mitsenden
+              try{
+                var cookieMatch = document.cookie.match(/(?:^|; )ukc_customer_type=([^;]+)/);
+                var val = cookieMatch ? decodeURIComponent(cookieMatch[1]) : '';
+                var inp = document.getElementById('ukc-customer-type-input');
+                if(inp) inp.value = val;
+                if(val) fd.set('customer_type', val);
+              }catch(_){}
+              // Sofort im UI vorrechnen, damit es flüssig wirkt
+              recalcSummary();
+              var res = await fetch(form.action, { method:'POST', body: fd, credentials:'include' });
+              var html = await res.text();
+              var doc = new DOMParser().parseFromString(html, 'text/html');
+              var next = doc.querySelector('#fc-cart');
+              var current = document.querySelector('#fc-cart');
+              if(next && current){ 
+                // Ersetze nur die Inhaltsbereiche, nicht die ganze Sidebar-Struktur
+                var nextSidebar = next.querySelector('.fc-sidebar--cart.ukc-summary');
+                var currSidebar = current.querySelector('.fc-sidebar--cart.ukc-summary');
+                if(nextSidebar && currSidebar){
+                  currSidebar.innerHTML = nextSidebar.innerHTML;
+                }else{
+                  current.replaceWith(next);
+                }
+                return; 
+              }
+              // Fallback: live totals/row calculation ohne kompletten Reflow
+              const locale = getLocale();
+              const currency = getCurrency();
+              // Update subtotals/total wenn vorhanden
+            }catch(e){
+            }finally{
+              updating = false;
+            }
+          }
+          // Event-Listener für Quantity-Änderungen
+          document.addEventListener('change', function(e){
+            if(e.target && e.target.getAttribute('data-fc-id') === 'item-quantity-input'){
+              ajaxUpdate();
+            }
+          });
+          // Event-Listener für Remove-Links
+          document.addEventListener('click', function(e){
+            if(e.target && e.target.closest('[data-fc-id="item-remove-link"]')){
+              e.preventDefault();
+              var link = e.target.closest('[data-fc-id="item-remove-link"]');
+              var itemId = link.getAttribute('data-fc-item-id');
+              if(itemId){
+                var qtyInput = findQtyInput(itemId);
+                if(qtyInput){
+                  qtyInput.value = '0';
+                  ajaxUpdate();
+                }
+              }
+            }
+          });
+        })();
+        </script>
         </form>
         {% endif %}
         {% endblock cart_form_end %}
@@ -906,3 +1009,6 @@
 </div><!-- data-fc-container="cart" -->
 {% endblock %}{# cart #}
 {# ===================================================== #}
+  </div><!-- .ukc-cart__grid -->
+  </div><!-- .ukc-cart__container -->
+</div><!-- .ukc-cart -->

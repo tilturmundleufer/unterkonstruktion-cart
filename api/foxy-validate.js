@@ -12,11 +12,6 @@ export default async function handler(req, res) {
     if (data?.input && typeof data.input === 'string') { try { data = JSON.parse(data.input); } catch (_) {} }
     if (data?.cart && typeof data.cart === 'string') { try { data = JSON.parse(data.cart); } catch (_) {} }
 
-    console.log('Tax request:', { keys: Object.keys(data || {}) });
-    console.log('Tax request billing_company:', data?.billing_company);
-    console.log('Tax request shipping_company:', data?.shipping_company);
-    console.log('Tax request embedded billing:', data?._embedded?.['fx:billing_address']?.company);
-    console.log('Tax request embedded shipping:', data?._embedded?.['fx:shipping_address']?.company);
 
     // Werte robust lesen (können als String kommen)
     const num = (v) => {
@@ -50,10 +45,8 @@ export default async function handler(req, res) {
       total_rate: tax_rate
     };
 
-    console.log('Tax response (validation format):', response);
     return res.status(200).json(response);
   } catch (e) {
-    console.error('Tax endpoint error:', e);
     return res.status(200).json({ taxes: [] });
   }
 }

@@ -79,10 +79,4 @@ rates.add(10003, 0, 'Abholung', 'Selbstabholung in 31275 Lehrte');
 rates.add(10004, neutralPrice, 'Spedition', 'neutrale Speditionslieferung inkl. telefonischer Avisierung');
 
 // Debug-Info (wird in Foxy-Logs angezeigt)
-console.log('Custom Shipping Code:', {
-  totalG: totalG,
-  avisoPrice: avisoPrice,
-  neutralPrice: neutralPrice,
-  itemCount: cart['_embedded'] ? cart['_embedded']['fx:items'].length : 0,
-  country: cart['_embedded'] && cart['_embedded']['fx:shipment'] ? cart['_embedded']['fx:shipment']['country'] : 'unknown'
-});
+// Custom Shipping Code: totalG, avisoPrice, neutralPrice, itemCount, country
