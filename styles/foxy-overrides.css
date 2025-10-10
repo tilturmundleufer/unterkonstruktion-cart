@@ -518,11 +518,11 @@ button[type=submit] {
 [data-fc-sidecart] .fc-cart__item__totals .fc-container__row.ukc-row__actions {
   display: grid !important;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto;
+  grid-template-rows: auto auto auto; /* Platz für Total, Price, Remove */
   gap: 12px;
 }
 
-/* Row 1, Column 1: fc-cart__item__total ukc-row__total und fc-cart__item__price ukc-row__price */
+/* Row 1, Column 1: Total */
 [data-fc-sidecart] .fc-cart__item__total.ukc-row__total {
   grid-row: 1;
   grid-column: 1;
@@ -532,32 +532,54 @@ button[type=submit] {
   justify-content: center;
 }
 
+/* Row 2, Column 1: Price */
 [data-fc-sidecart] .fc-cart__item__price.ukc-row__price {
-  grid-row: 1;
+  grid-row: 2;
   grid-column: 1;
   display: flex !important;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  margin-top: 4px;
 }
 
-/* Row 1, Column 2: fc-cart__item__quantity ukc-row__qty */
+/* Quantity rechts, über zwei Zeilen zentriert */
 [data-fc-sidecart] .fc-cart__item__quantity.ukc-row__qty {
-  grid-row: 1;
+  grid-row: 1 / span 2;
   grid-column: 2;
   display: flex !important;
   align-items: center;
   justify-content: flex-end;
 }
 
-/* Row 2, Column 1-2: ukc-row__remove */
-[data-fc-sidecart] .ukc-row__remove {
-  grid-row: 2;
-  grid-column: 1 / -1;
+/* Remove-Button über beide Spalten (eigene Zeile) */
+[data-fc-sidecart] .fc-cart__item__totals .fc-container__row.ukc-row__actions .ukc-row__remove {
+  grid-row: 3;
+  grid-column: 1 / 3 !important;
   display: flex !important;
   justify-content: center;
   margin-top: 0;
+}
+
+/* Wrapper-Breiten und Zentrierung im Sidecart */
+[data-fc-sidecart] .fc-cart__item__details-and-image,
+[data-fc-sidecart] .fc-cart__item__totals {
+  width: 90% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Seitenpadding im Sidecart-Hauptgrid entfernen */
+[data-fc-sidecart] .fc-cart__main__content.fc-container__grid {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Cart-Item-Row exakt zentrieren */
+[data-fc-sidecart] .fc-container__row.fc-cart__item.ukc-row {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: 90% !important;
+  box-sizing: border-box;
 }
 
 /* Verstecke nur die ursprünglichen Layout-Elemente, die wir ersetzen wollen */
