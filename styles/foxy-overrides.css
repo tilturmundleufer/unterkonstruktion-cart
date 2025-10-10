@@ -514,12 +514,12 @@ button[type=submit] {
   gap: 12px;
 }
 
-/* Grid-Layout für fc-container__row ukc-row__actions */
+/* Grid-Layout für fc-container__row ukc-row__actions - optimiert */
 [data-fc-sidecart] .fc-cart__item__totals .fc-container__row.ukc-row__actions {
   display: grid !important;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto auto !important; /* total, price, remove */
-  gap: 12px;
+  grid-template-rows: auto auto; /* Nur 2 Rows: Total/Price, Qty/Remove */
+  gap: 6px; /* Kleinere Gaps */
 }
 
 /* Row 1, Column 1: Total */
@@ -534,30 +534,32 @@ button[type=submit] {
 
 /* Row 2, Column 1: Price */
 [data-fc-sidecart] .fc-cart__item__price.ukc-row__price {
-  grid-row: 2;
+  grid-row: 1;
   grid-column: 1;
   display: flex !important;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: center;
+  justify-content: flex-start;
+  margin-top: 2px; /* Minimaler Abstand zwischen Total und Price */
 }
 
-/* Quantity rechts, über zwei Zeilen zentriert */
+/* Quantity rechts, oben */
 [data-fc-sidecart] .fc-cart__item__quantity.ukc-row__qty {
-  grid-row: 1 / span 2;
+  grid-row: 1;
   grid-column: 2;
   display: flex !important;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-end;
 }
 
-/* Remove-Button über beide Spalten (eigene Zeile) */
+/* Remove-Button rechts, unten */
 [data-fc-sidecart] .fc-cart__item__totals .fc-container__row.ukc-row__actions .ukc-row__remove {
-  grid-row: 3 !important;
-  grid-column: 1 / 3 !important;
+  grid-row: 1;
+  grid-column: 2;
   display: flex !important;
-  justify-content: center;
-  margin-top: 0;
+  justify-content: flex-end;
+  align-items: flex-end;
+  margin-top: 4px; /* Kleiner Abstand zwischen Qty und Remove */
 }
 
 /* Wrapper-Breiten und Zentrierung im Sidecart */
@@ -574,12 +576,13 @@ button[type=submit] {
   padding-right: 0 !important;
 }
 
-/* Cart-Item-Row exakt zentrieren */
+/* Cart-Item-Row exakt zentrieren mit minimalem Padding */
 [data-fc-sidecart] .fc-container__row.fc-cart__item.ukc-row {
   margin-left: auto !important;
   margin-right: auto !important;
   width: 90% !important;
   box-sizing: border-box;
+  padding: 5px !important; /* Maximal 5px Padding an allen Seiten */
 }
 
 /* Verstecke nur die ursprünglichen Layout-Elemente, die wir ersetzen wollen */
@@ -2394,4 +2397,34 @@ input[data-fc-name="billing_company"],
 [data-fc-sidecart] .fc-cart__item__totals .fc-container__row.ukc-row__actions .ukc-row__remove {
   grid-column: 1 / 3 !important;
   z-index: 2;
+}
+
+/* Empty Cart Container an Sidecart-Breite anpassen */
+[data-fc-sidecart] .ukc-empty {
+  width: 90% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding: 20px !important;
+  box-sizing: border-box;
+}
+
+[data-fc-sidecart] .ukc-empty__content {
+  text-align: center;
+  width: 100%;
+}
+
+[data-fc-sidecart] .ukc-empty__title {
+  margin-bottom: 16px !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+}
+
+[data-fc-sidecart] .ukc-empty .ukc-btn {
+  display: inline-block !important;
+  padding: 12px 24px !important;
+  background: var(--brand-blue) !important;
+  color: white !important;
+  text-decoration: none !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
 }
