@@ -2395,7 +2395,7 @@ input[data-fc-name="billing_company"],
 
 /* Make sure the remove container spans both columns and is on top */
 [data-fc-sidecart] .fc-cart__item__totals .fc-container__row.ukc-row__actions .ukc-row__remove {
-  grid-column: 1 / 3 !important;
+  grid-column: 3 !important;
   z-index: 2;
 }
 
