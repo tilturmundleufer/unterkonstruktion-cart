@@ -695,18 +695,16 @@ button[type=submit] {
 [data-fc-sidecart] .ukc-qty-control {
   display: flex !important;
   align-items: center !important;
-  border: 1px solid #000000 !important; /* Schwarze Border */
-  border-radius: 8px;
-  overflow: hidden;
-  width: 80px !important; /* Mehr Platz für alle Elemente */
-  background: white !important; /* Weißer Hintergrund */
+  gap: 4px; /* Abstand zwischen Buttons und Input */
+  /* Keine feste width - natürliche Breite */
 }
 
-/* Quantity Buttons - kompakt für 80px Container */
+/* Quantity Buttons - separiert vom Input */
 [data-fc-sidecart] .ukc-qty-btn {
-  width: 24px !important; /* Mehr Platz für Buttons */
+  width: 32px !important;
   height: 32px !important;
-  border: none !important;
+  border: 1px solid #000000 !important; /* Schwarze Border */
+  border-radius: 8px !important;
   background: white !important;
   color: var(--text) !important;
   font-size: 14px !important;
@@ -716,7 +714,6 @@ button[type=submit] {
   align-items: center !important;
   justify-content: center !important;
   transition: all 0.2s ease !important;
-  border-radius: 0 !important;
   /* Verhindere Submit-Verhalten */
   -webkit-appearance: none !important;
   -moz-appearance: none !important;
@@ -732,34 +729,30 @@ button[type=submit] {
   background: var(--border) !important;
 }
 
-/* Menge Input Styling - kompakt für 80px Container */
+/* Menge Input Styling - separiert mit eigener Border */
 [data-fc-sidecart] .fc-cart__item__quantity__input {
-  border: none !important;
-  border-left: 1px solid #000000 !important; /* Schwarze Border */
-  border-right: 1px solid #000000 !important; /* Schwarze Border */
-  border-radius: 0 !important;
-  padding: 8px 6px; /* Mehr Padding für bessere Lesbarkeit */
+  border: 1px solid #000000 !important; /* Schwarze Border */
+  border-radius: 8px !important;
+  padding: 8px 12px;
   text-align: center;
-  width: 32px !important; /* Mehr Platz für Input */
-  max-width: 32px !important;
+  width: 60px !important; /* Normale Breite */
+  max-width: 60px !important;
   font-weight: 600;
-  font-size: 14px; /* Normale Schriftgröße */
-  background: white;
+  font-size: 14px;
+  background: white !important; /* Weißer Hintergrund */
   color: var(--text);
   box-shadow: none;
   transition: all 0.2s ease;
 }
 
 [data-fc-sidecart] .fc-cart__item__quantity__input:focus {
-  border-left-color: var(--brand-blue) !important;
-  border-right-color: var(--brand-blue) !important;
+  border-color: var(--brand-blue) !important;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
   outline: none;
 }
 
 [data-fc-sidecart] .fc-cart__item__quantity__input:hover {
-  border-left-color: var(--brand-blue) !important;
-  border-right-color: var(--brand-blue) !important;
+  border-color: var(--brand-blue) !important;
 }
 
 /* Preis Styling */
