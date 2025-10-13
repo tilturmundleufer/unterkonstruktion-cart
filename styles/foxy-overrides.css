@@ -43,7 +43,9 @@
 }
 
 /* Checkout: ukc-cart__grid nicht als Grid verwenden */
-.ukc-checkout .ukc-cart__grid {
+/* Checkout: ukc-cart__grid als Block, nicht als Grid */
+.ukc-checkout .ukc-cart__grid,
+#fc-cart[data-context="checkout"] .ukc-cart__grid {
   display: block !important;
 }
 
