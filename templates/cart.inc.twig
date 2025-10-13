@@ -366,14 +366,18 @@
                                     {% endif %}
                                 {% endif %}
                                 
-                                {% if piece_price %}
+                                {# Debug: Zeige immer etwas an, auch wenn piece_price leer ist #}
                                 <p class="fc-cart__item__price__each">
-                                    {{ piece_price }}
+                                    {% if piece_price %}
+                                        {{ piece_price }}
+                                    {% else %}
+                                        {# Fallback: Zeige den Code für Debugging #}
+                                        DEBUG: {{ item.code|default('NO_CODE') }}
+                                    {% endif %}
                                     <small>
                                         / Stück
                                     </small>
                                 </p>
-                                {% endif %}
                             </div>
 
                             <div class="fc-cart__item__quantity ukc-row__qty">
