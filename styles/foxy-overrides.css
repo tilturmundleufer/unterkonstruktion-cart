@@ -698,13 +698,13 @@ button[type=submit] {
   border: 1px solid #000000 !important; /* Schwarze Border */
   border-radius: 8px;
   overflow: hidden;
-  width: 40px !important; /* Feste Breite 40px */
+  width: 80px !important; /* Mehr Platz für alle Elemente */
   background: white !important; /* Weißer Hintergrund */
 }
 
-/* Quantity Buttons - kompakt für 40px Container */
+/* Quantity Buttons - kompakt für 80px Container */
 [data-fc-sidecart] .ukc-qty-btn {
-  width: 12px !important; /* Kleinere Buttons für 40px Container */
+  width: 24px !important; /* Mehr Platz für Buttons */
   height: 32px !important;
   border: none !important;
   background: white !important;
@@ -732,18 +732,18 @@ button[type=submit] {
   background: var(--border) !important;
 }
 
-/* Menge Input Styling - kompakt für 40px Container */
+/* Menge Input Styling - kompakt für 80px Container */
 [data-fc-sidecart] .fc-cart__item__quantity__input {
   border: none !important;
   border-left: 1px solid #000000 !important; /* Schwarze Border */
   border-right: 1px solid #000000 !important; /* Schwarze Border */
   border-radius: 0 !important;
-  padding: 8px 4px; /* Weniger Padding für kompakten Container */
+  padding: 8px 6px; /* Mehr Padding für bessere Lesbarkeit */
   text-align: center;
-  width: 16px !important; /* Sehr schmal für 40px Container */
-  max-width: 16px !important;
+  width: 32px !important; /* Mehr Platz für Input */
+  max-width: 32px !important;
   font-weight: 600;
-  font-size: 12px; /* Kleinere Schrift */
+  font-size: 14px; /* Normale Schriftgröße */
   background: white;
   color: var(--text);
   box-shadow: none;
