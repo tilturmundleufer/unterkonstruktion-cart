@@ -355,6 +355,13 @@
                             </div>
 
                             <div class="fc-cart__item__price ukc-row__price">
+                                {# Sidecart-Fallback: Stückpreis direkt aus item.code extrahieren, falls oben nicht gesetzt #}
+                                {% if not ukc_piece_price %}
+                                    {% set _code = item.code|default('') %}
+                                    {% if _code and '-' in _code %}
+                                        {% set ukc_piece_price = _code|split('-')[1:]|join('-')|trim %}
+                                    {% endif %}
+                                {% endif %}
                                 {% if ukc_piece_price %}
                                 <p class="ukc-piece-price">({{ ukc_piece_price }} / Stück)</p>
                                 {% endif %}
