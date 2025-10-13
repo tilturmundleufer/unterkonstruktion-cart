@@ -366,13 +366,16 @@
                                     {% endif %}
                                 {% endif %}
                                 
-                                {# Debug: Zeige immer etwas an, auch wenn piece_price leer ist #}
+                                {# Erweiterte Debug-Ausgabe #}
                                 <p class="fc-cart__item__price__each">
                                     {% if piece_price %}
                                         {{ piece_price }}
                                     {% else %}
-                                        {# Fallback: Zeige den Code für Debugging #}
-                                        DEBUG: {{ item.code|default('NO_CODE') }}
+                                        {# Zeige alle Debug-Informationen #}
+                                        DEBUG: Code={{ item.code|default('NO_CODE') }} | 
+                                        Parts={{ code_parts|default('NO_PARTS')|join(',') }} | 
+                                        Raw={{ piece_price_raw|default('NO_RAW') }} | 
+                                        Final={{ piece_price|default('NO_FINAL') }}
                                     {% endif %}
                                     <small>
                                         / Stück
