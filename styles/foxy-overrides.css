@@ -1336,7 +1336,8 @@ button[type=submit] {
 }
 .ukc-remove-all a:hover{ background:#f7f9fc; transform: translateY(-1px); }
 
-.ukc-row__price{ display:none !important }
+/* Einheitspreis im Full Cart ausblenden, aber NICHT im Sidecart */
+.ukc-cart:not([data-fc-sidecart] *) .ukc-row__price{ display:none !important }
 .ukc-row__total p{ 
   margin:0; 
   text-align:right; 
