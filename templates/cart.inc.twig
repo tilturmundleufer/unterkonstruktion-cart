@@ -952,6 +952,9 @@
             });
             var subEl = document.querySelector('[data-ukc-subtotal]');
             if(subEl) subEl.textContent = formatMoney(subtotal);
+            // Sofortiges UI-Feedback für Gesamtsumme (temporär = Subtotal, bis Ajax ersetzt)
+            var totalOrderEl = document.querySelector('[data-ukc-total-order]');
+            if(totalOrderEl) totalOrderEl.textContent = formatMoney(subtotal);
             // Steuern und Gesamtsumme werden nativ von Foxy berechnet/aktualisiert
           }
           function findQtyInput(itemId){
@@ -1677,15 +1680,20 @@
               if(!main) return;
               if(main.querySelector('[data-ukc-go-fullcart]')){ added = true; return; }
               var a = document.createElement('a');
-              a.className = 'ukc-btn';
+              a.className = 'ukc-btn ukc-btn--alt';
               a.setAttribute('data-ukc-go-fullcart','');
               a.href = 'https://' + (window.ukcStoreDomain || '{{ config.store_domain }}') + '/cart?{{ session_name }}={{ session_id }}';
+              a.target = '_top';
               a.textContent = 'Zum Warenkorb';
               var wrap = document.createElement('div');
               wrap.className = 'ukc-sidecart-footer';
               wrap.style.margin = '16px 16px 24px';
               wrap.appendChild(a);
               main.appendChild(wrap);
+              a.addEventListener('click', function(e){
+                e.preventDefault(); e.stopPropagation();
+                try { window.top.location.href = a.href; } catch(_){ window.location.href = a.href; }
+              });
               added = true;
             }
             setTimeout(addFooter, 400);
