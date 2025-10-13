@@ -320,7 +320,9 @@
                                     {% if item.code is defined and item.code and '-' in item.code %}
                                         {% set code_parts = item.code|split('-') %}
                                         {% if code_parts|length > 1 %}
-                                            {% set piece_price = code_parts[1:]|join('-') %}
+                                            {% set piece_price_raw = code_parts[1:]|join('-') %}
+                                            {# Euro-Symbol entfernen #}
+                                            {% set piece_price = piece_price_raw|replace({'€': ''})|trim %}
                                         {% endif %}
                                     {% endif %}
                                     <p>
@@ -337,7 +339,9 @@
                                     {% if item.code is defined and item.code and '-' in item.code %}
                                         {% set code_parts = item.code|split('-') %}
                                         {% if code_parts|length > 1 %}
-                                            {% set piece_price = code_parts[1:]|join('-') %}
+                                            {% set piece_price_raw = code_parts[1:]|join('-') %}
+                                            {# Euro-Symbol entfernen #}
+                                            {% set piece_price = piece_price_raw|replace({'€': ''})|trim %}
                                         {% endif %}
                                     {% endif %}
                                     <p>
@@ -356,7 +360,9 @@
                                 {% if item.code is defined and item.code and '-' in item.code %}
                                     {% set code_parts = item.code|split('-') %}
                                     {% if code_parts|length > 1 %}
-                                        {% set piece_price = code_parts[1:]|join('-') %}
+                                        {% set piece_price_raw = code_parts[1:]|join('-') %}
+                                        {# Euro-Symbol entfernen #}
+                                        {% set piece_price = piece_price_raw|replace({'€': ''})|trim %}
                                     {% endif %}
                                 {% endif %}
                                 
