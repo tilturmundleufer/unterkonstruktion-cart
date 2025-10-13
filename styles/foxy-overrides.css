@@ -522,7 +522,7 @@ button[type=submit] {
   gap: 6px; /* Kleinere Gaps */
 }
 
-/* Row 1, Column 1: Total (oben) */
+/* Row 1, Column 1: Total (oben) - um 5px nach unten für Zentrierung */
 [data-fc-sidecart] .fc-cart__item__total.ukc-row__total {
   grid-row: 1;
   grid-column: 1;
@@ -530,10 +530,12 @@ button[type=submit] {
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
+  position: relative !important;
+  top: 5px !important; /* 5px nach unten für Zentrierung */
   order: 1; /* Gesamtpreis zuerst */
 }
 
-/* Row 1, Column 1: Price (unten) - relativ 15px nach unten verschoben */
+/* Row 1, Column 1: Price (unten) - relativ 20px nach unten verschoben */
 [data-fc-sidecart] .fc-cart__item__price.ukc-row__price {
   grid-row: 1;
   grid-column: 1;
@@ -542,7 +544,7 @@ button[type=submit] {
   align-items: flex-start;
   justify-content: flex-start;
   position: relative !important;
-  top: 15px !important; /* 15px nach unten verschieben */
+  top: 20px !important; /* 15px + 5px = 20px nach unten verschieben */
   order: 2; /* Stückpreis danach */
 }
 
@@ -566,9 +568,14 @@ button[type=submit] {
 }
 
 /* Wrapper-Breiten und Zentrierung im Sidecart */
-[data-fc-sidecart] .fc-cart__item__details-and-image,
-[data-fc-sidecart] .fc-cart__item__totals {
+[data-fc-sidecart] .fc-cart__item__details-and-image {
   width: 90% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+[data-fc-sidecart] .fc-cart__item__totals {
+  width: 98% !important;
   margin-left: auto !important;
   margin-right: auto !important;
 }
