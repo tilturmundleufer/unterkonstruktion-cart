@@ -561,6 +561,7 @@ button[type=submit] {
   display: flex !important;
   align-items: center; /* Vertikal zentrieren */
   justify-content: center; /* Horizontal zentrieren */
+  margin-bottom: 0 !important; /* Keine bottom margin */
 }
 
 /* Remove-Button rechts, unten - Text zentriert */
@@ -743,6 +744,7 @@ button[type=submit] {
   color: var(--text);
   box-shadow: none;
   transition: all 0.2s ease;
+  margin-top: 0 !important; /* Keine top margin */
 }
 
 [data-fc-sidecart] .fc-cart__item__quantity__input:focus {
