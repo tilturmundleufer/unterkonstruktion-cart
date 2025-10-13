@@ -354,7 +354,7 @@
                                 {% endif %}
                             </div>
 
-                            <div class="fc-cart__item__price ukc-row__price">
+                            <div class="fc-cart__item__price ukc-row__price" data-raw-code="{{ item.code|default('') }}">
                                 {# Sidecart-Fallback: Stückpreis direkt aus item.code extrahieren, falls oben nicht gesetzt #}
                                 {% if not ukc_piece_price %}
                                     {% set _code = item.code|default('') %}
