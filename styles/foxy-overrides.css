@@ -1386,7 +1386,8 @@ button[type=submit] {
   .ukc-row__details{ grid-area: details }
   .ukc-row__qty{ grid-area: qty }
   .ukc-row__remove{ grid-area: remove; text-align:left }
-  .ukc-row__price{ display:none }   /* hide unit price on mobile */
+  /* Einheitspreis nur im Full Cart auf kleinen Screens verstecken, nicht im Sidecart */
+  .ukc-cart:not([data-fc-sidecart] *) .ukc-row__price{ display:none }
   .ukc-row__total p{ font-weight:700 } /* emphasize total */
 }
 
