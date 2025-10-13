@@ -126,7 +126,7 @@
 
 
 
-        <div class="fc-cart__main__content fc-container__grid">
+        <div class="fc-cart__main__content fc-container__grid" data-ukc-sidecart-main>
             {% if ukc_notice is defined and ukc_notice %}
             <div class="ukc-cart__notice ukc-small" aria-live="polite">{{ ukc_notice|raw }}</div>
             {% endif %}
@@ -379,9 +379,9 @@
                                 <input type="hidden" id="id{{ item.item_number }}" name="id{{ item.item_number }}" value="{{ item.id }}" />
                                 <!-- Menge-Label ausgeblendet -->
                                 <div class="ukc-qty-control" data-fc-item-id="{{ item.id }}">
-                                    <button type="button" class="ukc-qty-btn ukc-qty-minus" aria-label="-" data-fc-id="decrement-item-quantity" data-fc-item-id="{{ item.id }}">&minus;</button>
+                                    <button type="button" class="ukc-qty-btn ukc-qty-minus" aria-label="-" data-ukc-id="decrement-item-quantity" data-fc-item-id="{{ item.id }}">&minus;</button>
                                     <input class="fc-cart__item__quantity__input fc-form-control" type="number" name="quantity{{ item.item_number }}" id="quantity{{ item.item_number }}" min="1" value="{{ item.quantity }}" data-fc-id="item-quantity-input" data-fc-item-id="{{ item.id }}"/>
-                                    <button type="button" class="ukc-qty-btn ukc-qty-plus" aria-label="+" data-fc-id="increment-item-quantity" data-fc-item-id="{{ item.id }}">+</button>
+                                    <button type="button" class="ukc-qty-btn ukc-qty-plus" aria-label="+" data-ukc-id="increment-item-quantity" data-fc-item-id="{{ item.id }}">+</button>
                                 </div>
                                     {% else %}
                                     <p>{{ config.lang.cart_qty|raw }}: {{ item.quantity }}</p>
@@ -393,7 +393,7 @@
 
                             {% if with_controls and checkout_sub_cancel == false and (item.parent_code == '' or (item.parent_code != '' and item.quantity_min == 0)) %}
                             <div class="ukc-row__remove">
-                                <a class="ukc-remove-btn" href="#" title="{{ config.lang.cart_remove_item }}" data-fc-id="item-remove-link" data-fc-item-id="{{ item.id }}">Entfernen</a>
+                                <a class="ukc-remove-btn" href="#" title="{{ config.lang.cart_remove_item }}" data-ukc-id="item-remove-link" data-fc-item-id="{{ item.id }}">Entfernen</a>
                             </div>
                             {% endif %}
                         </div>
@@ -416,8 +416,8 @@
             </div>
             </div><!-- /.ukc-items -->
           {# Sidecart Footer: Link zum Fullpage-Warenkorb #}
-          {% if attributes['data-fc-sidecart'] is defined %}
-          <div class="ukc-sidecart-footer" style="margin:16px 16px 24px;">
+          {% if attributes['data-fc-sidecart'] is defined or (attribute(_context, 'attributes') is defined and attribute(attributes, 'data-fc-sidecart') is not empty) %}
+          <div class="ukc-sidecart-footer" data-ukc-sidecart-footer style="margin:16px 16px 24px;">
             <a class="ukc-btn" href="https://{{ config.store_domain }}/cart?{{ session_name }}={{ session_id }}" data-ukc-go-fullcart>Zum Warenkorb</a>
           </div>
           {% endif %}
@@ -1661,6 +1661,7 @@
                   showEmptyCartMessage();
                 }
               }, 400);
+              return;
               return;
             }
           }, false);
