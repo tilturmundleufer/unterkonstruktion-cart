@@ -29,17 +29,22 @@
   box-sizing: border-box;
 }
 
-/* Two-column layout: items (left) + summary (right) */
-.ukc-cart__grid {
+/* Two-column layout: items (left) + summary (right) - NUR für Cart */
+.ukc-cart:not(.ukc-checkout) .ukc-cart__grid {
   display: flex;
   gap: 32px;
   align-items: start;
 }
 @media (max-width: 960px){
-  .ukc-cart__grid { 
+  .ukc-cart:not(.ukc-checkout) .ukc-cart__grid { 
     flex-direction: column; 
     gap: 24px;
   }
+}
+
+/* Checkout: ukc-cart__grid nicht als Grid verwenden */
+.ukc-checkout .ukc-cart__grid {
+  display: block !important;
 }
 
 /* Example row hooks: attach to existing Foxy nodes by adding class names in future customizations if needed */
