@@ -2469,5 +2469,5 @@ input[data-fc-name="billing_company"],
 }
 
 /* Sidecart: Footer-Button gelb und 95% Breite */
-[data-fc-sidecart] .ukc-sidecart-footer .ukc-btn{ width:95% !important; }
+[data-fc-sidecart] .ukc-sidecart-footer .ukc-btn{ width:100% !important; }
 [data-fc-sidecart] .ukc-sidecart-footer .ukc-btn.ukc-btn--alt{ background:#ffbf00 !important; color:#0b1220 !important; }
