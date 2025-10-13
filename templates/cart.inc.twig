@@ -355,14 +355,12 @@
                             </div>
 
                             <div class="fc-cart__item__price ukc-row__price">
-                                {# Stückpreis aus code-Feld nach '-' extrahieren - wie im Total-Bereich #}
+                                {# Stückpreis aus code-Feld nach '-' extrahieren - mit €-Symbol #}
                                 {% set piece_price = null %}
                                 {% if item.code is defined and item.code and '-' in item.code %}
                                     {% set code_parts = item.code|split('-') %}
                                     {% if code_parts|length > 1 %}
-                                        {% set piece_price_raw = code_parts[1:]|join('-') %}
-                                        {# Euro-Symbol entfernen #}
-                                        {% set piece_price = piece_price_raw|replace({'€': ''})|trim %}
+                                        {% set piece_price = code_parts[1:]|join('-')|trim %}
                                     {% endif %}
                                 {% endif %}
                                 
