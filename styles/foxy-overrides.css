@@ -691,15 +691,30 @@ button[type=submit] {
   object-fit: cover;
 }
 
-/* Menge Input Styling */
+/* Menge Input Styling - wie Fullpage Cart aber schmaler */
 [data-fc-sidecart] .fc-cart__item__quantity__input {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px 12px;
   text-align: center;
-  width: 100%;
-  max-width: 120px;
+  width: 80px !important; /* Schmaler als Fullpage Cart */
+  max-width: 80px !important;
   font-weight: 600;
+  font-size: 14px;
+  background: white;
+  color: var(--text);
+  box-shadow: none;
+  transition: all 0.2s ease;
+}
+
+[data-fc-sidecart] .fc-cart__item__quantity__input:focus {
+  border-color: var(--brand-blue);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  outline: none;
+}
+
+[data-fc-sidecart] .fc-cart__item__quantity__input:hover {
+  border-color: var(--brand-blue);
 }
 
 /* Preis Styling */
