@@ -366,21 +366,14 @@
                                     {% endif %}
                                 {% endif %}
                                 
-                                {# Erweiterte Debug-Ausgabe #}
+                                {% if piece_price %}
                                 <p class="fc-cart__item__price__each">
-                                    {% if piece_price %}
-                                        {{ piece_price }}
-                                    {% else %}
-                                        {# Zeige alle Debug-Informationen #}
-                                        DEBUG: Code={{ item.code|default('NO_CODE') }} | 
-                                        Parts={{ code_parts|default('NO_PARTS')|join(',') }} | 
-                                        Raw={{ piece_price_raw|default('NO_RAW') }} | 
-                                        Final={{ piece_price|default('NO_FINAL') }}
-                                    {% endif %}
+                                    {{ piece_price }}
                                     <small>
                                         / Stück
                                     </small>
                                 </p>
+                                {% endif %}
                             </div>
 
                             <div class="fc-cart__item__quantity ukc-row__qty">
