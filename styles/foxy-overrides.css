@@ -695,21 +695,21 @@ button[type=submit] {
 [data-fc-sidecart] .ukc-qty-control {
   display: flex !important;
   align-items: center !important;
-  border: 1px solid var(--border);
+  border: 1px solid #000000 !important; /* Schwarze Border */
   border-radius: 8px;
   overflow: hidden;
-  width: fit-content;
-  background: white;
+  width: 40px !important; /* Feste Breite 40px */
+  background: white !important; /* Weißer Hintergrund */
 }
 
-/* Quantity Buttons - wie Fullpage Cart */
+/* Quantity Buttons - kompakt für 40px Container */
 [data-fc-sidecart] .ukc-qty-btn {
-  width: 32px !important;
+  width: 12px !important; /* Kleinere Buttons für 40px Container */
   height: 32px !important;
   border: none !important;
   background: white !important;
   color: var(--text) !important;
-  font-size: 16px !important;
+  font-size: 14px !important;
   font-weight: 600 !important;
   cursor: pointer !important;
   display: flex !important;
@@ -732,18 +732,18 @@ button[type=submit] {
   background: var(--border) !important;
 }
 
-/* Menge Input Styling - wie Fullpage Cart aber schmaler */
+/* Menge Input Styling - kompakt für 40px Container */
 [data-fc-sidecart] .fc-cart__item__quantity__input {
   border: none !important;
-  border-left: 1px solid var(--border) !important;
-  border-right: 1px solid var(--border) !important;
+  border-left: 1px solid #000000 !important; /* Schwarze Border */
+  border-right: 1px solid #000000 !important; /* Schwarze Border */
   border-radius: 0 !important;
-  padding: 8px 12px;
+  padding: 8px 4px; /* Weniger Padding für kompakten Container */
   text-align: center;
-  width: 60px !important; /* Schmaler als Fullpage Cart */
-  max-width: 60px !important;
+  width: 16px !important; /* Sehr schmal für 40px Container */
+  max-width: 16px !important;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 12px; /* Kleinere Schrift */
   background: white;
   color: var(--text);
   box-shadow: none;
