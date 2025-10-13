@@ -610,6 +610,7 @@ button[type=submit] {
   width: 90% !important;
   box-sizing: border-box;
   padding: 5px !important; /* Maximal 5px Padding an allen Seiten */
+  border: 2px solid var(--border) !important; /* 2px Border für alle Cart-Items */
 }
 
 /* Letztes Cart-Item mit subtiler grauer Border */
