@@ -608,7 +608,7 @@ button[type=submit] {
   margin-left: auto !important;
   margin-right: auto !important;
   margin-bottom: 20px !important; /* 20px Abstand nach unten */
-  width: 90% !important;
+  width: 95% !important; /* Alle Cart-Items auf 95% Breite */
   box-sizing: border-box;
   padding: 5px !important; /* Maximal 5px Padding an allen Seiten */
   border: 2px solid var(--border) !important; /* 2px Border für alle Cart-Items */
@@ -618,7 +618,7 @@ button[type=submit] {
 [data-fc-sidecart] .fc-container__row.fc-cart__item.ukc-row.fc-cart__item--last {
   border-bottom: 1px solid #e5e7eb !important; /* Subtile graue Border */
   padding-bottom: 15px !important; /* Etwas mehr Padding für die Border */
-  width: 95% !important; /* 95% Breite für das letzte Item */
+  /* width: 95% ist bereits durch die allgemeine Regel gesetzt */
 }
 
 /* Verstecke nur die ursprünglichen Layout-Elemente, die wir ersetzen wollen */
