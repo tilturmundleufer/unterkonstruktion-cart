@@ -233,6 +233,11 @@ button[type=submit] {
   background: white !important; /* Weißer Hintergrund für Sidecart */
 }
 
+/* Sidecart Shell Hintergrund */
+[data-fc-sidecart] .fc-container.ukc-shell {
+  background-color: white !important;
+}
+
 [data-fc-sidecart] .ukc-cart .ukc-cart__container {
   max-width: 100%;
   margin: 0 auto;
@@ -607,6 +612,12 @@ button[type=submit] {
   padding: 5px !important; /* Maximal 5px Padding an allen Seiten */
 }
 
+/* Letztes Cart-Item mit subtiler grauer Border */
+[data-fc-sidecart] .fc-container__row.fc-cart__item.ukc-row.fc-cart__item--last {
+  border-bottom: 1px solid #e5e7eb !important; /* Subtile graue Border */
+  padding-bottom: 15px !important; /* Etwas mehr Padding für die Border */
+}
+
 /* Verstecke nur die ursprünglichen Layout-Elemente, die wir ersetzen wollen */
 [data-fc-sidecart] .fc-cart__item__price:not(.ukc-row__price) {
   display: none !important;
@@ -796,13 +807,13 @@ button[type=submit] {
   margin-top: 20px;
 }
 
-/* 5px Abstand zwischen Table-Rows in ukc-summary-table */
-.ukc-summary-table tbody tr {
-  margin-bottom: 5px !important;
+/* 5px Abstand zwischen Table-Rows in ukc-summary-table - korrigierte Methode */
+.ukc-summary-table tbody tr td {
+  padding-bottom: 8px !important;
 }
 
-.ukc-summary-table tbody tr:not(:last-child) {
-  margin-bottom: 5px !important;
+.ukc-summary-table tbody tr:last-child td {
+  padding-bottom: 0 !important;
 }
 
 [data-fc-sidecart] .fc-transaction__header {
