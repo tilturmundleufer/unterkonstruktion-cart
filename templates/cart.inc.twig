@@ -415,6 +415,12 @@
             {% endblock cart_items_divs %}
             </div>
             </div><!-- /.ukc-items -->
+          {# Sidecart Footer: Link zum Fullpage-Warenkorb #}
+          {% if attributes['data-fc-sidecart'] is defined %}
+          <div class="ukc-sidecart-footer" style="margin:16px 16px 24px;">
+            <a class="ukc-btn" href="https://{{ config.store_domain }}/cart?{{ session_name }}={{ session_id }}" data-ukc-go-fullcart>Zum Warenkorb</a>
+          </div>
+          {% endif %}
         </div>
 
 
@@ -1608,7 +1614,7 @@
           document.addEventListener('click', function(ev){
             var btn = ev.target.closest('.ukc-qty-btn');
             if(btn){
-              ev.preventDefault();
+              ev.preventDefault(); ev.stopPropagation();
               var id = btn.getAttribute('data-fc-item-id');
               var input = findQtyInput(id);
               if(!input) return;
@@ -1621,10 +1627,11 @@
               input.value = current;
               recalcSummary();
               ajaxUpdate();
+              return;
             }
             var rm = ev.target.closest('.ukc-remove-btn');
             if(rm){
-              ev.preventDefault();
+              ev.preventDefault(); ev.stopPropagation();
               var idr = rm.getAttribute('data-fc-item-id');
               var row = document.querySelector('[data-fc-item-id="' + idr + '"]');
               
@@ -1654,6 +1661,7 @@
                   showEmptyCartMessage();
                 }
               }, 400);
+              return;
             }
           }, false);
 
