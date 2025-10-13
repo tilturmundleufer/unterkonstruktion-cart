@@ -517,9 +517,10 @@ button[type=submit] {
 /* Grid-Layout für fc-container__row ukc-row__actions - optimiert */
 [data-fc-sidecart] .fc-cart__item__totals .fc-container__row.ukc-row__actions {
   display: grid !important;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr; /* Gleich breite Columns */
   grid-template-rows: auto; /* Nur 1 Row */
   gap: 6px; /* Kleinere Gaps */
+  align-items: center; /* Vertikal zentrieren */
 }
 
 /* Row 1, Column 1: Total (oben) - um 5px nach unten für Zentrierung */
@@ -548,23 +549,33 @@ button[type=submit] {
   order: 2; /* Stückpreis danach */
 }
 
-/* Quantity rechts, oben */
+/* Quantity rechts, zentriert */
 [data-fc-sidecart] .fc-cart__item__quantity.ukc-row__qty {
   grid-row: 1;
   grid-column: 2;
   display: flex !important;
-  align-items: flex-start;
-  justify-content: flex-end;
+  align-items: center; /* Vertikal zentrieren */
+  justify-content: center; /* Horizontal zentrieren */
 }
 
-/* Remove-Button rechts, unten - zentriert */
+/* Remove-Button rechts, unten - Text zentriert */
 [data-fc-sidecart] .fc-cart__item__totals .fc-container__row.ukc-row__actions .ukc-row__remove {
   grid-row: 1;
   grid-column: 2;
   display: flex !important;
-  justify-content: center; /* Zentriert statt rechtsbündig */
-  align-items: flex-end;
+  justify-content: center; /* Horizontal zentrieren */
+  align-items: center; /* Vertikal zentrieren */
   margin-top: 4px; /* Kleiner Abstand zwischen Qty und Remove */
+}
+
+/* Remove-Button Text zentrieren */
+[data-fc-sidecart] .fc-cart__item__totals .fc-container__row.ukc-row__actions .ukc-row__remove a {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 /* Wrapper-Breiten und Zentrierung im Sidecart */
