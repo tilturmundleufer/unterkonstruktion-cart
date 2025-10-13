@@ -1607,10 +1607,15 @@
             }
           });
           
+          // Hilfsfunktion: liegt das Ziel im Sidecart?
+          function isInSidecart(node){
+            return !!(node && node.closest && node.closest('[data-fc-sidecart]'));
+          }
+
           document.addEventListener('click', function(ev){
             var btn = ev.target.closest('.ukc-qty-btn');
-            if(btn){
-              ev.preventDefault(); ev.stopPropagation();
+            if(btn && isInSidecart(btn)){
+              ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
               var id = btn.getAttribute('data-fc-item-id');
               var input = findQtyInput(id);
               if(!input) return;
@@ -1626,8 +1631,8 @@
               return;
             }
             var rm = ev.target.closest('.ukc-remove-btn');
-            if(rm){
-              ev.preventDefault(); ev.stopPropagation();
+            if(rm && isInSidecart(rm)){
+              ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
               var idr = rm.getAttribute('data-fc-item-id');
               var row = document.querySelector('[data-fc-item-id="' + idr + '"]');
               
@@ -1658,9 +1663,34 @@
                 }
               }, 400);
               return;
-              return;
             }
           }, false);
+
+          // Sidecart-Only: Footer-Button per JS sanft hinzufügen (nicht in Vorlage injizieren)
+          (function(){
+            var added = false;
+            function addFooter(){
+              if(added) return;
+              var root = document.querySelector('[data-fc-sidecart]');
+              if(!root) return;
+              var main = root.querySelector('.fc-cart__main__content.fc-container__grid');
+              if(!main) return;
+              if(main.querySelector('[data-ukc-go-fullcart]')){ added = true; return; }
+              var a = document.createElement('a');
+              a.className = 'ukc-btn';
+              a.setAttribute('data-ukc-go-fullcart','');
+              a.href = 'https://' + (window.ukcStoreDomain || '{{ config.store_domain }}') + '/cart?{{ session_name }}={{ session_id }}';
+              a.textContent = 'Zum Warenkorb';
+              var wrap = document.createElement('div');
+              wrap.className = 'ukc-sidecart-footer';
+              wrap.style.margin = '16px 16px 24px';
+              wrap.appendChild(a);
+              main.appendChild(wrap);
+              added = true;
+            }
+            setTimeout(addFooter, 400);
+            document.addEventListener('fc-render-complete', addFooter);
+          })();
 
           // Event-Listener für "Alle entfernen" Button
           document.addEventListener('click', function(ev) {
