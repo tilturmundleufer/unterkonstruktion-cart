@@ -355,16 +355,19 @@
                             </div>
 
                             <div class="fc-cart__item__price ukc-row__price" data-raw-code="{{ item.code|default('') }}">
-                                {# Sidecart: sichere Ermittlung des Stückpreises aus item.code (Fallback auf vorhandenen Wert) #}
+                                {# Sidecart: extrahiere stets den Teil NACH dem ersten '-' aus item.code #}
                                 {% set _code = item.code|default('') %}
                                 {% set ukc_piece_price_local = ukc_piece_price|default('') %}
-                                {% if not ukc_piece_price_local and _code and '-' in _code %}
-                                    {% set ukc_piece_price_local = _code|split('-')[1:]|join('-')|trim %}
+                                {% if not ukc_piece_price_local and _code %}
+                                    {% set _parts = _code|split('-') %}
+                                    {% if _parts|length > 1 %}
+                                        {% set ukc_piece_price_local = _parts|slice(1)|join('-')|trim %}
+                                    {% endif %}
                                 {% endif %}
                                 {% if ukc_piece_price_local %}
                                 <p class="ukc-piece-price">({{ ukc_piece_price_local }} / Stück)</p>
-                                    {% else %}
-                                <p class="ukc-piece-price">({{ _code }} / Stück)</p>
+                                {% else %}
+                                <p class="ukc-piece-price">(TEST / Stück)</p>
                                 {% endif %}
                             </div>
 
