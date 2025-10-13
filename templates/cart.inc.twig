@@ -310,63 +310,54 @@
                         </div>
                     </div>
 
+                    {# Einheitlichen Stückpreis einmal berechnen und in beiden Bereichen nutzen #}
+                    {% set ukc_piece_price = null %}
+                    {% if item.code is defined and item.code %}
+                        {% if '-' in item.code %}
+                            {% set code_parts = item.code|split('-') %}
+                            {% if code_parts|length > 1 %}
+                                {% set ukc_piece_price = code_parts[1:]|join('-')|trim %}
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                    {% if not ukc_piece_price and item.custom_fields is defined %}
+                        {% if item.custom_fields.piece_price is defined %}
+                            {% set cf = item.custom_fields.piece_price %}
+                            {% set ukc_piece_price = cf.value|default(cf)|trim %}
+                        {% elseif item.custom_fields.stuckpreis is defined %}
+                            {% set cf = item.custom_fields.stuckpreis %}
+                            {% set ukc_piece_price = cf.value|default(cf)|trim %}
+                        {% endif %}
+                    {% endif %}
+
                     <div class="fc-cart__item__totals">
                         <div class="fc-container__row ukc-row__actions">
                             <div class="fc-cart__item__total ukc-row__total">
                                 {% if has_inclusive_taxes %}
                                     {% if item.parent_code == '' or (item.parent_code != '' and item.price_with_tax > 0) %}
-                                    {# Stückpreis aus code-Feld nach '-' extrahieren #}
-                                    {% set piece_price = null %}
-                                    {% if item.code is defined and item.code and '-' in item.code %}
-                                        {% set code_parts = item.code|split('-') %}
-                                        {% if code_parts|length > 1 %}
-                                            {% set piece_price_raw = code_parts[1:]|join('-') %}
-                                            {# Euro-Symbol entfernen #}
-                                            {% set piece_price = piece_price_raw|replace({'€': ''})|trim %}
-                                        {% endif %}
-                                    {% endif %}
                                     <p>
                                         {{ item.price_with_tax|money_format }}
                                     </p>
-                                    {% if piece_price %}
-                                    <p class="ukc-piece-price">({{ piece_price }} / Stück)</p>
+                                    {% if ukc_piece_price %}
+                                    <p class="ukc-piece-price">({{ ukc_piece_price }} / Stück)</p>
                                     {% endif %}
                                     {% endif %}
                                 {% else %}
                                     {% if item.parent_code == '' or (item.parent_code != '' and item.price > 0) %}
-                                    {# Stückpreis aus code-Feld nach '-' extrahieren #}
-                                    {% set piece_price = null %}
-                                    {% if item.code is defined and item.code and '-' in item.code %}
-                                        {% set code_parts = item.code|split('-') %}
-                                        {% if code_parts|length > 1 %}
-                                            {% set piece_price_raw = code_parts[1:]|join('-') %}
-                                            {# Euro-Symbol entfernen #}
-                                            {% set piece_price = piece_price_raw|replace({'€': ''})|trim %}
-                                        {% endif %}
-                                    {% endif %}
                                     <p>
                                         {{ item.price|money_format }}
                                     </p>
-                                    {% if piece_price %}
-                                    <p class="ukc-piece-price">({{ piece_price }} / Stück)</p>
+                                    {% if ukc_piece_price %}
+                                    <p class="ukc-piece-price">({{ ukc_piece_price }} / Stück)</p>
                                     {% endif %}
                                     {% endif %}
                                 {% endif %}
                             </div>
 
                             <div class="fc-cart__item__price ukc-row__price">
-                                {# Stückpreis aus code-Feld nach '-' extrahieren - mit €-Symbol #}
-                                {% set piece_price = null %}
-                                {% if item.code is defined and item.code and '-' in item.code %}
-                                    {% set code_parts = item.code|split('-') %}
-                                    {% if code_parts|length > 1 %}
-                                        {% set piece_price = code_parts[1:]|join('-')|trim %}
-                                    {% endif %}
-                                {% endif %}
-                                
-                                {% if piece_price %}
+                                {% if ukc_piece_price %}
                                 <p class="fc-cart__item__price__each">
-                                    {{ piece_price }}
+                                    {{ ukc_piece_price }}
                                     <small>
                                         / Stück
                                     </small>
