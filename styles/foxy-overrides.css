@@ -284,17 +284,17 @@ button[type=submit] {
 /* Sidecart Breite erhöhen - Override der Foxy-Standard-Werte */
 [data-fc-with-sidecart="reveal"].cart-visible [data-fc-store-page],
 [data-fc-with-sidecart="reveal"].cart-visible [data-fc-ui-block] {
-  transform: translate3d(-500px, 0, 0) !important;
-  -webkit-transform: translate3d(-500px, 0, 0) !important;
-  -moz-transform: translate3d(-500px, 0, 0) !important;
-  -ms-transform: translate3d(-500px, 0, 0) !important;
-  -o-transform: translate3d(-500px, 0, 0) !important;
+  transform: translate3d(-600px, 0, 0) !important;
+  -webkit-transform: translate3d(-600px, 0, 0) !important;
+  -moz-transform: translate3d(-600px, 0, 0) !important;
+  -ms-transform: translate3d(-600px, 0, 0) !important;
+  -o-transform: translate3d(-600px, 0, 0) !important;
 }
 
 /* Sidecart Container Breite anpassen */
 [data-fc-sidecart] {
-  width: 500px !important;
-  max-width: 500px !important;
+  width: 600px !important;
+  max-width: 600px !important;
 }
 
 .ukc-cart .fc-sidecart-button {
@@ -338,7 +338,7 @@ button[type=submit] {
   margin: 20px;
   box-shadow: 0 4px 12px rgba(0,0,0,.1);
   width: calc(100% - 40px);
-  max-width: 460px;
+  max-width: 560px;
 }
 
 /* Sidecart Bestellübersicht Hintergrund - alle grauen Bereiche weiß machen */
@@ -398,7 +398,7 @@ button[type=submit] {
 /* Sidecart Container anpassen */
 [data-fc-sidecart] .fc-sidebar--cart {
   width: 100%;
-  max-width: 500px;
+  max-width: 600px;
   padding: 0 20px;
 }
 
@@ -518,7 +518,7 @@ button[type=submit] {
 [data-fc-sidecart] .fc-cart__item__totals .fc-container__row.ukc-row__actions {
   display: grid !important;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto; /* Nur 2 Rows: Total/Price, Qty/Remove */
+  grid-template-rows: auto auto auto; /* 3 Rows: Total, Price, Qty/Remove */
   gap: 6px; /* Kleinere Gaps */
 }
 
@@ -533,15 +533,15 @@ button[type=submit] {
   order: 1; /* Gesamtpreis zuerst */
 }
 
-/* Row 1, Column 1: Price (unten) */
+/* Row 2, Column 1: Price (unten) */
 [data-fc-sidecart] .fc-cart__item__price.ukc-row__price {
-  grid-row: 1;
+  grid-row: 2;
   grid-column: 1;
   display: flex !important;
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
-  margin-top: 2px; /* Minimaler Abstand zwischen Total und Price */
+  margin-top: 8px; /* Mehr Abstand zwischen Total und Price */
   order: 2; /* Stückpreis danach */
 }
 
@@ -556,7 +556,7 @@ button[type=submit] {
 
 /* Remove-Button rechts, unten - zentriert */
 [data-fc-sidecart] .fc-cart__item__totals .fc-container__row.ukc-row__actions .ukc-row__remove {
-  grid-row: 1;
+  grid-row: 3;
   grid-column: 2;
   display: flex !important;
   justify-content: center; /* Zentriert statt rechtsbündig */
@@ -689,6 +689,11 @@ button[type=submit] {
 [data-fc-sidecart] .fc-cart__item__price__each::after {
   content: " / Stück)" !important;
   margin-left: 2px;
+}
+
+/* Span mit title-Attribut im Sidecart ausblenden */
+[data-fc-sidecart] .fc-cart__item__price__each span[title] {
+  display: none !important;
 }
 
 /* Entfernen Button Styling */
@@ -1407,28 +1412,28 @@ button[type=submit] {
     padding-top: 50px; /* Weniger Padding auf mobilen Geräten */
   }
   
-  /* Sidecart Breite auf mobilen Geräten anpassen */
-  [data-fc-with-sidecart="reveal"].cart-visible [data-fc-store-page],
-  [data-fc-with-sidecart="reveal"].cart-visible [data-fc-ui-block] {
-    transform: translate3d(-350px, 0, 0) !important;
-  }
-  
-  [data-fc-sidecart] {
-    width: 350px !important;
-    max-width: 350px !important;
-  }
-  
-  [data-fc-sidecart] .ukc-summary {
-    margin: 10px;
-    padding: 15px;
-    width: calc(100% - 20px);
-    max-width: 330px;
-  }
-  
-  [data-fc-sidecart] .fc-sidebar--cart {
-    padding: 0 10px;
-    max-width: 350px;
-  }
+   /* Sidecart Breite auf mobilen Geräten anpassen */
+   [data-fc-with-sidecart="reveal"].cart-visible [data-fc-store-page],
+   [data-fc-with-sidecart="reveal"].cart-visible [data-fc-ui-block] {
+     transform: translate3d(-400px, 0, 0) !important;
+   }
+   
+   [data-fc-sidecart] {
+     width: 400px !important;
+     max-width: 400px !important;
+   }
+   
+   [data-fc-sidecart] .ukc-summary {
+     margin: 10px;
+     padding: 15px;
+     width: calc(100% - 20px);
+     max-width: 380px;
+   }
+   
+   [data-fc-sidecart] .fc-sidebar--cart {
+     padding: 0 10px;
+     max-width: 400px;
+   }
 }
 
 /* Sidecart Animationen */
