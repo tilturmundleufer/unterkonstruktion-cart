@@ -1495,7 +1495,7 @@ body.ukc-cart-page{
 /* Checkout — Layout     */
 /* ===================== */
 /* Sidebar rechts neben Formular, sticky */
-#fc-checkout-container.fc-checkout__main.fc-checkout__row{ display:grid; grid-template-columns: minmax(520px,1fr) 400px; gap:32px; align-items:start; }
+#fc-checkout-container.fc-checkout__main.fc-checkout__row{ display:grid; grid-template-columns: minmax(520px,1fr) 500px; gap:32px; align-items:start; }
 #fc-checkout-container.fc-checkout__main.fc-checkout__row > .fc-checkout__main__contents{ grid-column:1; grid-row:1; }
 #fc-checkout-container.fc-checkout__main.fc-checkout__row > .fc-sidebar--checkout{ grid-column:2; grid-row:1; position:sticky; top:24px }
 #fc-main{ grid-column:1; grid-row:1 }
