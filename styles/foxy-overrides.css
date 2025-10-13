@@ -691,14 +691,57 @@ button[type=submit] {
   object-fit: cover;
 }
 
-/* Menge Input Styling - wie Fullpage Cart aber schmaler */
-[data-fc-sidecart] .fc-cart__item__quantity__input {
+/* Quantity Control Container - wie Fullpage Cart */
+[data-fc-sidecart] .ukc-qty-control {
+  display: flex !important;
+  align-items: center !important;
   border: 1px solid var(--border);
   border-radius: 8px;
+  overflow: hidden;
+  width: fit-content;
+  background: white;
+}
+
+/* Quantity Buttons - wie Fullpage Cart */
+[data-fc-sidecart] .ukc-qty-btn {
+  width: 32px !important;
+  height: 32px !important;
+  border: none !important;
+  background: white !important;
+  color: var(--text) !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+  border-radius: 0 !important;
+  /* Verhindere Submit-Verhalten */
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+}
+
+[data-fc-sidecart] .ukc-qty-btn:hover {
+  background: var(--bg-hover) !important;
+  color: var(--brand-blue) !important;
+}
+
+[data-fc-sidecart] .ukc-qty-btn:active {
+  background: var(--border) !important;
+}
+
+/* Menge Input Styling - wie Fullpage Cart aber schmaler */
+[data-fc-sidecart] .fc-cart__item__quantity__input {
+  border: none !important;
+  border-left: 1px solid var(--border) !important;
+  border-right: 1px solid var(--border) !important;
+  border-radius: 0 !important;
   padding: 8px 12px;
   text-align: center;
-  width: 80px !important; /* Schmaler als Fullpage Cart */
-  max-width: 80px !important;
+  width: 60px !important; /* Schmaler als Fullpage Cart */
+  max-width: 60px !important;
   font-weight: 600;
   font-size: 14px;
   background: white;
@@ -708,13 +751,15 @@ button[type=submit] {
 }
 
 [data-fc-sidecart] .fc-cart__item__quantity__input:focus {
-  border-color: var(--brand-blue);
+  border-left-color: var(--brand-blue) !important;
+  border-right-color: var(--brand-blue) !important;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
   outline: none;
 }
 
 [data-fc-sidecart] .fc-cart__item__quantity__input:hover {
-  border-color: var(--brand-blue);
+  border-left-color: var(--brand-blue) !important;
+  border-right-color: var(--brand-blue) !important;
 }
 
 /* Preis Styling */
