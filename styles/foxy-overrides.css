@@ -601,6 +601,7 @@ button[type=submit] {
 [data-fc-sidecart] .fc-container__row.fc-cart__item.ukc-row {
   margin-left: auto !important;
   margin-right: auto !important;
+  margin-bottom: 20px !important; /* 20px Abstand nach unten */
   width: 90% !important;
   box-sizing: border-box;
   padding: 5px !important; /* Maximal 5px Padding an allen Seiten */
@@ -795,6 +796,15 @@ button[type=submit] {
   margin-top: 20px;
 }
 
+/* 5px Abstand zwischen Table-Rows in ukc-summary-table */
+.ukc-summary-table tbody tr {
+  margin-bottom: 5px !important;
+}
+
+.ukc-summary-table tbody tr:not(:last-child) {
+  margin-bottom: 5px !important;
+}
+
 [data-fc-sidecart] .fc-transaction__header {
   color: var(--brand-blue);
   font-weight: 700;
@@ -867,6 +877,15 @@ button[type=submit] {
   transition: all 0.2s ease;
   margin-top: 10px; /* 10px Abstand zum Checkout-Button */
   border: none;
+}
+
+/* 10px Abstand zwischen Buttons in fc-actions--payment */
+.fc-actions--payment .ukc-checkout-section {
+  margin-bottom: 10px !important;
+}
+
+.fc-actions--payment .ukc-remove-all {
+  margin-top: 10px !important;
 }
 
 [data-fc-sidecart] .fc-action--remove-all--button:hover {
