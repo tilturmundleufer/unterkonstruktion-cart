@@ -1428,94 +1428,25 @@ button[type=submit] {
 /* Hide the sidecart fixed nav on the full cart page */
 .ukc-cart-page nav.fc-sidecart-only-fixed{ display:none !important; }
 
-/* Sidecart Navigation für Cart-Context */
+/* Hide the sidecart fixed nav everywhere - both sidecart and fullcart */
+nav.fc-sidecart-only-fixed {
+  display: none !important;
+}
+
+/* Sidecart Navigation für Cart-Context - AUSGEBLENDET */
 .ukc-cart nav.fc-sidecart-only-fixed {
-  display: flex !important;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-  padding: 12px 16px;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+  display: none !important;
 }
 
-.ukc-cart nav.fc-sidecart-only-fixed .fc-sidecart-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: var(--brand-blue);
-  color: white;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  font-size: 14px;
-}
-
-.ukc-cart nav.fc-sidecart-only-fixed .fc-sidecart-button:hover {
-  background: var(--brand-blue-dark);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,.15);
-}
-
-.ukc-cart nav.fc-sidecart-only-fixed .fc-fixed-button-left .fc-sidecart-button {
-  background: var(--bg-secondary);
-  color: var(--text);
-  border: 1px solid var(--border);
-}
-
-.ukc-cart nav.fc-sidecart-only-fixed .fc-fixed-button-left .fc-sidecart-button:hover {
-  background: var(--bg-hover);
-  transform: translateY(-1px);
-}
-
-.ukc-cart nav.fc-sidecart-only-fixed .fc-fixed-button-left--text {
-  margin-left: 4px;
-}
-
-/* Sidecart Content Padding */
+/* Sidecart Content Padding - Navigation ist ausgeblendet */
 .ukc-cart #fc-cart {
-  padding-top: 60px; /* Platz für Fixed Navigation */
-}
-
-/* Sidecart spezifische Anpassungen für bessere UX */
-.ukc-cart .fc-sidecart-only-fixed .fc-svg-icon {
-  width: 16px;
-  height: 16px;
-  fill: currentColor;
-}
-
-.ukc-cart .fc-sidecart-only-fixed .fc-fixed-button-left .fc-svg-icon {
-  fill: var(--text);
-}
-
-.ukc-cart .fc-sidecart-only-fixed .fc-fixed-button-right .fc-svg-icon {
-  fill: white;
+  padding-top: 0; /* Kein Padding mehr nötig */
 }
 
 /* Responsive Anpassungen für Sidecart */
 @media (max-width: 768px) {
-  [data-fc-sidecart] nav.fc-sidecart-only-fixed {
-    padding: 8px 12px;
-  }
-  
-  [data-fc-sidecart] nav.fc-sidecart-only-fixed .fc-sidecart-button {
-    padding: 6px 12px;
-    font-size: 13px;
-  }
-  
-  [data-fc-sidecart] nav.fc-sidecart-only-fixed .fc-fixed-button-left--text {
-    display: none; /* Text auf mobilen Geräten ausblenden */
-  }
-  
   [data-fc-sidecart] #fc-cart {
-    padding-top: 50px; /* Weniger Padding auf mobilen Geräten */
+    padding-top: 0; /* Kein Padding mehr nötig */
   }
   
    /* Sidecart Breite auf mobilen Geräten anpassen */
@@ -1542,21 +1473,7 @@ button[type=submit] {
    }
 }
 
-/* Sidecart Animationen */
-.ukc-cart nav.fc-sidecart-only-fixed {
-  animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-  from {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
+/* Sidecart Animationen - Navigation ist ausgeblendet */
 
 /* Page background + type rhythm closer to CI */
 body.ukc-cart-page{
