@@ -351,15 +351,20 @@
                             </div>
 
                             <div class="fc-cart__item__price ukc-row__price">
-                                {% if item.quantity != 1 %}
-                                <p class="fc-cart__item__price__each">
-                                    {% if has_inclusive_taxes %}
-                                        {{ item.price_each_with_tax|money_format }}{% if item.price_each_with_tax_is_fractional %}<span title="{{ item.price_each_with_tax }}">…</span>{% endif %}
-                                    {% else %}
-                                        {{ item.price_each|money_format }}{% if item.price_each_is_fractional %}<span title="{{ item.price_each }}">…</span>{% endif %}
+                                {# Stückpreis aus code-Feld nach '-' extrahieren - wie im Total-Bereich #}
+                                {% set piece_price = null %}
+                                {% if item.code is defined and item.code and '-' in item.code %}
+                                    {% set code_parts = item.code|split('-') %}
+                                    {% if code_parts|length > 1 %}
+                                        {% set piece_price = code_parts[1:]|join('-') %}
                                     {% endif %}
+                                {% endif %}
+                                
+                                {% if piece_price %}
+                                <p class="fc-cart__item__price__each">
+                                    {{ piece_price }}
                                     <small>
-                                        {{ config.lang.cart_each|raw }}
+                                        / Stück
                                     </small>
                                 </p>
                                 {% endif %}
