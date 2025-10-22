@@ -39,13 +39,20 @@ function getCompany(payload) {
 
 async function readBody(req) {
   if (req.body && typeof req.body === 'object') {
+    // Store a debug snapshot for logging
+    try {
+      req.__rawBody = JSON.stringify(req.body).slice(0, 4000);
+      req.__contentType = req.headers['content-type'] || '';
+    } catch {}
     return req.body;
   }
   const chunks = [];
   for await (const chunk of req) chunks.push(chunk);
   const raw = Buffer.concat(chunks).toString('utf8');
-  if (!raw) return {};
+  req.__rawBody = raw ? raw.slice(0, 4000) : '';
   const ct = (req.headers['content-type'] || '').toLowerCase();
+  req.__contentType = ct;
+  if (!raw) return {};
   try {
     if (ct.includes('application/json')) return JSON.parse(raw);
     if (ct.includes('application/x-www-form-urlencoded')) {
@@ -57,6 +64,41 @@ async function readBody(req) {
   }
   try { return JSON.parse(raw); } catch {}
   return {};
+}
+
+function mask(value) {
+  if (value == null) return value;
+  const s = String(value);
+  if (!s) return s;
+  // Mask emails
+  if (s.includes('@')) return s.replace(/(^.).*(@.*$)/, '$1***$2');
+  // Mask long strings
+  if (s.length > 24) return s.slice(0, 12) + '…' + s.slice(-4);
+  return s;
+}
+
+function pick(obj, keys) {
+  const out = {};
+  for (const k of keys) {
+    if (Object.prototype.hasOwnProperty.call(obj, k)) out[k] = mask(obj[k]);
+  }
+  return out;
+}
+
+function summarizePayload(payload) {
+  try {
+    const primary = pick(payload, [
+      'shipping_country','billing_country','customer_shipping_country','customer_country',
+      'customer_company','shipping_company','billing_company',
+      'customer_email','shipping_email','billing_email',
+      'shipping_postal_code','billing_postal_code','shipping_city','billing_city',
+      'locale_code','currency_code','language'
+    ]);
+    const keys = Object.keys(payload || {});
+    return { keys, primary };
+  } catch (e) {
+    return { err: String(e) };
+  }
 }
 
 // --- Handler ---------------------------------------------------------------
@@ -80,6 +122,18 @@ module.exports = async (req, res) => {
 
     const country = String(countryRaw || '').toUpperCase();
     const hasCompany = Boolean(String(companyRaw || '').trim());
+
+    // --- Detailed diagnostic log (sanitized) ---
+    try {
+      const summary = summarizePayload(payload);
+      console.log('foxy-tax:incoming', {
+        method: req.method,
+        ct: req.__contentType || req.headers['content-type'] || '',
+        rawLen: (req.__rawBody || '').length,
+        rawHead: (req.__rawBody || '').slice(0, 200),
+        summary
+      });
+    } catch {}
 
     // Geschäftslogik
     let pct = 0; // Prozentangabe (0 oder 19)
