@@ -12,7 +12,8 @@ function readTotals(payload){
   const items = toNum(payload.total_item_price);
   const shipping = toNum(payload.total_shipping);
   const futureShipping = toNum(payload.total_future_shipping);
-  return { items, shipping: shipping || futureShipping || 0 };
+  const ship = Math.max(Number.isFinite(shipping) ? shipping : 0, Number.isFinite(futureShipping) ? futureShipping : 0);
+  return { items, shipping: ship };
 }
 // Vercel Serverless Function: Custom Tax Endpoint for Foxy
 // Regeln:
