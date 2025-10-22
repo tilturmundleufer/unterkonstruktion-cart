@@ -1,5 +1,3 @@
-
-
 // Vercel Serverless Function: Custom Tax Endpoint for Foxy
 // Regeln (Stand Til 2025-10-22):
 // - Gilt NUR für Versandland = DE (Deutschland)
@@ -13,7 +11,7 @@
  * Hinweis: rate ist in Prozent (19 = 19%).
  */
 
-// Helper: sichere Extraktion möglicher Feldnamen aus dem Foxy-Payload
+// --- Utils -----------------------------------------------------------------
 function getCountry(payload) {
   const candidates = [
     'shipping_country',
@@ -45,7 +43,36 @@ function getCompany(payload) {
   return '';
 }
 
-// Vercel default export (CommonJS)
+async function readBody(req) {
+  // Vercel liefert bei application/json i.d.R. bereits geparst in req.body.
+  // Falls nicht vorhanden, lesen und versuchen zu parsen (JSON oder urlencoded).
+  if (req.body && typeof req.body === 'object' && Object.keys(req.body).length) {
+    return req.body;
+  }
+
+  const chunks = [];
+  for await (const chunk of req) chunks.push(chunk);
+  const raw = Buffer.concat(chunks).toString('utf8');
+  if (!raw) return {};
+
+  const ct = (req.headers['content-type'] || '').toLowerCase();
+  try {
+    if (ct.includes('application/json')) {
+      return JSON.parse(raw);
+    }
+    if (ct.includes('application/x-www-form-urlencoded')) {
+      const qs = require('querystring');
+      return qs.parse(raw);
+    }
+  } catch (e) {
+    console.error('Body parse error:', e, raw.slice(0, 500));
+  }
+  // Fallback: versuchen JSON, sonst leer
+  try { return JSON.parse(raw); } catch {}
+  return {};
+}
+
+// --- Handler ---------------------------------------------------------------
 module.exports = async (req, res) => {
   // CORS/Preflight (optional, hilfreich bei lokalen Tests)
   if (req.method === 'OPTIONS') {
@@ -60,7 +87,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const payload = typeof req.body === 'object' && req.body ? req.body : {};
+    const payload = await readBody(req);
 
     const countryRaw = getCountry(payload);
     const companyRaw = getCompany(payload);
@@ -68,20 +95,17 @@ module.exports = async (req, res) => {
     const country = String(countryRaw || '').toUpperCase();
     const hasCompany = Boolean(String(companyRaw || '').trim());
 
-    // Log nur minimal für Debugging – keine personenbezogenen Daten persistieren!
-    // console.log({ country, hasCompany });
-
-    // Default: außerhalb DE keine Steuer anwenden (0%)
+    // Default: außerhalb DE -> 0% (deine Vorgabe)
     let rate = 19;
-    let name = 'Mehrwertsteuer';
+    let name = 'Steuer 19% (außerhalb DE oder Privatkunde)';
 
     if (country === 'DE') {
       if (hasCompany) {
         rate = 19; // Firmenkunde in DE => 19%
-        name = 'Mehrwertsteuer';
+        name = 'Umsatzsteuer (DE) 19% – Firmenkunde';
       } else {
         rate = 0; // Privatkunde in DE => 0%
-        name = 'Mehrwertsteuer';
+        name = 'Steuer (DE) 0% – Privatkunde';
       }
     }
 
@@ -95,10 +119,16 @@ module.exports = async (req, res) => {
       ],
     };
 
-    res.setHeader('Content-Type', 'application/json');
-    // Optional CORS für Tests
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    // Minimal-Logging zur Diagnose (landet in Vercel Function Logs)
+    console.log('foxy-tax', {
+      country,
+      hasCompany,
+      computedRate: rate,
+      ct: req.headers['content-type'] || ''
+    });
 
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Access-Control-Allow-Origin', '*');
     return res.status(200).json(response);
   } catch (err) {
     console.error('Custom Tax Endpoint error:', err);
