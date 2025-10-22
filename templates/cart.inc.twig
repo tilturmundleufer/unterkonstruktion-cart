@@ -366,8 +366,6 @@
                                 {% endif %}
                                 {% if ukc_piece_price_local %}
                                 <p class="ukc-piece-price">({{ ukc_piece_price_local }} / Stück)</p>
-                                {% else %}
-                                <p class="ukc-piece-price">(TEST / Stück)</p>
                                 {% endif %}
                             </div>
 
@@ -1614,7 +1612,7 @@
           function isInSidecart(node){
             return !!(node && node.closest && node.closest('[data-fc-sidecart]'));
           }
-
+          
           document.addEventListener('click', function(ev){
             var btn = ev.target.closest('.ukc-qty-btn');
             if(btn && isInSidecart(btn)){
