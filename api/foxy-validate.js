@@ -1,3 +1,19 @@
+const { parse: parseUrl } = require('url');
+
+function readQuery(req){
+  try { return parseUrl(req.url, true).query || {}; } catch { return {}; }
+}
+
+function readTotals(payload){
+  const toNum = (v) => {
+    const n = typeof v === 'string' ? parseFloat(v) : (typeof v === 'number' ? v : 0);
+    return Number.isFinite(n) ? n : 0;
+  };
+  const items = toNum(payload.total_item_price);
+  const shipping = toNum(payload.total_shipping);
+  const futureShipping = toNum(payload.total_future_shipping);
+  return { items, shipping: shipping || futureShipping || 0 };
+}
 // Vercel Serverless Function: Custom Tax Endpoint for Foxy
 // Regeln:
 // - Nur Versandland DE relevant
@@ -151,18 +167,32 @@ function summarizePayload(payload) {
 // --- Handler ---------------------------------------------------------------
 module.exports = async (req, res) => {
   try {
-    // Allow POST only (Foxy ruft als Server an; kein JSONP nötig)
+    // CORS / preflight
     if (req.method === 'OPTIONS') {
       res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
       return res.status(200).end();
     }
-    if (req.method !== 'POST') {
-      return res.status(405).json({ error: 'Method Not Allowed. Use POST.' });
-    }
 
-    const payload = await readBody(req);
+    // Read payload from POST body or GET query (JSONP)
+    let payload = {};
+    let isGet = req.method === 'GET';
+    let query = {};
+    if (isGet) {
+      query = readQuery(req);
+      payload = query;
+      // store debug snapshot for logging
+      try {
+        req.__rawBody = JSON.stringify(query).slice(0, 4000);
+        req.__contentType = 'application/x-www-form-urlencoded?via=query';
+      } catch {}
+    } else if (req.method === 'POST') {
+      payload = await readBody(req);
+    } else {
+      // Other verbs not supported
+      return res.status(405).json({ error: 'Method Not Allowed. Use GET or POST.' });
+    }
 
     const countryRaw = getCountry(payload);
     const companyRaw = getCompany(payload);
@@ -170,7 +200,7 @@ module.exports = async (req, res) => {
     const country = String(countryRaw || '').toUpperCase();
     const hasCompany = Boolean(String(companyRaw || '').trim());
 
-    // --- Detailed diagnostic log (sanitized) ---
+    // --- diagnostics (sanitized) ---
     try {
       const summary = summarizePayload(payload);
       console.log('foxy-tax:incoming', {
@@ -180,10 +210,6 @@ module.exports = async (req, res) => {
         rawHead: (req.__rawBody || '').slice(0, 200),
         summary
       });
-    } catch {}
-
-    // Additional peek into _embedded to find company if present
-    try {
       const emb = payload && payload._embedded ? payload._embedded : null;
       const embKeys = emb ? Object.keys(emb) : [];
       const companyCandidates = {
@@ -206,67 +232,61 @@ module.exports = async (req, res) => {
       });
     } catch {}
 
-    // Geschäftslogik
-    let pct = 0; // Prozentangabe (0 oder 19)
+    // Business rules
+    let pct = 0;   // 0% default
     let name = 'Steuer (DE) 0% – Privatkunde';
-
     if (country === 'DE') {
-      if (hasCompany) {
-        pct = 19;
-        name = 'Umsatzsteuer (DE) 19% – Firmenkunde';
-      } else {
-        pct = 0;
-        name = 'Steuer (DE) 0% – Privatkunde';
-      }
+      if (hasCompany) { pct = 19; name = 'Umsatzsteuer (DE) 19% – Firmenkunde'; }
+      else { pct = 0; name = 'Steuer (DE) 0% – Privatkunde'; }
     } else {
-      // Außerhalb DE laut Vorgabe 0%
-      pct = 0;
-      name = 'Steuer 0% (außerhalb DE)';
+      pct = 0; name = 'Steuer 0% (außerhalb DE)';
     }
+    const rate = pct / 100; // decimal
 
-    // Viele Integrationen erwarten Dezimalrate (z.B. 0.19). Wir liefern beides:
-    const fractional = pct / 100; // 0 oder 0.19
+    // Amount calculation (optional, helps some frontends):
+    const { items, shipping } = readTotals(payload);
+    const taxableBase = (country === 'DE') ? (items + shipping) : 0; // apply_to_shipping = true
+    const amount = Number((taxableBase * rate).toFixed(2));
 
     const response = {
-      // Einige Foxy-Installationen mögen zusätzliche Meta-Felder
       ok: true,
-      version: 1,
-      taxes: [
+      details: '',
+      name: 'Variable Steuern',
+      expand_taxes: [
         {
           name,
-          // Provide both integer and fractional forms for maximum compatibility
-          rate: fractional,        // decimal form (0 or 0.19)
-          percentage: pct,         // integer percent (0 or 19)
-          rate_percentage: pct,    // alias used by some integrations
-          rate_decimal: fractional, // alias used by some integrations
-          apply_to_shipping: true,
-          compound: false,
-          destination: 'shipping',
-          type: 'percentage'
+          rate,
+          amount
         }
-      ]
+      ],
+      total_amount: amount,
+      total_rate: rate
     };
 
-    console.log('foxy-tax', {
-      country,
-      hasCompany,
-      percentage: pct,
-      rate: fractional,
-      ct: req.headers['content-type'] || ''
-    });
+    console.log('foxy-tax', { country, hasCompany, pct, rate, taxableBase, amount, ct: req.__contentType || req.headers['content-type'] || '' });
 
-    res.setHeader('Cache-Control', 'no-store');
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    // JSONP support (older Foxy flows)
+    const cb = isGet ? (query.callback || query.jsonp || '') : (payload && (payload.callback || payload.jsonp));
     res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cache-Control', 'no-store');
+    if (cb) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      return res.status(200).send(`${cb}(${JSON.stringify(response)})`);
+    }
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
     return res.status(200).json(response);
   } catch (err) {
     console.error('Custom Tax Endpoint error:', err);
-    // Niemals 500 an Foxy zurückgeben, sondern eine harmlose 0%-Antwort,
-    // damit der Checkout nicht „Tax System Error“ zeigt.
+    // Fail-safe: always return a harmless 0% response (support JSONP as well)
     try {
-      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      const fallback = { ok: false, details: 'fallback', name: 'Steuer (Fallback 0%)', expand_taxes: [{ name: 'Steuer (Fallback 0%)', rate: 0, amount: 0 }], total_amount: 0, total_rate: 0 };
+      const q = readQuery(req);
+      const cb = (q.callback || q.jsonp || '');
       res.setHeader('Access-Control-Allow-Origin', '*');
-      return res.status(200).json({ ok: false, version: 1, taxes: [{ name: 'Steuer (Fallback 0%)', rate: 0, percentage: 0, apply_to_shipping: true }] });
+      res.setHeader('Cache-Control', 'no-store');
+      if (cb) { res.setHeader('Content-Type', 'application/javascript; charset=utf-8'); return res.status(200).send(`${cb}(${JSON.stringify(fallback)})`); }
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      return res.status(200).json(fallback);
     } catch {}
   }
 };
