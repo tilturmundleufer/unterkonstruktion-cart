@@ -278,6 +278,11 @@ button[type=submit] {
   min-height: 100vh;
 }
 
+/* fc-cart Inhalt soll beide Spalten nutzen */
+.ukc-cart:not([data-fc-sidecart] *) .fc-cart {
+  grid-column: 1 / -1;
+}
+
 /* Sidecart spezifische Anpassungen - NUR für Sidecart */
 [data-fc-sidecart] .fc-sidecart-only-fixed {
   position: fixed;
