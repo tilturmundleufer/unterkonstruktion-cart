@@ -19,6 +19,20 @@ function getCountry(payload) {
       return payload[key].trim();
     }
   }
+  // Try _embedded addresses
+  try {
+    const emb = payload && payload._embedded ? payload._embedded : null;
+    if (emb) {
+      const s1 = emb.shipping_address && emb.shipping_address.country;
+      if (typeof s1 === 'string' && s1.trim()) return s1.trim();
+      const s2 = emb['fx:shipping_address'] && emb['fx:shipping_address'].country;
+      if (typeof s2 === 'string' && s2.trim()) return s2.trim();
+      const b1 = emb.billing_address && emb.billing_address.country;
+      if (typeof b1 === 'string' && b1.trim()) return b1.trim();
+      const b2 = emb['fx:billing_address'] && emb['fx:billing_address'].country;
+      if (typeof b2 === 'string' && b2.trim()) return b2.trim();
+    }
+  } catch {}
   return '';
 }
 
@@ -34,6 +48,26 @@ function getCompany(payload) {
       return payload[key].trim();
     }
   }
+  // Deep lookups in _embedded (Foxy often nests objects here)
+  try {
+    const emb = payload && payload._embedded ? payload._embedded : null;
+    if (emb) {
+      // Possible shapes: emb.customer.company, emb['fx:customer'].company
+      const c1 = emb.customer && emb.customer.company;
+      if (typeof c1 === 'string' && c1.trim()) return c1.trim();
+      const c2 = emb['fx:customer'] && emb['fx:customer'].company;
+      if (typeof c2 === 'string' && c2.trim()) return c2.trim();
+      // Shipping/Billing address objects
+      const s1 = emb.shipping_address && emb.shipping_address.company;
+      if (typeof s1 === 'string' && s1.trim()) return s1.trim();
+      const s2 = emb['fx:shipping_address'] && emb['fx:shipping_address'].company;
+      if (typeof s2 === 'string' && s2.trim()) return s2.trim();
+      const b1 = emb.billing_address && emb.billing_address.company;
+      if (typeof b1 === 'string' && b1.trim()) return b1.trim();
+      const b2 = emb['fx:billing_address'] && emb['fx:billing_address'].company;
+      if (typeof b2 === 'string' && b2.trim()) return b2.trim();
+    }
+  } catch {}
   return '';
 }
 
@@ -135,6 +169,21 @@ module.exports = async (req, res) => {
       });
     } catch {}
 
+    // Additional peek into _embedded to find company if present
+    try {
+      const emb = payload && payload._embedded ? payload._embedded : null;
+      const embKeys = emb ? Object.keys(emb) : [];
+      const companyCandidates = {
+        emb_customer_company: emb && emb.customer ? emb.customer.company : undefined,
+        emb_fx_customer_company: emb && emb['fx:customer'] ? emb['fx:customer'].company : undefined,
+        emb_shipping_company: emb && emb.shipping_address ? emb.shipping_address.company : undefined,
+        emb_fx_shipping_company: emb && emb['fx:shipping_address'] ? emb['fx:shipping_address'].company : undefined,
+        emb_billing_company: emb && emb.billing_address ? emb.billing_address.company : undefined,
+        emb_fx_billing_company: emb && emb['fx:billing_address'] ? emb['fx:billing_address'].company : undefined,
+      };
+      console.log('foxy-tax:_embedded-peek', { embKeys, companyCandidates });
+    } catch {}
+
     // Geschäftslogik
     let pct = 0; // Prozentangabe (0 oder 19)
     let name = 'Steuer (DE) 0% – Privatkunde';
@@ -163,9 +212,14 @@ module.exports = async (req, res) => {
       taxes: [
         {
           name,
-          rate: fractional, // Dezimal (0.19)
-          percentage: pct,  // Hinweis (19)
+          // Provide both integer and fractional forms for maximum compatibility
+          rate: fractional,        // decimal form (0 or 0.19)
+          percentage: pct,         // integer percent (0 or 19)
+          rate_percentage: pct,    // alias used by some integrations
+          rate_decimal: fractional, // alias used by some integrations
           apply_to_shipping: true,
+          compound: false,
+          destination: 'shipping',
           type: 'percentage'
         }
       ]
