@@ -272,15 +272,14 @@ button[type=submit] {
 }
 
 .ukc-cart:not([data-fc-sidecart] *) .ukc-cart__grid {
-  display: grid;
-  grid-template-columns: 1fr 400px;
+  display: flex;
   gap: 40px;
   min-height: 100vh;
 }
 
-/* fc-cart Inhalt soll beide Spalten nutzen */
+/* fc-cart Inhalt nutzt die gesamte Flexbox-Breite */
 .ukc-cart:not([data-fc-sidecart] *) .fc-cart {
-  grid-column: 1 / -1;
+  flex: 1;
 }
 
 /* Sidecart spezifische Anpassungen - NUR für Sidecart */
