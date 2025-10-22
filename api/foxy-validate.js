@@ -66,6 +66,19 @@ function getCompany(payload) {
       if (typeof b1 === 'string' && b1.trim()) return b1.trim();
       const b2 = emb['fx:billing_address'] && emb['fx:billing_address'].company;
       if (typeof b2 === 'string' && b2.trim()) return b2.trim();
+      // Plural collections
+      const ba = emb['fx:billing_addresses'] || emb.billing_addresses || [];
+      if(Array.isArray(ba)){
+        for(const a of ba){ if(a && typeof a.company==='string' && a.company.trim()) return a.company.trim(); }
+      }
+      const sa = emb['fx:shipping_addresses'] || emb.shipping_addresses || [];
+      if(Array.isArray(sa)){
+        for(const a of sa){ if(a && typeof a.company==='string' && a.company.trim()) return a.company.trim(); }
+      }
+      const cf = emb['fx:custom_fields'] || [];
+      if(Array.isArray(cf)){
+        for(const f of cf){ if(f && typeof f.name==='string' && /comp/i.test(f.name) && typeof f.value==='string' && f.value.trim()) return f.value.trim(); }
+      }
     }
   } catch {}
   return '';
@@ -181,7 +194,16 @@ module.exports = async (req, res) => {
         emb_billing_company: emb && emb.billing_address ? emb.billing_address.company : undefined,
         emb_fx_billing_company: emb && emb['fx:billing_address'] ? emb['fx:billing_address'].company : undefined,
       };
-      console.log('foxy-tax:_embedded-peek', { embKeys, companyCandidates });
+      const ba = emb && (emb['fx:billing_addresses'] || emb.billing_addresses) || [];
+      const sa = emb && (emb['fx:shipping_addresses'] || emb.shipping_addresses) || [];
+      const cf = emb && emb['fx:custom_fields'] || [];
+      console.log('foxy-tax:_embedded-peek', {
+        embKeys,
+        companyCandidates,
+        ba_first: Array.isArray(ba) && ba[0] ? ba[0].company : undefined,
+        sa_first: Array.isArray(sa) && sa[0] ? sa[0].company : undefined,
+        cf_company: (Array.isArray(cf) && cf.find && (cf.find(x => /comp/i.test(x.name)) || {}).value) || undefined
+      });
     } catch {}
 
     // Geschäftslogik
