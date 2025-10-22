@@ -1,54 +1,107 @@
-// Next.js API route for Foxy Custom Tax Endpoint
-export default async function handler(req, res) {
-  try {
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
-    if (req.method === 'OPTIONS') return res.status(204).end();
-    if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).json({ error: 'Method Not Allowed' });
-
-    let data = req.method === 'GET' ? req.query : req.body;
-    if (typeof data === 'string') { try { data = JSON.parse(data); } catch (_) {} }
-    if (data?.input && typeof data.input === 'string') { try { data = JSON.parse(data.input); } catch (_) {} }
-    if (data?.cart && typeof data.cart === 'string') { try { data = JSON.parse(data.cart); } catch (_) {} }
 
 
-    // Werte robust lesen (können als String kommen)
-    const num = (v) => {
-      const n = typeof v === 'string' ? parseFloat(v) : Number(v);
-      return isFinite(n) ? n : 0;
-    };
-    const s = (v) => (v == null ? '' : String(v));
+// Vercel Serverless Function: Custom Tax Endpoint for Foxy
+// Regeln (Stand Til 2025-10-22):
+// - Gilt NUR für Versandland = DE (Deutschland)
+// - Privatkunden (kein Firmenname): 0% Steuer
+// - Firmenkunden (Firmenname vorhanden): 19% Steuer
+// - USt-ID wird NICHT geprüft (bewusst entfernt)
 
-    // Entscheide Steuer-Satz (vereinfachte Logik): Firma => 19%, sonst 0%
-    const company = s(data?.billing_company || data?.shipping_company || '')
-      || s(data?._embedded?.['fx:billing_address']?.company || data?._embedded?.['fx:shipping_address']?.company || data?._embedded?.['fx:shipment']?.company || '');
-    const customerType = s(data?.customer_type || data?.fields?.customer_type || '').toLowerCase();
-    const isBusiness = company.trim().length > 0 || ['business','firma','firmenkunde'].includes(customerType);
-    const tax_rate = isBusiness ? 0.19 : 0;
+/**
+ * Foxy schickt einen JSON-POST mit Cart/Customer-Daten an diesen Endpoint.
+ * Wir antworten mit { taxes: [{ name, rate, apply_to_shipping? }] }.
+ * Hinweis: rate ist in Prozent (19 = 19%).
+ */
 
-    // Steuerbasis (wie Foxy-Beispiel): Items + Shipping + Discount
-    const total_item_price   = num(data?.total_item_price);
-    const total_shipping     = num(data?.total_shipping);
-    const total_discount     = num(data?.total_discount);
-    const base = total_item_price + total_shipping + total_discount; // discount ggf. negativ
-
-    const tax_amount = tax_rate * base;
-    const response = {
-      ok: true,
-      details: '',
-      name: 'custom tax',
-      expand_taxes: [
-        { name: 'MwSt', rate: tax_rate, amount: tax_amount }
-      ],
-      total_amount: tax_amount,
-      total_rate: tax_rate
-    };
-
-    return res.status(200).json(response);
-  } catch (e) {
-    return res.status(200).json({ taxes: [] });
+// Helper: sichere Extraktion möglicher Feldnamen aus dem Foxy-Payload
+function getCountry(payload) {
+  const candidates = [
+    'shipping_country',
+    'customer_shipping_country',
+    'country',
+    'billing_country',
+    'customer_country'
+  ];
+  for (const key of candidates) {
+    if (payload && typeof payload[key] === 'string' && payload[key].trim()) {
+      return payload[key].trim();
+    }
   }
+  return '';
 }
 
-export const config = { api: { bodyParser: true } };
+function getCompany(payload) {
+  const candidates = [
+    'customer_company',
+    'shipping_company',
+    'billing_company',
+    'company'
+  ];
+  for (const key of candidates) {
+    if (payload && typeof payload[key] === 'string' && payload[key].trim()) {
+      return payload[key].trim();
+    }
+  }
+  return '';
+}
+
+// Vercel default export (CommonJS)
+module.exports = async (req, res) => {
+  // CORS/Preflight (optional, hilfreich bei lokalen Tests)
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    return res.status(200).end();
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed. Use POST.' });
+  }
+
+  try {
+    const payload = typeof req.body === 'object' && req.body ? req.body : {};
+
+    const countryRaw = getCountry(payload);
+    const companyRaw = getCompany(payload);
+
+    const country = String(countryRaw || '').toUpperCase();
+    const hasCompany = Boolean(String(companyRaw || '').trim());
+
+    // Log nur minimal für Debugging – keine personenbezogenen Daten persistieren!
+    // console.log({ country, hasCompany });
+
+    // Default: außerhalb DE keine Steuer anwenden (0%)
+    let rate = 19;
+    let name = 'Mehrwertsteuer';
+
+    if (country === 'DE') {
+      if (hasCompany) {
+        rate = 19; // Firmenkunde in DE => 19%
+        name = 'Mehrwertsteuer';
+      } else {
+        rate = 0; // Privatkunde in DE => 0%
+        name = 'Mehrwertsteuer';
+      }
+    }
+
+    const response = {
+      taxes: [
+        {
+          name,
+          rate,
+          apply_to_shipping: true,
+        },
+      ],
+    };
+
+    res.setHeader('Content-Type', 'application/json');
+    // Optional CORS für Tests
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error('Custom Tax Endpoint error:', err);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
