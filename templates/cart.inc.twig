@@ -42,19 +42,19 @@
 
     {% if context != 'checkout' %}
         {% if not is_updateinfo %}
-            {% if item_count == 1 %}
+                    {% if item_count == 1 %}
                 <div class="fc-cart__header">
                     <h1 class="fc-cart__title">{{ config.lang.cart_title|raw }}</h1>
-                </div>
-            {% endif %}
+        </div>
+        {% endif %}
 
-            {% block cart_form_start %}
+        {% block cart_form_start %}
             <form id="fc-cart-form" action="https://{{ config.store_domain }}/cart" method="post" data-fc-id="cart-form">
-                {% block cart_hidden_inputs %}
-                <input type="hidden" name="{{ session_name }}" value="{{ session_id }}" />
+            {% block cart_hidden_inputs %}
+            <input type="hidden" name="{{ session_name }}" value="{{ session_id }}" />
                 <input type="hidden" name="cart" value="update" />
-                {% endblock cart_hidden_inputs %}
-            {% endblock cart_form_start %}
+            {% endblock cart_hidden_inputs %}
+        {% endblock cart_form_start %}
 
             <div data-fc-id="block-cart-errors">
             {% block cart_errors %}
@@ -64,42 +64,42 @@
                             <p>{{ error }}</p>
                         {% endfor %}
                     </div>
-                {% endif %}
+            {% endif %}
             {% endblock cart_errors %}
             </div>
 
             <div data-fc-id="block-cart-items-divs">
             {% block cart_items_divs %}
                 <div class="ukc-items">
-                    {% for item in items %}
+                {% for item in items %}
                         {% set ukc_piece_price = null %}
                         {% if item.code is defined and item.code and '-' in item.code %}
                             {% set code_parts = item.code|split('-') %}
                             {% if code_parts|length > 1 %}
                                 {% set ukc_piece_price = code_parts[1:]|join('-')|trim %}
-                            {% endif %}
+                {% endif %}
                         {% elseif item.custom_fields is defined and item.custom_fields.piece_price is defined %}
                             {% set ukc_piece_price = item.custom_fields.piece_price.value|default(item.custom_fields.piece_price)|trim %}
                         {% elseif item.custom_fields is defined and item.custom_fields.stuckpreis is defined %}
                             {% set ukc_piece_price = item.custom_fields.stuckpreis.value|default(item.custom_fields.stuckpreis)|trim %}
-                        {% endif %}
+                {% endif %}
 
                         <div class="fc-container__row fc-cart__item ukc-row" data-fc-item-id="{{ item.id }}" data-price-each="{{ item.price }}">
-                            <div class="fc-cart__item__details-and-image">
+                    <div class="fc-cart__item__details-and-image">
                                 {% if item.image %}
-                                <div class="fc-cart__item__image ukc-row__thumb">
+                        <div class="fc-cart__item__image ukc-row__thumb">
                                     {% if item.url != '' %}
-                                    <a href="{{ item.url }}" target="_top" alt="{{ item.alt_name }}">
-                                    {% endif %}
-                                        <span><img class="fc-cart__item__image__img" src="{{ item.image }}" alt="{{ item.alt_name }}" /></span>
+                            <a href="{{ item.url }}" target="_top" alt="{{ item.alt_name }}">
+                            {% endif %}
+                                <span><img class="fc-cart__item__image__img" src="{{ item.image }}" alt="{{ item.alt_name }}" /></span>
                                     {% if item.url != '' %}
-                                    </a>
-                                    {% endif %}
-                                </div>
-                                {% endif %}
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% endif %}
                                 
-                                <div class="fc-cart__item__details ukc-row__details">
-                                    <p class="fc-cart__item__name">{{ item.name }}</p>
+                        <div class="fc-cart__item__details ukc-row__details">
+                            <p class="fc-cart__item__name">{{ item.name }}</p>
                                 </div>
                             </div>
 
@@ -108,32 +108,32 @@
                                     <button type="button" class="ukc-qty-btn ukc-qty-minus" data-fc-item-id="{{ item.id }}">-</button>
                                     <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="fc-cart__item__quantity__input" data-fc-id="item-quantity-input" data-fc-item-id="{{ item.id }}" />
                                     <button type="button" class="ukc-qty-btn ukc-qty-plus" data-fc-item-id="{{ item.id }}">+</button>
-                                </div>
-                            </div>
+                        </div>
+                    </div>
 
-                            <div class="fc-cart__item__totals">
-                                <div class="fc-cart__item__total ukc-row__total">
+                    <div class="fc-cart__item__totals">
+                            <div class="fc-cart__item__total ukc-row__total">
                                     <p>{{ item.price_with_tax|money_format }}</p>
                                     {% if ukc_piece_price %}
                                     <p class="ukc-piece-price">({{ ukc_piece_price }} / Stück)</p>
-                                    {% endif %}
-                                </div>
-                                <div class="fc-cart__item__price ukc-row__price">
+                                {% endif %}
+                            </div>
+                            <div class="fc-cart__item__price ukc-row__price">
                                     {% if ukc_piece_price %}
                                     <p class="ukc-piece-price">({{ ukc_piece_price }} / Stück)</p>
-                                    {% endif %}
-                                </div>
+                                {% endif %}
+                            </div>
                                 <div class="fc-container__row ukc-row__actions">
-                                    <div class="ukc-row__remove">
+                            <div class="ukc-row__remove">
                                         <a href="#" class="ukc-remove-btn" data-fc-item-id="{{ item.id }}">Entfernen</a>
-                                    </div>
-                                </div>
                             </div>
                         </div>
-                    {% endfor %}
+                    </div>
                 </div>
-            {% endblock cart_items_divs %}
+                {% endfor %}
             </div>
+            {% endblock cart_items_divs %}
+        </div>
 
             <div class="fc-sidebar--cart ukc-summary">
                 <div class="fc-cart__summary">
@@ -141,47 +141,45 @@
                     
                     <div class="ukc-summary-table">
                         <table>
-                            <tbody>
-                                <tr>
-                                    <td class="ukc-summary-label">Zwischensumme</td>
+                <tbody>
+                    <tr>
+                        <td class="ukc-summary-label">Zwischensumme</td>
                                     <td class="ukc-summary-value" data-ukc-subtotal>{{ subtotal|money_format }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="ukc-summary-label">Mehrwertsteuer</td>
+                    </tr>
+                    <tr>
+                        <td class="ukc-summary-label">Mehrwertsteuer</td>
                                     <td class="ukc-summary-value" data-ukc-tax-total>{{ tax_total|money_format }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="ukc-summary-label">Lieferkosten</td>
+                    </tr>
+                    <tr>
+                        <td class="ukc-summary-label">Lieferkosten</td>
                                     <td class="ukc-summary-value" data-ukc-shipping>{{ shipping_total|money_format }}</td>
-                                </tr>
-                                <tr class="ukc-summary-totalrow">
+                    </tr>
+                    <tr class="ukc-summary-totalrow">
                                     <td class="ukc-summary-label">Gesamtpreis inkl. MwSt.</td>
                                     <td class="ukc-summary-value" data-ukc-total-order>{{ total|money_format }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
 
                     <div class="fc-cart__actions">
                         <button type="submit" class="fc-button fc-button--primary fc-button--checkout">
                             {{ config.lang.cart_checkout|raw }}
-                        </button>
+                            </button>
                     </div>
-                </div>
-            </div>
+                    </div>
+                    </div>
 
             {% block cart_form_end %}
-            {% if with_controls %}
             <script src="https://unterkonstruktion-cart.vercel.app/cart.js"></script>
-            {% endif %}
             {% endblock cart_form_end %}
         </form>
-        {% endif %}
-    {% endif %}
+                    {% endif %}
+                {% endif %}
 
-</div>
+                </div>
 
 {% endblock %}
-    </div>
-  </div>
+            </div>
+                        </div>
 </div>
