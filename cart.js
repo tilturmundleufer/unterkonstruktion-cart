@@ -774,7 +774,14 @@
           }
         }
       } catch(e) {}
-      a.href = 'https://' + (window.ukcStoreDomain || window.location.hostname) + '/cart?' + sessionName + '=' + sessionId;
+      
+      // Use FoxyCart domain for cart link
+      var cartDomain = 'unterkonstruktion.foxycart.com';
+      var cartUrl = 'https://' + cartDomain + '/cart';
+      if(sessionId) {
+        cartUrl += '?' + sessionName + '=' + sessionId;
+      }
+      a.href = cartUrl;
       a.target = '_top';
       a.textContent = 'Zum Warenkorb';
       var wrap = document.createElement('div');
