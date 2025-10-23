@@ -1162,9 +1162,22 @@
       var shipping = Number(c.total_shipping || c.total_future_shipping || 0);
       var foxyTax = Number(c.total_tax || 0);
       
+      // DEBUG: Log tax values
+      console.log('TAX DEBUG:', {
+        hasCompany: hasCompany,
+        companyValue: companyField ? companyField.value : 'no field',
+        foxyTax: foxyTax,
+        subtotal: subtotal,
+        shipping: shipping,
+        total_tax: c.total_tax,
+        total_item_price: c.total_item_price,
+        total_shipping: c.total_shipping
+      });
+      
       // If Foxy tax is 0 but we have a company, calculate manually as fallback
       if(foxyTax === 0 && hasCompany) {
         foxyTax = (subtotal + shipping) * 0.19;
+        console.log('TAX FALLBACK CALCULATED:', foxyTax);
       }
       
       return {
@@ -1186,11 +1199,23 @@
       var shipEls = document.querySelectorAll('[data-ukc-shipping]');
       var totalEl = document.querySelector('[data-ukc-total-order]');
 
+      // DEBUG: Log update values
+      console.log('UPDATE DEBUG:', {
+        snap: snap,
+        prev: prev,
+        taxEl: taxEl,
+        taxElText: taxEl ? taxEl.textContent : 'no element',
+        taxChanged: !nearlyEqual(prev.tax, snap.tax)
+      });
+
       // Only write when value actually changes
       updating = true;
       try{
         if(subEl && !nearlyEqual(prev.sub, snap.sub)) subEl.textContent = fmt(snap.sub);
-        if(taxEl && !nearlyEqual(prev.tax, snap.tax)) taxEl.textContent = fmt(snap.tax);
+        if(taxEl && !nearlyEqual(prev.tax, snap.tax)) {
+          console.log('UPDATING TAX:', prev.tax, '->', snap.tax, 'formatted:', fmt(snap.tax));
+          taxEl.textContent = fmt(snap.tax);
+        }
         if(shipEls && shipEls.forEach){
           if(!nearlyEqual(prev.ship, snap.ship)) shipEls.forEach(function(el){ el.textContent = fmt(snap.ship); });
         }
@@ -1228,15 +1253,23 @@
         var el = document.querySelector(sel);
         if(el){
           el.addEventListener('input', function(){ 
+            console.log('COMPANY INPUT TRIGGERED:', el.value);
             setTimeout(function(){
               // Trigger Foxy tax calculation
               if(window.FC && FC.cart) {
                 FC.cart.billing_company = el.value;
+                console.log('SET FC.cart.billing_company:', el.value);
                 // Trigger tax recalculation
                 if(window.FC.checkout && FC.checkout.shipping) {
-                  try { FC.checkout.shipping.get_shipping_and_handling(); } catch(e) {}
+                  try { 
+                    console.log('CALLING get_shipping_and_handling()');
+                    FC.checkout.shipping.get_shipping_and_handling(); 
+                  } catch(e) {
+                    console.log('ERROR in get_shipping_and_handling:', e);
+                  }
                 }
               }
+              console.log('SCHEDULING UPDATE');
               scheduleUpdate();
             }, 1000);
           });
