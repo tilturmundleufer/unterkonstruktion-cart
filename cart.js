@@ -1162,6 +1162,11 @@
       var shipping = Number(c.total_shipping || c.total_future_shipping || 0);
       var foxyTax = Number(c.total_tax || 0);
       
+      // If Foxy tax is 0 but we have a company, calculate manually as fallback
+      if(foxyTax === 0 && hasCompany) {
+        foxyTax = (subtotal + shipping) * 0.19;
+      }
+      
       return {
         sub: subtotal,
         tax: foxyTax, // Use Foxy tax directly from API
