@@ -974,79 +974,8 @@
       updateCouponInSummaryTable(); // Initial ausführen
     }
     
-    // Automatischen Coupon nach kurzer Verzögerung anwenden
-    setTimeout(autoApplyCouponFromProductCodes, 1000);
   }, 500);
 
-  // Automatischer Coupon-Code aus Produkt-Codes generieren
-  function autoApplyCouponFromProductCodes(){
-    try{
-      // Guard: Nur einmal ausführen
-      if(window.__ukc_coupons_applied) return;
-      window.__ukc_coupons_applied = true;
-      
-      var context = document.querySelector('#fc-cart')?.getAttribute('data-context');
-      if(context !== 'checkout') return;
-      
-      // Alle Produkt-Codes sammeln
-      var productCodes = [];
-      var itemElements = document.querySelectorAll('[data-item-code]');
-      
-      itemElements.forEach(function(item){
-        var code = item.getAttribute('data-item-code');
-        if(code && code.includes('-')){
-          var codeParts = code.split('-');
-          if(codeParts.length > 1){
-            var prefix = codeParts[0].trim();
-            if(prefix && !productCodes.includes(prefix)){
-              productCodes.push(prefix);
-            }
-          }
-        }
-      });
-      
-      if(productCodes.length === 0) return;
-      
-      // Coupon-Input-Feld und Button finden
-      var couponInput = document.querySelector('#coupon');
-      var applyButton = document.querySelector('[data-fc-id="add-coupon-button"]') || document.querySelector('.fc-coupon-entry__apply');
-      
-      
-      if(!couponInput || !applyButton) {
-        return;
-      }
-      
-      // Alle gefundenen Codes als Coupons anwenden
-      function applyNextCoupon(index){
-        if(index >= productCodes.length) return;
-        
-        var couponCode = productCodes[index];
-        
-        // Coupon-Code eintragen
-        couponInput.value = couponCode;
-        
-        // Event für Foxy.io auslösen
-        var inputEvent = new Event('input', { bubbles: true });
-        couponInput.dispatchEvent(inputEvent);
-        
-        // Kurz warten und dann anwenden
-        setTimeout(function(){
-          applyButton.click();
-          
-          // Nach Anwendung zum nächsten Coupon
-          setTimeout(function(){
-            applyNextCoupon(index + 1);
-          }, 500);
-        }, 100);
-        
-      }
-      
-      // Ersten Coupon anwenden
-      applyNextCoupon(0);
-      
-    }catch(e){
-    }
-  }
 
   // Checkbox "abweichende Rechnungsadresse" für Gäste sicherstellen
   function ensureDifferentBillingCheckbox(){
