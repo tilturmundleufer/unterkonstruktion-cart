@@ -1157,17 +1157,16 @@
       var companyField = document.querySelector('#billing_company, input[name="billing_company"], input[data-fc-name="billing_company"]');
       var hasCompany = companyField && companyField.value && companyField.value.trim() !== '';
       
-      // Calculate tax manually if needed
+      // Use Foxy tax data directly from API
       var subtotal = Number(c.total_item_price || 0);
       var shipping = Number(c.total_shipping || c.total_future_shipping || 0);
-      var taxRate = hasCompany ? 0.19 : 0; // 19% for companies, 0% for private
-      var calculatedTax = (subtotal + shipping) * taxRate;
+      var foxyTax = Number(c.total_tax || 0);
       
       return {
         sub: subtotal,
-        tax: Number(c.total_tax || 0) || calculatedTax, // Use calculated tax if Foxy tax is 0
+        tax: foxyTax, // Use Foxy tax directly from API
         ship: shipping,
-        tot: Number(c.total_order || (subtotal + calculatedTax + shipping))
+        tot: Number(c.total_order || (subtotal + foxyTax + shipping))
       };
     }
 
