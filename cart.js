@@ -1152,11 +1152,22 @@
     function readCart(){
       if(!window.FC || !FC.cart) return null;
       var c = FC.cart;
+      
+      // Check if company field has value (firmenkunde = 19% tax)
+      var companyField = document.querySelector('#billing_company, input[name="billing_company"], input[data-fc-name="billing_company"]');
+      var hasCompany = companyField && companyField.value && companyField.value.trim() !== '';
+      
+      // Calculate tax manually if needed
+      var subtotal = Number(c.total_item_price || 0);
+      var shipping = Number(c.total_shipping || c.total_future_shipping || 0);
+      var taxRate = hasCompany ? 0.19 : 0; // 19% for companies, 0% for private
+      var calculatedTax = (subtotal + shipping) * taxRate;
+      
       return {
-        sub: Number(c.total_item_price || 0),
-        tax: Number(c.total_tax || 0),
-        ship: Number(c.total_shipping || c.total_future_shipping || 0),
-        tot: Number(c.total_order || (Number(c.total_item_price||0)+Number(c.total_tax||0)+Number(c.total_shipping||0)||Number(c.total_future_shipping||0)))
+        sub: subtotal,
+        tax: Number(c.total_tax || 0) || calculatedTax, // Use calculated tax if Foxy tax is 0
+        ship: shipping,
+        tot: Number(c.total_order || (subtotal + calculatedTax + shipping))
       };
     }
 
