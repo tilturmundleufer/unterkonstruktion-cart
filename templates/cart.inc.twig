@@ -523,6 +523,28 @@
                     </tr>
                 </tbody>
             </table>
+<script>(function(){
+  var root = document.querySelector('#fc-cart');
+  if(!root) return;
+  function fmt(v){ try{ return new Intl.NumberFormat('de-DE',{style:'currency',currency:(window.FC&&FC.cart&&FC.cart.currency_code)||'EUR'}).format(Number(v||0)); }catch(e){ return (Number(v||0)).toFixed(2)+'\u00a0€'; } }
+  function update(){
+    if(!window.FC || !FC.cart) return;
+    var c = FC.cart;
+    var subEl = document.querySelector('[data-ukc-subtotal]');
+    var taxEl = document.querySelector('[data-ukc-tax-total]');
+    var shipEl = document.querySelectorAll('[data-ukc-shipping]');
+    var totalEl = document.querySelector('[data-ukc-total-order]');
+    if(subEl) subEl.textContent = fmt(c.total_item_price);
+    if(taxEl) taxEl.textContent = fmt(c.total_tax);
+    (shipEl||[]).forEach ? shipEl.forEach(function(el){ el.textContent = fmt(c.total_shipping || c.total_future_shipping); }) : 0;
+    if(totalEl) totalEl.textContent = fmt(c.total_order || ((Number(c.total_item_price||0)+Number(c.total_tax||0)+(Number(c.total_shipping||0)||Number(c.total_future_shipping||0)))));
+  }
+  var once = false;
+  function kick(){ if(once) return; once=true; update(); setTimeout(update,300); setTimeout(update,800); setTimeout(update,1500); }
+  if(window.MutationObserver){ try{ var mo = new MutationObserver(function(){ update(); }); mo.observe(root,{childList:true,subtree:true}); }catch(_){} }
+  document.addEventListener('DOMContentLoaded', kick);
+  if(document.readyState==='complete' || document.readyState==='interactive') kick();
+})();</script>
 
             <div class="ukc-summary-sep"></div>
 
@@ -875,6 +897,28 @@
                     </tr>
                 </tbody>
             </table>
+<script>(function(){
+  var root = document.querySelector('#fc-cart');
+  if(!root) return;
+  function fmt(v){ try{ return new Intl.NumberFormat('de-DE',{style:'currency',currency:(window.FC&&FC.cart&&FC.cart.currency_code)||'EUR'}).format(Number(v||0)); }catch(e){ return (Number(v||0)).toFixed(2)+'\u00a0€'; } }
+  function update(){
+    if(!window.FC || !FC.cart) return;
+    var c = FC.cart;
+    var subEl = document.querySelector('[data-ukc-subtotal]');
+    var taxEl = document.querySelector('[data-ukc-tax-total]');
+    var shipEl = document.querySelectorAll('[data-ukc-shipping]');
+    var totalEl = document.querySelector('[data-ukc-total-order]');
+    if(subEl) subEl.textContent = fmt(c.total_item_price);
+    if(taxEl) taxEl.textContent = fmt(c.total_tax);
+    (shipEl||[]).forEach ? shipEl.forEach(function(el){ el.textContent = fmt(c.total_shipping || c.total_future_shipping); }) : 0;
+    if(totalEl) totalEl.textContent = fmt(c.total_order || ((Number(c.total_item_price||0)+Number(c.total_tax||0)+(Number(c.total_shipping||0)||Number(c.total_future_shipping||0)))));
+  }
+  var once = false;
+  function kick(){ if(once) return; once=true; update(); setTimeout(update,300); setTimeout(update,800); setTimeout(update,1500); }
+  if(window.MutationObserver){ try{ var mo = new MutationObserver(function(){ update(); }); mo.observe(root,{childList:true,subtree:true}); }catch(_){} }
+  document.addEventListener('DOMContentLoaded', kick);
+  if(document.readyState==='complete' || document.readyState==='interactive') kick();
+})();</script>
             <div class="ukc-summary-sep"></div>
             <div class="ukc-hint">Bei den angegebenen Preisen handelt es sich um Nettobeträge. Privatkunden profitieren von 0% MwSt Gemäß §12 Abs. 3 UstG</div>
             {% endif %}

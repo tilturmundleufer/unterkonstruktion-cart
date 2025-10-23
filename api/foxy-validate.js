@@ -12,8 +12,9 @@ function readTotals(payload){
   const items = toNum(payload.total_item_price);
   const shipping = toNum(payload.total_shipping);
   const futureShipping = toNum(payload.total_future_shipping);
+  const discount = toNum(payload.total_discount); // meist negativ
   const ship = Math.max(Number.isFinite(shipping) ? shipping : 0, Number.isFinite(futureShipping) ? futureShipping : 0);
-  return { items, shipping: ship };
+  return { items, shipping: ship, discount };
 }
 // Vercel Serverless Function: Custom Tax Endpoint for Foxy
 // Regeln:
@@ -245,8 +246,8 @@ module.exports = async (req, res) => {
     const rate = pct / 100; // decimal
 
     // Amount calculation (optional, helps some frontends):
-    const { items, shipping } = readTotals(payload);
-    const taxableBase = (country === 'DE') ? (items + shipping) : 0; // apply_to_shipping = true
+    const { items, shipping, discount } = readTotals(payload);
+    const taxableBase = (country === 'DE') ? (items + shipping + discount) : 0; // Versand & Rabatt berücksichtigen
     const amount = Number((taxableBase * rate).toFixed(2));
 
     const response = {
