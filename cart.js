@@ -3,8 +3,8 @@
   // Wenn wir nicht im Cart-Kontext sind, brich ab (verhindert Checkout-Fehler).
   var fcRoot = document.querySelector('#fc-cart');
   var __ukc_ctx = fcRoot ? fcRoot.getAttribute('data-context') : null;
-  if(__ukc_ctx !== 'cart') {
-    return; // Checkout ausklammern
+  if(__ukc_ctx !== 'cart' && __ukc_ctx !== 'sidecart') {
+    return; // Checkout ausklammern, aber Sidecart erlauben
   }
   var form = document.getElementById('fc-cart-form');
   var updating = false;
@@ -692,7 +692,7 @@
   
   document.addEventListener('click', function(ev){
     var btn = ev.target.closest('.ukc-qty-btn');
-    if(btn && isInSidecart(btn)){
+    if(btn){
       ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
       var id = btn.getAttribute('data-fc-item-id');
       var input = findQtyInput(id);
@@ -709,7 +709,7 @@
       return;
     }
     var rm = ev.target.closest('.ukc-remove-btn');
-    if(rm && isInSidecart(rm)){
+    if(rm){
       ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
       var idr = rm.getAttribute('data-fc-item-id');
       var row = document.querySelector('[data-fc-item-id="' + idr + '"]');
