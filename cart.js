@@ -981,6 +981,10 @@
   // Automatischer Coupon-Code aus Produkt-Codes generieren
   function autoApplyCouponFromProductCodes(){
     try{
+      // Guard: Nur einmal ausführen
+      if(window.__ukc_coupons_applied) return;
+      window.__ukc_coupons_applied = true;
+      
       var context = document.querySelector('#fc-cart')?.getAttribute('data-context');
       if(context !== 'checkout') return;
       
