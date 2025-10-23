@@ -757,7 +757,24 @@
       var a = document.createElement('a');
       a.className = 'ukc-btn ukc-btn--alt';
       a.setAttribute('data-ukc-go-fullcart','');
-      a.href = 'https://' + (window.ukcStoreDomain || '{{ config.store_domain }}') + '/cart?{{ session_name }}={{ session_id }}';
+      // Extract session info from current URL or form
+      var sessionName = 'fc_sid';
+      var sessionId = '';
+      try {
+        var urlParams = new URLSearchParams(window.location.search);
+        sessionId = urlParams.get('fc_sid') || '';
+        if(!sessionId) {
+          var form = document.querySelector('form[action*="cart"]');
+          if(form) {
+            var sessionInput = form.querySelector('input[name*="fc_sid"], input[name*="session"]');
+            if(sessionInput) {
+              sessionName = sessionInput.name;
+              sessionId = sessionInput.value;
+            }
+          }
+        }
+      } catch(e) {}
+      a.href = 'https://' + (window.ukcStoreDomain || window.location.hostname) + '/cart?' + sessionName + '=' + sessionId;
       a.target = '_top';
       a.textContent = 'Zum Warenkorb';
       var wrap = document.createElement('div');
