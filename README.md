@@ -131,3 +131,8 @@ curl -X POST  "https://api.foxycart.com/cart_include_templates/{id}/cache" \
 ### Technische Hinweise
 - **Sidebar-Wrapper**: Die Klasse `ukc-summary` wird direkt an `.fc-sidebar--cart` angehängt, um Foxy's Grid-Assumptions nicht zu brechen.
 - **Sticky Summary**: Auf Desktop (≥961px) wird die Summary sticky positioniert. Zum Deaktivieren: `.ukc-summary { position: static !important; }` in Webflow Custom Code hinzufügen.
+
+## Debug & Development
+- **Tax Debug**: Umfassende Console-Logs für Tax-Berechnung und Company-Feld-Status
+- **Live Updates**: Automatische Preis-Updates bei Firmenname-Änderung
+- **Fallback Tax**: Manuelle 19% Berechnung wenn Foxy Tax-API nicht funktioniert
