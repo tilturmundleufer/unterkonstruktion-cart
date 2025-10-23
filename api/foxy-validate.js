@@ -250,22 +250,23 @@ module.exports = async (req, res) => {
     const taxableBase = (country === 'DE') ? (items + shipping + discount) : 0; // Versand & Rabatt berücksichtigen
     const amount = Number((taxableBase * rate).toFixed(2));
 
-    const response = {
+    // Build minimal Foxy-compliant payload (per official example)
+    const taxConfiguration = {
       ok: true,
-      details: '',
       name: 'Variable Steuern',
+      details: hasCompany ? 'Firmenkunde – 19% MwSt' : 'Privatkunde – 0% MwSt',
       expand_taxes: [
         {
-          name,
-          rate,
-          amount
+          name: name,
+          rate: Number.isFinite(rate) ? rate : 0,
+          amount: Number.isFinite(amount) ? amount : 0
         }
       ],
-      total_amount: amount,
-      total_rate: rate
+      total_amount: Number.isFinite(amount) ? amount : 0,
+      total_rate: Number.isFinite(rate) ? rate : 0
     };
 
-    console.log('foxy-tax', { country, hasCompany, pct, rate, taxableBase, amount, ct: req.__contentType || req.headers['content-type'] || '' });
+    console.log('foxy-tax', { country, hasCompany, pct, rate, taxableBase, amount, out: taxConfiguration, ct: req.__contentType || req.headers['content-type'] || '' });
 
     // JSONP support (older Foxy flows)
     const cb = isGet ? (query.callback || query.jsonp || '') : (payload && (payload.callback || payload.jsonp));
@@ -273,10 +274,10 @@ module.exports = async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     if (cb) {
       res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-      return res.status(200).send(`${cb}(${JSON.stringify(response)})`);
+      return res.status(200).send(`${cb}(${JSON.stringify(taxConfiguration)})`);
     }
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    return res.status(200).json(response);
+    return res.status(200).json(taxConfiguration);
   } catch (err) {
     console.error('Custom Tax Endpoint error:', err);
     // Fail-safe: always return a harmless 0% response (support JSONP as well)
