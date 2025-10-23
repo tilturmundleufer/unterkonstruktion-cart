@@ -3,8 +3,8 @@
   // Wenn wir nicht im Cart-Kontext sind, brich ab (verhindert Checkout-Fehler).
   var fcRoot = document.querySelector('#fc-cart');
   var __ukc_ctx = fcRoot ? fcRoot.getAttribute('data-context') : null;
-  if(__ukc_ctx !== 'cart' && __ukc_ctx !== 'sidecart') {
-    return; // Checkout ausklammern, aber Sidecart erlauben
+  if(__ukc_ctx !== 'cart' && __ukc_ctx !== 'sidecart' && __ukc_ctx !== 'checkout') {
+    return; // Nur andere Kontexte ausklammern
   }
   var form = document.getElementById('fc-cart-form');
   var updating = false;
