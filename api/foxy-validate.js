@@ -253,11 +253,11 @@ module.exports = async (req, res) => {
     // Build minimal Foxy-compliant payload (per official example)
     const taxConfiguration = {
       ok: true,
-      name: 'Variable Steuern',
-      details: hasCompany ? 'Firmenkunde – 19% MwSt' : 'Privatkunde – 0% MwSt',
+      details: "",
+      name: "custom tax",
       expand_taxes: [
         {
-          name: name,
+          name: "Tax",
           rate: Number.isFinite(rate) ? rate : 0,
           amount: Number.isFinite(amount) ? amount : 0
         }
