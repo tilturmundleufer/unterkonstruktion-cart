@@ -250,18 +250,23 @@ module.exports = async (req, res) => {
     const taxableBase = (country === 'DE') ? (items + shipping + discount) : 0; // Versand & Rabatt berücksichtigen
     const amount = Number((taxableBase * rate).toFixed(2));
 
-    // Build Foxy-compliant tax response
+    // Build minimal Foxy-compliant payload (per official example)
     const taxConfiguration = {
-      taxes: [
+      ok: true,
+      details: "",
+      name: "custom tax",
+      expand_taxes: [
         {
-          name: "Mehrwertsteuer",
+          name: "Tax",
           rate: Number.isFinite(rate) ? rate : 0,
-          apply_to_shipping: true
+          amount: Number.isFinite(amount) ? amount : 0
         }
-      ]
+      ],
+      total_amount: Number.isFinite(amount) ? amount : 0,
+      total_rate: Number.isFinite(rate) ? rate : 0
     };
 
-    console.log('foxy-tax', { country, hasCompany, pct, rate, taxableBase, amount, taxes: taxConfiguration.taxes, ct: req.__contentType || req.headers['content-type'] || '' });
+    console.log('foxy-tax', { country, hasCompany, pct, rate, taxableBase, amount, expand_taxes: taxConfiguration.expand_taxes, total_amount: taxConfiguration.total_amount, total_rate: taxConfiguration.total_rate, ct: req.__contentType || req.headers['content-type'] || '' });
 
     // JSONP support (older Foxy flows)
     const cb = isGet ? (query.callback || query.jsonp || '') : (payload && (payload.callback || payload.jsonp));
