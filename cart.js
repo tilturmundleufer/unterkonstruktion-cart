@@ -1116,3 +1116,73 @@
     }
   });
 })();
+
+// ---- UKC SUMMARY AUTO-UPDATER (moved from Twig) ----
+(function(){
+  var root = document.querySelector('#fc-cart');
+  if(!root) return;
+
+  function currency(){ return (window.FC && FC.cart && FC.cart.currency_code) || 'EUR'; }
+  function fmt(v){ try{ return new Intl.NumberFormat('de-DE',{style:'currency',currency:currency()}).format(Number(v||0)); }catch(e){ return (Number(v||0)).toFixed(2)+'\u00a0€'; } }
+
+  var prev = { sub: null, tax: null, ship: null, tot: null };
+  var updating = false;
+  function readCart(){
+    if(!window.FC || !FC.cart) return null;
+    var c = FC.cart;
+    return {
+      sub: Number(c.total_item_price || 0),
+      tax: Number(c.total_tax || 0),
+      ship: Number(c.total_shipping || c.total_future_shipping || 0),
+      tot: Number(c.total_order || (Number(c.total_item_price||0)+Number(c.total_tax||0)+Number(c.total_shipping||0)||Number(c.total_future_shipping||0)))
+    };
+  }
+
+  function nearlyEqual(a,b){ return Math.abs(Number(a)-Number(b)) < 0.005; }
+
+  function update(){
+    if(updating) return;
+    var snap = readCart();
+    if(!snap) return;
+    var subEl = document.querySelector('[data-ukc-subtotal]');
+    var taxEl = document.querySelector('[data-ukc-tax-total]');
+    var shipEls = document.querySelectorAll('[data-ukc-shipping]');
+    var totalEl = document.querySelector('[data-ukc-total-order]');
+
+    updating = true;
+    try{
+      if(subEl && !nearlyEqual(prev.sub, snap.sub)) subEl.textContent = fmt(snap.sub);
+      if(taxEl && !nearlyEqual(prev.tax, snap.tax)) taxEl.textContent = fmt(snap.tax);
+      if(shipEls && shipEls.forEach){
+        if(!nearlyEqual(prev.ship, snap.ship)) shipEls.forEach(function(el){ el.textContent = fmt(snap.ship); });
+      }
+      if(totalEl && !nearlyEqual(prev.tot, snap.tot)) totalEl.textContent = fmt(snap.tot);
+      prev = snap;
+    } finally {
+      updating = false;
+    }
+  }
+
+  var rafScheduled = false; var timeoutId = null;
+  function scheduleUpdate(){
+    if(rafScheduled) return;
+    rafScheduled = true;
+    requestAnimationFrame(function(){
+      rafScheduled = false;
+      update();
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(update, 120);
+    });
+  }
+
+  if(window.MutationObserver){
+    try{
+      var mo = new MutationObserver(function(){ scheduleUpdate(); });
+      mo.observe(root, { childList:true, subtree:true });
+    }catch(_){}
+  }
+
+  function kick(){ scheduleUpdate(); setTimeout(update,300); setTimeout(update,800); setTimeout(update,1500); }
+  document.addEventListener('DOMContentLoaded', kick);
+  if(document.readyState==='complete' || document.readyState==='interactive') kick();
+})();

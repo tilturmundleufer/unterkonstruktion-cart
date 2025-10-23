@@ -523,28 +523,6 @@
                     </tr>
                 </tbody>
             </table>
-<script>(function(){
-  var root = document.querySelector('#fc-cart');
-  if(!root) return;
-  function fmt(v){ try{ return new Intl.NumberFormat('de-DE',{style:'currency',currency:(window.FC&&FC.cart&&FC.cart.currency_code)||'EUR'}).format(Number(v||0)); }catch(e){ return (Number(v||0)).toFixed(2)+'\u00a0€'; } }
-  function update(){
-    if(!window.FC || !FC.cart) return;
-    var c = FC.cart;
-    var subEl = document.querySelector('[data-ukc-subtotal]');
-    var taxEl = document.querySelector('[data-ukc-tax-total]');
-    var shipEl = document.querySelectorAll('[data-ukc-shipping]');
-    var totalEl = document.querySelector('[data-ukc-total-order]');
-    if(subEl) subEl.textContent = fmt(c.total_item_price);
-    if(taxEl) taxEl.textContent = fmt(c.total_tax);
-    (shipEl||[]).forEach ? shipEl.forEach(function(el){ el.textContent = fmt(c.total_shipping || c.total_future_shipping); }) : 0;
-    if(totalEl) totalEl.textContent = fmt(c.total_order || ((Number(c.total_item_price||0)+Number(c.total_tax||0)+(Number(c.total_shipping||0)||Number(c.total_future_shipping||0)))));
-  }
-  var once = false;
-  function kick(){ if(once) return; once=true; update(); setTimeout(update,300); setTimeout(update,800); setTimeout(update,1500); }
-  if(window.MutationObserver){ try{ var mo = new MutationObserver(function(){ update(); }); mo.observe(root,{childList:true,subtree:true}); }catch(_){} }
-  document.addEventListener('DOMContentLoaded', kick);
-  if(document.readyState==='complete' || document.readyState==='interactive') kick();
-})();</script>
 
             <div class="ukc-summary-sep"></div>
 
@@ -900,22 +878,71 @@
 <script>(function(){
   var root = document.querySelector('#fc-cart');
   if(!root) return;
-  function fmt(v){ try{ return new Intl.NumberFormat('de-DE',{style:'currency',currency:(window.FC&&FC.cart&&FC.cart.currency_code)||'EUR'}).format(Number(v||0)); }catch(e){ return (Number(v||0)).toFixed(2)+'\u00a0€'; } }
-  function update(){
-    if(!window.FC || !FC.cart) return;
+
+  function currency(){ return (window.FC && FC.cart && FC.cart.currency_code) || 'EUR'; }
+  function fmt(v){ try{ return new Intl.NumberFormat('de-DE',{style:'currency',currency:currency()}).format(Number(v||0)); }catch(e){ return (Number(v||0)).toFixed(2)+'\u00a0€'; } }
+
+  var prev = { sub: null, tax: null, ship: null, tot: null };
+  var updating = false;
+  function readCart(){
+    if(!window.FC || !FC.cart) return null;
     var c = FC.cart;
+    return {
+      sub: Number(c.total_item_price || 0),
+      tax: Number(c.total_tax || 0),
+      ship: Number(c.total_shipping || c.total_future_shipping || 0),
+      tot: Number(c.total_order || (Number(c.total_item_price||0)+Number(c.total_tax||0)+Number(c.total_shipping||0)||Number(c.total_future_shipping||0)))
+    };
+  }
+
+  function nearlyEqual(a,b){ return Math.abs(Number(a)-Number(b)) < 0.005; }
+
+  function update(){
+    if(updating) return; // prevent MO feedback loop
+    var snap = readCart();
+    if(!snap) return;
     var subEl = document.querySelector('[data-ukc-subtotal]');
     var taxEl = document.querySelector('[data-ukc-tax-total]');
-    var shipEl = document.querySelectorAll('[data-ukc-shipping]');
+    var shipEls = document.querySelectorAll('[data-ukc-shipping]');
     var totalEl = document.querySelector('[data-ukc-total-order]');
-    if(subEl) subEl.textContent = fmt(c.total_item_price);
-    if(taxEl) taxEl.textContent = fmt(c.total_tax);
-    (shipEl||[]).forEach ? shipEl.forEach(function(el){ el.textContent = fmt(c.total_shipping || c.total_future_shipping); }) : 0;
-    if(totalEl) totalEl.textContent = fmt(c.total_order || ((Number(c.total_item_price||0)+Number(c.total_tax||0)+(Number(c.total_shipping||0)||Number(c.total_future_shipping||0)))));
+
+    // Only write when value actually changes
+    updating = true;
+    try{
+      if(subEl && !nearlyEqual(prev.sub, snap.sub)) subEl.textContent = fmt(snap.sub);
+      if(taxEl && !nearlyEqual(prev.tax, snap.tax)) taxEl.textContent = fmt(snap.tax);
+      if(shipEls && shipEls.forEach){
+        if(!nearlyEqual(prev.ship, snap.ship)) shipEls.forEach(function(el){ el.textContent = fmt(snap.ship); });
+      }
+      if(totalEl && !nearlyEqual(prev.tot, snap.tot)) totalEl.textContent = fmt(snap.tot);
+      prev = snap;
+    } finally {
+      updating = false;
+    }
   }
-  var once = false;
-  function kick(){ if(once) return; once=true; update(); setTimeout(update,300); setTimeout(update,800); setTimeout(update,1500); }
-  if(window.MutationObserver){ try{ var mo = new MutationObserver(function(){ update(); }); mo.observe(root,{childList:true,subtree:true}); }catch(_){} }
+
+  var rafScheduled = false; var timeoutId = null;
+  function scheduleUpdate(){
+    if(rafScheduled) return;
+    rafScheduled = true;
+    requestAnimationFrame(function(){
+      rafScheduled = false;
+      update();
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(update, 120); // minor debounce to coalesce bursts
+    });
+  }
+
+  // Observe Foxy DOM updates but avoid infinite feedback by debouncing
+  if(window.MutationObserver){
+    try{
+      var mo = new MutationObserver(function(){ scheduleUpdate(); });
+      mo.observe(root, { childList:true, subtree:true });
+    }catch(_){}
+  }
+
+  // Initial runs
+  function kick(){ scheduleUpdate(); setTimeout(update,300); setTimeout(update,800); setTimeout(update,1500); }
   document.addEventListener('DOMContentLoaded', kick);
   if(document.readyState==='complete' || document.readyState==='interactive') kick();
 })();</script>
@@ -964,7 +991,7 @@
 
 
         {% block cart_form_end %}
-        <script src="https://unterkonstruktion-cart.vercel.app/cart.js"></script>
+        <script src="https://unterkonstruktion-cart.vercel.app/cart.min.js"></script>
         {% if with_controls %}
         </form>
         {% endif %}
