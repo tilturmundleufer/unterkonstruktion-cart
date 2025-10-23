@@ -941,8 +941,20 @@
     }catch(_){}
   }
 
+  // Tax trigger when company field changes
+  function setupTaxTrigger(){
+    var companyFields = ['#billing_company', 'input[name="billing_company"]', 'input[data-fc-name="billing_company"]'];
+    companyFields.forEach(function(sel){
+      var el = document.querySelector(sel);
+      if(el){
+        el.addEventListener('input', function(){ setTimeout(scheduleUpdate, 1000); });
+        el.addEventListener('change', function(){ setTimeout(scheduleUpdate, 1000); });
+      }
+    });
+  }
+
   // Initial runs
-  function kick(){ scheduleUpdate(); setTimeout(update,300); setTimeout(update,800); setTimeout(update,1500); }
+  function kick(){ scheduleUpdate(); setupTaxTrigger(); setTimeout(update,300); setTimeout(update,800); setTimeout(update,1500); }
   document.addEventListener('DOMContentLoaded', kick);
   if(document.readyState==='complete' || document.readyState==='interactive') kick();
 })();</script>
