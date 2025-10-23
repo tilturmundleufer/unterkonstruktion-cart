@@ -947,8 +947,32 @@
     companyFields.forEach(function(sel){
       var el = document.querySelector(sel);
       if(el){
-        el.addEventListener('input', function(){ setTimeout(scheduleUpdate, 1000); });
-        el.addEventListener('change', function(){ setTimeout(scheduleUpdate, 1000); });
+        el.addEventListener('input', function(){ 
+          setTimeout(function(){
+            // Trigger Foxy tax calculation
+            if(window.FC && FC.cart) {
+              FC.cart.billing_company = el.value;
+              // Trigger tax recalculation
+              if(window.FC.checkout && FC.checkout.shipping) {
+                try { FC.checkout.shipping.get_shipping_and_handling(); } catch(e) {}
+              }
+            }
+            scheduleUpdate();
+          }, 1000);
+        });
+        el.addEventListener('change', function(){ 
+          setTimeout(function(){
+            // Trigger Foxy tax calculation
+            if(window.FC && FC.cart) {
+              FC.cart.billing_company = el.value;
+              // Trigger tax recalculation
+              if(window.FC.checkout && FC.checkout.shipping) {
+                try { FC.checkout.shipping.get_shipping_and_handling(); } catch(e) {}
+              }
+            }
+            scheduleUpdate();
+          }, 1000);
+        });
       }
     });
   }
