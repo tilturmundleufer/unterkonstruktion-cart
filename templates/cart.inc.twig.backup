@@ -1,0 +1,2061 @@
+<div class="ukc-cart" data-ukc="cart">
+  <div class="ukc-cart__container">
+    <div class="ukc-cart__grid">
+{# BEGIN CART TWIG TEMPLATE #}
+
+{# ===================================================== #}
+{% block cart %}
+
+{% if context == 'cart' %}
+    {% include 'svg.inc.twig' %}
+
+    <nav class="fc-sidecart-only-fixed" role="navigation">
+        {# block sidecart_top_fixed_actions #}
+        <div class="fc-fixed-button-left">
+            <a data-fc-sidecart-dismiss  class="fc-sidecart-button fc-btn-action">
+                <svg class="fc-svg-icon" role="presentation" title="Checkout Icon">
+                    <use xlink:href="#fa-caret-left" />
+                </svg><span class="fc-fixed-button-left--text">{{ config.lang.cart_keep_shopping|raw }}</span></a>
+        </div>
+        <div class="fc-fixed-button-right">
+            <a class="fc-sidecart-button fc-btn-action" href="https://{{ config.store_domain }}/checkout?{{ session_name }}={{ session_id }}" target="_top">
+                {{ config.lang.cart_checkout|raw }}
+                <svg class="fc-svg-icon" role="presentation" title="Checkout Icon">
+                    <use xlink:href="#fa-caret-right" />
+                </svg>
+            </a>
+        </div>
+        {# endblock sidecart_top_fixed_actions #}
+    </nav>
+{% endif %}
+
+<div id="fc-cart" {% if context == 'cart' %}class="fc-container ukc-shell"{% endif %} data-currency="EUR" data-locale="de-DE" data-context="{{ context }}">
+{% import "utils.inc.twig" as utils %}
+{#
+    Blocks within "cart" block:
+    noscript_warning
+    div.row
+        cart_title
+        continue_shopping
+    div.row
+        cart_form_start
+        div.col-sm-8
+            cart_errors
+            cart_item_divs
+        div.col-sm-4
+            logo
+            order_totals
+                address_entry*
+            order_payment_actions
+        cart_form_end
+#}
+
+{% block noscript_warning %}
+    <noscript>
+        <div id="fc-noscript-errors" class="alert alert-danger">
+            <h2>{{ config.lang.cart_warning|raw }}:</h2>
+            <p>{{ config.lang.cart_no_javascript_message|raw }}</p>
+        </div>{# #fc-noscript-errors #}
+    </noscript>
+{% endblock noscript_warning %}
+
+
+{# rather than doing inline control statements, we're setting some top level variables #}
+{% if cart_is_fullpage %}
+    {% set container_id = "fc-cart--responsive" %}
+{% else %}
+    {% set container_id = "fc-cart--fixed-width" %}
+{% endif %}
+
+<div id="{{ container_id }}">
+    {% if context != 'checkout' %}
+    <header class="fc-cart__header fc-container__row" role="banner">
+        {% if not is_updateinfo %}
+        <div class="fc-cart__title fc-container__grid">
+            {% block cart_title %}
+                <h2 class="fc-cart__title__header">{{ config.lang.cart_caption|raw }}</h2>
+                <p class="fc-order-quantity">
+                    {% set temp_lang_cart_items = config.lang.cart_items|raw %}
+                    {% if item_count == 1 %}
+                        {% set temp_lang_cart_items = config.lang.cart_item|raw %}
+                    {% endif %}
+                    <span data-fc-order-quantity-integer="fc-order-quantity-integer">{{ item_count }}</span>
+                    <span data-fc-lang-cart-item="{{ config.lang.cart_item }}" data-fc-lang-cart-items="{{ config.lang.cart_items }}">{{ temp_lang_cart_items|lower }}</span>
+                    {{ config.lang.cart_in_your_order|raw }}
+                </p>
+            {% endblock cart_title %}
+        </div>
+        {% endif %}
+
+        {% if cart_is_fullpage or context == 'checkout' %}
+        <div class="fc-cancel-continue-shopping fc-container__grid">
+            {% block continue_shopping %}
+            {% if cart_cancel_and_continue_link != '' %}
+                <a href="{{ cart_cancel_and_continue_link }}" class="fc-button fc-button--cancel">
+                    <svg class="fc-svg-icon fc-icon-small" role="presentation" title="Back Arrows">
+                        <use xlink:href="#fa-angle-double-left" />
+                    </svg>
+                    {{ config.lang.cart_cancel_and_continue|raw }}
+                </a>
+            {% endif %}
+            {% endblock continue_shopping %}
+        </div>
+        {% endif %}
+    </header>
+    {% endif %}
+
+    {% if not is_updateinfo %}
+
+    {% if cart_is_fullpage %}
+    <div class="fc-cart-container fc-cart__main fc-container__row" role="main">
+    {% else %}
+    <div class="fc-container__row fc-cart-container">
+    {% endif %}
+        {% block cart_form_start %}
+        {% if with_controls %}
+        <form id="fc-cart-form" class="ukc-cart__grid" action="https://{{ config.store_domain }}/cart" method="post">
+            {% block cart_hidden_inputs %}
+            <input type="hidden" name="cart" value="update" />
+            <input type="hidden" name="item_count" value="{{ items|length }}" />
+            <input type="hidden" name="{{ session_name }}" value="{{ session_id }}" />
+            {# Kundentyp (privat|firma) wird clientseitig aus Cookie gesetzt #}
+            <input type="hidden" name="customer_type" id="ukc-customer-type-input" value="" />
+            {% endblock cart_hidden_inputs %}
+        {% endif %}
+        {% endblock cart_form_start %}
+
+
+
+        <div class="fc-cart__main__content fc-container__grid">
+            {% if ukc_notice is defined and ukc_notice %}
+            <div class="ukc-cart__notice ukc-small" aria-live="polite">{{ ukc_notice|raw }}</div>
+            {% endif %}
+            <div class="ukc-items">
+            <div data-fc-id="block-cart-errors">
+            {% block cart_errors %}
+            {% if context == 'cart' %}
+                {% include 'errors.inc.twig' %}
+
+                {% if item_count == 0 %}
+                    <div class="ukc-empty">
+                        <div class="ukc-empty__content">
+                            <p class="ukc-empty__title">Ihr Warenkorb ist leer</p>
+                            <a class="ukc-btn ukc-btn--primary" href="{{ cart_cancel_and_continue_link }}">Weiter einkaufen</a>
+                        </div>
+                    </div>
+                {% endif %}
+
+            {% endif %}
+            {% endblock cart_errors %}
+            </div>
+
+            <div data-fc-id="block-cart-items-divs">
+            {% block cart_items_divs %}
+            {% set checkout_sub_cancel = (context == 'checkout' and (is_subscription_cancel is defined and is_subscription_cancel == true)) %}
+            <div class="fc-cart__items {% if has_product_images %}fc-cart__items--with-images{% else %} fc-cart__items--without-images{% endif %}">
+
+                {% if false and (items|length > 0) %}
+                <div class="fc-cart__items__header fc-container__row">
+                    <div class="fc-cart__items__header__item fc-cart__items__header__column">
+                        {{ config.lang.cart_item|raw }}
+                    </div>
+                    <div class="fc-cart__items__header__totals fc-cart__items__header__column">
+                        <div class="fc-container__row">
+                            <div class="fc-cart__items__header__price">
+                                {% if (item_count != items|length) %}
+                                {{ config.lang.cart_price|raw }}
+                                {% endif %}
+                            </div>
+                            <div class="fc-cart__items__header__quantity">
+                                {{ config.lang.cart_quantity|raw }}
+                            </div>
+                            <div class="fc-cart__items__header__total">
+                                {{ config.lang.cart_total|raw }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+
+                {% if items is defined and items|length > 0 %}
+                {% for item in items %}
+                {% if has_multiship and item.multiship != "-1" %}
+                {# The first item per multiship shipto will != -1. All others will == -1 #}
+                <div class="fc-cart__multiship-header fc-container__row">
+                    <h4 class="fc-cart__multiship-header__text">
+                        {{ config.lang.cart_shipto|raw }}<strong class="fc-cart__multiship-header__ship-to">{{ item.shipto }}</strong>
+                    </h4>
+                </div>
+                {% endif %}
+
+                {# bug in twig.js keeps us from just setting a variable. hopefully this is resolved eventually #}
+                {% if has_inclusive_taxes %}{% set ukc_unit_price = item.price_each_with_tax %}{% else %}{% set ukc_unit_price = item.price_each %}{% endif %}
+                <div data-fc-item-id="{{ item.id }}" class="fc-container__row fc-cart__item ukc-row {% if item.parent_code %}fc-cart__item--child-product{% elseif item.is_parent %}fc-cart__item--parent-product{% endif %} {% if loop.last %}fc-cart__item--last{% endif %}" {% if item.code != '' %}data-item-code="{{ item.code|escape('html_attr') }}" {% endif %} data-price-each="{{ ukc_unit_price }}">
+
+                {% if loading_quantity %}
+                    <div class="fc-cart__item--updating">
+                        <div class="fc-spinner">
+                          <div class="bounce1"></div>
+                          <div class="bounce2"></div>
+                          <div class="bounce3"></div>
+                        </div>
+                    </div>
+                {% endif %}
+                    <div class="fc-cart__item__details-and-image">
+                        {% if has_product_images %}
+                        <div class="fc-cart__item__image ukc-row__thumb">
+                            {% if item.url != '' and item.image != '' %}
+                            <a href="{{ item.url }}" target="_top" alt="{{ item.alt_name }}">
+                            {% endif %}
+                                {% if item.image %}
+                                <span><img class="fc-cart__item__image__img" src="{{ item.image }}" alt="{{ item.alt_name }}" /></span>
+                                {% endif %}
+                            {% if item.url != '' and item.image != '' %}
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        <div class="fc-cart__item__details ukc-row__details">
+                            <p class="fc-cart__item__name">{{ item.name }}</p>
+                        {% block product_options %}
+                            {# Für kompaktes Reihenlayout: Optionsliste und Meta ausgeblendet #}
+                            {% set show_product_options = false %}
+                            {% set show_product_weight = false %}
+                            {% set show_product_category = false %}
+                            {% set show_product_code = false %}
+                            {% set show_sub_frequency = true %}
+                            {% set show_sub_startdate = true %}
+                            {% set show_sub_nextdate = true %}
+                            {% set show_sub_enddate = true %}
+                            {% set hidden_product_options = [] %}
+                            {% if config.template_config.cart_display_config.usage != "none" %}
+                                {% set show_product_options = config.template_config.cart_display_config.show_product_options %}
+                                {% set show_product_weight = config.template_config.cart_display_config.show_product_weight %}
+                                {% set show_product_category = config.template_config.cart_display_config.show_product_category %}
+                                {% set show_product_code = config.template_config.cart_display_config.show_product_code %}
+                                {% set show_sub_frequency = config.template_config.cart_display_config.show_sub_frequency %}
+                                {% set show_sub_startdate = config.template_config.cart_display_config.show_sub_startdate %}
+                                {% set show_sub_nextdate = config.template_config.cart_display_config.show_sub_nextdate %}
+                                {% set show_sub_enddate = config.template_config.cart_display_config.show_sub_enddate %}
+                                {% set hidden_product_options = config.template_config.cart_display_config.hidden_product_options %}
+                            {% endif %}
+                            <ul class="fc-cart__item__options">
+                                {% if show_product_options %}
+                                    {% for option in item.options %}
+                                        {% if (option.name|lower not in hidden_product_options) and (option.class|lower not in hidden_product_options) %}
+                                        <li class="fc-cart__item__option fc-cart__item__option__{{ option.class }}">
+                                            <span class="fc-cart__item__option__name">{{ option.name }}</span>:
+                                            <span class="fc-cart__item__option__value">{{ option.value }}</span>
+                                        </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+
+                                {% if item.code != '' and show_product_code %}
+                                <li class="fc-cart__item__option--code">
+                                    <span class="fc-cart__item__option__name">{{ config.lang.cart_code|raw }}</span>:
+                                    <span class="fc-cart__item__option__value">{{ item.code }}</span>
+                                </li>
+                                {% endif %}
+
+                                {% if item.category != 'DEFAULT' and show_product_category %}
+                                <li class="fc-cart__item__option--category">
+                                    <span class="fc-cart__item__option__name">{{ config.lang.cart_category|raw }}</span>:
+                                    <span class="fc-cart__item__option__value">{{ item.category }}</span>
+                                </li>
+                                {% endif %}
+
+                                {% if item.weight != 0 and show_product_weight %}
+                                <li class="fc-cart__item__option--weight">
+                                    <span class="fc-cart__item__option__name">{{ config.lang.cart_weight|raw }}</span>:
+                                    <span class="fc-cart__item__option__value">{{ item.weight }} <span class="fc-cart__item__option__value__unit">{{ weight_uom }}</span></span>
+                                </li>
+                                {% endif %}
+
+                                {% if false and item.sub_frequency != '' and (show_sub_frequency or show_sub_nextdate or show_sub_startdate or show_sub_enddate) %}
+                                <li class="fc-cart__item__option--subscription-details">
+                                    {{ config.lang.cart_subscription_details|raw }}
+                                    <ul>
+                                        {% if show_sub_frequency %}
+                                        <li class="fc-cart__item__option--subscription-frequency">
+                                            <span class="fc-cart__item__option__name">{{ config.lang.cart_frequency|raw }}</span>:
+                                            <span class="fc-cart__item__option__value">{{ item.sub_frequency }}</span>
+                                        </li>
+                                        {% endif %}
+                                        {% if show_sub_startdate %}
+                                        <li class="fc-cart__item__option--subscription-startdate">
+                                            <span class="fc-cart__item__option__name">{{ config.lang.cart_start_date|raw }}</span>:
+                                            <span class="fc-cart__item__option__value">{{ item.sub_startdate }}</span>
+                                        </li>
+                                        {% endif %}
+                                    {% if show_sub_nextdate and item.sub_enddate != item.sub_nextdate and (item.sub_enddate == "0000-00-00" or (item.sub_enddate != "0000-00-00" and item.sub_enddate > item.sub_nextdate)) %}
+                                        <li class="fc-cart__item__option--subscription-nextdate">
+                                            <span class="fc-cart__item__option__name">{{ config.lang.cart_next_date|raw }}</span>:
+                                            <span class="fc-cart__item__option__value">{{ item.sub_nextdate }}</span>
+                                        </li>
+                                    {% endif %}
+                                    {% if show_sub_enddate and item.sub_enddate != "0000-00-00" %}
+                                        <li class="fc-cart__item__option--subscription-enddate">
+                                            <span class="fc-cart__item__option__name">{{ config.lang.cart_end_date|raw }}</span>:
+                                            <span class="fc-cart__item__option__value">{{ item.sub_enddate }}</span>
+                                        </li>
+                                    {% endif %}
+                                    </ul>
+                                </li>
+                                {% endif %}
+                                {# Entfernen-Action wird rechts in der Totals-Spalte dargestellt #}
+                            </ul>
+                        {% endblock %}
+                        </div>
+                    </div>
+
+                    {# Einheitlichen Stückpreis einmal berechnen und in beiden Bereichen nutzen #}
+                    {% set ukc_piece_price = null %}
+                    {% if item.code is defined and item.code %}
+                        {% if '-' in item.code %}
+                            {% set code_parts = item.code|split('-') %}
+                            {% if code_parts|length > 1 %}
+                                {% set ukc_piece_price = code_parts[1:]|join('-')|trim %}
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                    {% if not ukc_piece_price and item.custom_fields is defined %}
+                        {% if item.custom_fields.piece_price is defined %}
+                            {% set cf = item.custom_fields.piece_price %}
+                            {% set ukc_piece_price = cf.value|default(cf)|trim %}
+                        {% elseif item.custom_fields.stuckpreis is defined %}
+                            {% set cf = item.custom_fields.stuckpreis %}
+                            {% set ukc_piece_price = cf.value|default(cf)|trim %}
+                        {% endif %}
+                    {% endif %}
+
+                    <div class="fc-cart__item__totals">
+                        <div class="fc-container__row ukc-row__actions">
+                            <div class="fc-cart__item__total ukc-row__total">
+                                {% if has_inclusive_taxes %}
+                                    {% if item.parent_code == '' or (item.parent_code != '' and item.price_with_tax > 0) %}
+                                    <p>
+                                        {{ item.price_with_tax|money_format }}
+                                    </p>
+                                    {% if ukc_piece_price %}
+                                    <p class="ukc-piece-price">({{ ukc_piece_price }} / Stück)</p>
+                                    {% endif %}
+                                    {% endif %}
+                                {% else %}
+                                    {% if item.parent_code == '' or (item.parent_code != '' and item.price > 0) %}
+                                    <p>
+                                        {{ item.price|money_format }}
+                                    </p>
+                                    {% if ukc_piece_price %}
+                                    <p class="ukc-piece-price">({{ ukc_piece_price }} / Stück)</p>
+                                    {% endif %}
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+
+                            <div class="fc-cart__item__price ukc-row__price" data-raw-code="{{ item.code|default('') }}">
+                                {# Sidecart: extrahiere stets den Teil NACH dem ersten '-' aus item.code #}
+                                {% set _code = item.code|default('') %}
+                                {% set ukc_piece_price_local = ukc_piece_price|default('') %}
+                                {% if not ukc_piece_price_local and _code %}
+                                    {% set _parts = _code|split('-') %}
+                                    {% if _parts|length > 1 %}
+                                        {% set ukc_piece_price_local = _parts|slice(1)|join('-')|trim %}
+                                    {% endif %}
+                                {% endif %}
+                                {% if ukc_piece_price_local %}
+                                <p class="ukc-piece-price">({{ ukc_piece_price_local }} / Stück)</p>
+                                {% endif %}
+                            </div>
+
+                            <div class="fc-cart__item__quantity ukc-row__qty">
+                                {% if context == 'receipt' %}
+                                <p class="text-center">{{ item.quantity }}</p>
+                                {% elseif item.parent_code == '' or (item.parent_code != '' and item.quantity_min == 0) %}
+                                {% if with_controls and checkout_sub_cancel == false %}
+                                <input type="hidden" id="id{{ item.item_number }}" name="id{{ item.item_number }}" value="{{ item.id }}" />
+                                <!-- Menge-Label ausgeblendet -->
+                                <div class="ukc-qty-control" data-fc-item-id="{{ item.id }}">
+                                    <button type="button" class="ukc-qty-btn ukc-qty-minus" aria-label="-" data-fc-id="decrement-item-quantity" data-fc-item-id="{{ item.id }}">&minus;</button>
+                                    <input class="fc-cart__item__quantity__input fc-form-control" type="number" name="quantity{{ item.item_number }}" id="quantity{{ item.item_number }}" min="1" value="{{ item.quantity }}" data-fc-id="item-quantity-input" data-fc-item-id="{{ item.id }}"/>
+                                    <button type="button" class="ukc-qty-btn ukc-qty-plus" aria-label="+" data-fc-id="increment-item-quantity" data-fc-item-id="{{ item.id }}">+</button>
+                                </div>
+                                    {% else %}
+                                    <p>{{ config.lang.cart_qty|raw }}: {{ item.quantity }}</p>
+                                    {% endif %}
+                                {% else %}
+                                    <p>{{ config.lang.cart_qty|raw }}: {{ item.quantity }}</p>
+                                {% endif %}
+                            </div>
+
+                            {% if with_controls and checkout_sub_cancel == false and (item.parent_code == '' or (item.parent_code != '' and item.quantity_min == 0)) %}
+                            <div class="ukc-row__remove">
+                                <a class="ukc-remove-btn" href="#" title="{{ config.lang.cart_remove_item }}" data-fc-id="item-remove-link" data-fc-item-id="{{ item.id }}">Entfernen</a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                </div>
+
+                {% endfor %}
+                {% endif %}
+            </div>
+
+            {% set info_string = utils.get_info_string('quantity', messages.info) %}
+            {% if info_string and context != 'cart' %}
+                <div class="alert">
+                {{ info_string }}
+                </div>
+            {% endif %}
+
+            {% endblock cart_items_divs %}
+            </div>
+            </div><!-- /.ukc-items -->
+          {# Sidecart Footer: Link zum Fullpage-Warenkorb #}
+          {# entfernt: Button-Injektion im Sidecart, da sie Konflikte verursachte #}
+        </div>
+
+
+
+        <div class="fc-sidebar fc-sidebar--cart ukc-summary">
+            {% if context != 'checkout' %}
+            {% block logo %}
+            <div class="fc-logo">
+                {% if config.store_logo_url %}
+                <img id="fc-logo" class="fc-logo__image" src="{{ config.cache_path }}{{ config.store_logo_url }}" alt="{{ config.store_name }}">
+                {% else %}
+                <h1 id="fc-logotype" class="fc-logotype">{{ config.store_name }}</h1>
+                {% endif %}
+            </div>
+            {% endblock logo %}
+            {% endif %}
+
+            <div data-fc-id="block-address-entry">
+            {% block address_entry %}
+            {% if false and context == 'checkout' and not has_multiple_addresses %}
+                {% if show_address_entry %}
+                <div class="fc-address-entry">
+                    <h4>
+                        <svg class="fc-svg-icon fc-icon-large" role="presentation">
+                        {% if shipping_address.has_live_rate_shippable_products %}
+                            <use xlink:href="#fa-truck" /></svg> {{ config.lang.cart_calculate_shipping|raw }}
+                        {% else %}
+                            <use xlink:href="#fa-bank" /></svg> {{ config.lang.cart_calculate_taxes|raw }}
+                        {% endif %}
+                    </h4>
+
+                    {% include 'postal_code.inc.twig' with {'address': shipping_address} %}
+
+                    {% if shipping_address.has_live_rate_shippable_products == false %}
+                        <div class="fc-transaction__ui">
+                            <button class="fc-transaction__ui__button fc-button" type="button" data-fc-id="change-address-button">
+                                {{ config.lang.cart_calculate|raw }}
+                            </button>
+                        </div>
+                    {% endif %}
+
+                    <div data-fc-id="block-shipping-results">
+                    {% block shipping_results %}
+                        {% if shipping_address.loading_shipping_results %}
+                            <div class="fc-spinner">
+                              <div class="bounce1"></div>
+                              <div class="bounce2"></div>
+                              <div class="bounce3"></div>
+                            </div>
+                        {% endif %}
+                        {{ utils.shipping_results(shipping_address, "fc-input-group--sidebar", messages.errors, config.lang) }}
+                        {% set error_string = utils.get_error_string('shipping-results',messages.errors) %}
+                        {% if error_string %}
+                        <div class="fc-alert fc-alert--danger">
+                            {{ error_string }}
+                        </div>
+                        {% endif %}
+                    {% endblock shipping_results %}
+                    </div><!-- data-fc-id="fc-shipping-results" -->
+                </div><!-- .fc-address-entry -->
+                {% endif %}
+            {% endif %}
+            {% endblock address_entry %}
+            </div><!-- data-fc-id="block-address-entry" -->
+
+            {% if context == 'checkout' %}
+            <div data-fc-id="block-order-totals">
+            {% block order_totals %}
+            <h3 class="fc-transaction__header" data-fc-id="ukc-order-summary-header"><span>Bestellübersicht</span></h3>
+
+            <table class="ukc-summary-table">
+                <tbody>
+                    <tr>
+                        <td class="ukc-summary-label">Zwischensumme</td>
+                        <td class="ukc-summary-value" data-ukc-subtotal>{{ total_item_price|money_format }}</td>
+                    </tr>
+                    <tr>
+                        <td class="ukc-summary-label">Mehrwertsteuer</td>
+                        <td class="ukc-summary-value" data-ukc-tax-total>
+                            {% if total_tax > 0 %}{{ total_tax|money_format }}{% else %}0,00 €{% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="ukc-summary-label">Lieferkosten</td>
+                        <td class="ukc-summary-value" data-ukc-shipping>
+                            {% if total_shipping > 0 %}{{ total_shipping|money_format }}{% else %}0,00 €{% endif %}
+                        </td>
+                    </tr>
+                    {% if coupons is defined and coupons|length > 0 %}
+                    {% for coupon in coupons %}
+                    <tr class="ukc-summary-discount">
+                        <td class="ukc-summary-label">{{ coupon.name }}{% if coupon.code %} ({{ coupon.code }}){% endif %}</td>
+                        <td class="ukc-summary-value" data-ukc-discount>
+                            {% if coupon.display is defined and coupon.display %}
+                                {{ coupon.display }}
+                            {% else %}
+                                {{ coupon.discount_amount|default(0)|money_format }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                    <tr class="ukc-summary-totalrow">
+                        <td class="ukc-summary-label ukc-bold">Gesamtpreis inkl. MwSt.</td>
+                        <td class="ukc-summary-value ukc-bold" data-ukc-total-order>{{ total_order|money_format }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="ukc-summary-sep"></div>
+
+            <div class="ukc-hint">
+                Bei den angegebenen Preisen handelt es sich um Nettobeträge. Privatkunden profitieren von 0% MwSt Gemäß §12 Abs. 3 UstG
+            </div>
+
+            {% if context == 'checkout' %}
+            <ul class="fc-transaction" data-fc-id="ukc-foxy-transaction-list">
+
+
+                {% if context == 'checkout' and shipping_address.has_shippable_products %}
+                <li class="fc-transaction__shipping fc-transaction__section">
+                    {% if context == 'cart' and not has_multiple_addresses %}
+                        <div class="fc-transaction__ui">
+                            <h5 class="fc-transaction__ui__header">{{ config.lang.cart_shipping_to|raw }}</h5>
+                            {% if shipping_address.country and shipping_address.city and show_address_entry == false %}
+                            <button data-fc-id="change-shipping-location-button" class="fc-button fc-transaction__ui__toggle" type="button">{{ config.lang.cart_change|raw }}</button>
+                            {% endif %}
+                        </div>
+                        {% if shipping_address.country and shipping_address.city %}
+                        <address class="fc-transaction__shipping-address">
+                            {{ shipping_address.city }}, {{ shipping_address.region }} {{ shipping_address.postal_code }}
+                            {% if config.template_config.foxycomplete.show_flags %}
+                            <img src="https://cdn.foxycart.com/static/images/icons/flags/famfamfam/{{ shipping_address.country|lower }}.png" alt="{{ shipping_address.country }}">
+                            {% endif %}
+                        </address>
+                        {% endif %}
+                    {% endif %}
+
+                    {% set shipping_service_label = config.lang.cart_shipping_and_handling|raw %}
+                    {% if shipping_address.shipping_service_id != 0 and shipping_address.shipping_service_description %}
+                        {% set shipping_service_label = shipping_address.shipping_service_description %}
+                    {% endif %}
+
+                    <table>
+                        <tbody class="fc-subtotal--shipping">
+                        <tr class="fc-subtotal--row">
+                            <td class="fc-subtotal__label">{{ shipping_service_label|raw }}</td>
+                            <td class="fc-subtotal__value" data-ukc-shipping>
+                            {% if has_inclusive_taxes %}
+                                {% set total_shipping_value = total_shipping_with_tax %}
+                            {% else %}
+                                {% set total_shipping_value = total_shipping %}
+                            {% endif %}
+
+                            {% if show_shipping_tbd %}
+                                {{ config.lang.cart_tbd|raw }}
+                            {% else %}
+                                {{ total_shipping_value|money_format }}
+                            {% endif %}
+
+                            <input
+                                id="total_shipping"
+                                type="hidden"
+                                name="total_shipping"
+                                value="{{ total_shipping_value }}"
+                            />
+                            <input
+                                id="total_future_shipping"
+                                type="hidden"
+                                name="total_future_shipping"
+                                value="{{ total_future_shipping }}"
+                            />
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </li>
+                {% elseif context == 'checkout' and total_shipping > 0 %}
+                <li class="fc-transaction__shipping fc-transaction__section">
+                    <table>
+                        <tbody class="fc-subtotal--shipping">
+                        <tr class="fc-subtotal--row">
+                            <td class="fc-subtotal__label">{{ shipping_and_handling_label|raw }}</td>
+                            <td class="fc-subtotal__value">
+                                {{ total_shipping|money_format }}
+                            <input
+                                id="total_shipping"
+                                type="hidden"
+                                name="total_shipping"
+                                value="{{ total_shipping }}"
+                            />
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </li>
+                {% endif %}
+
+                {% set enable_coupon_and_gift_cart_controls = ((has_eligible_coupons or has_eligible_gift_cards) and with_controls) %}
+                {% if context == 'checkout' %}
+                    {% set enable_coupon_and_gift_cart_controls = true %}
+                    {% set show_coupon_input_button = true %}
+                {% endif %}
+                {% if has_eligible_gift_cards and has_eligible_coupons %}
+                    {% set discount_lang_string = config.lang.cart_add_coupon_and_gift_card %}
+                {% elseif has_eligible_coupons %} 
+                    {% set discount_lang_string = config.lang.cart_add_coupon %}
+                {% elseif has_eligible_gift_cards %} 
+                    {% set discount_lang_string = config.lang.cart_add_gift_card %}
+                {% endif %}
+                {% if (context == 'checkout') or ((is_subscription_cancel is not defined or is_subscription_cancel != true) and (enable_coupon_and_gift_cart_controls or (coupons is defined and coupons|length > 0) or (gift_cards is defined and gift_cards|length > 0))) %}
+                <li class="fc-transaction__discounts fc-transaction__section">
+                    <div data-fc-id="block-coupon-entry">
+                    {% block coupon_entry %}
+
+                    <div class="fc-transaction__ui">
+                        <h5 class="fc-transaction__ui__header">{{ config.lang.cart_discounts|raw }}</h5>
+                        {% if enable_coupon_and_gift_cart_controls %}
+                            <button class="fc-transaction__ui__toggle fc-button" type="button" data-fc-id="show-coupon-input-button">
+                            {% if show_coupon_input_button %}
+                                {{ config.lang.cart_hide_coupon_input|raw }}
+                            {% else %}
+                                {{ discount_lang_string|raw }}
+                            {% endif %}
+                            </button>
+                        {% endif %}
+                    </div>
+
+                    {% set error_string = utils.get_error_string('coupon',messages.errors) %}
+                    {% set error_string = error_string ~ utils.get_error_string('gift_card',messages.errors) %}
+                    {% if enable_coupon_and_gift_cart_controls and show_coupon_input_button %}
+                    <div class="fc-coupon-entry--input">
+                        <input type="text"
+                            name="coupon"
+                            id="coupon"
+                            value="{{ current_coupon_code }}"
+                            class="fc-coupon-entry__input fc-form-control"
+                            placeholder="{{ config.lang.cart_coupon_code }}"
+                            autocomplete="off">
+                        <span class="fc-input-group__button">
+                            <button class="fc-button fc-coupon-entry__apply" type="button" data-fc-id="add-coupon-button">{{ config.lang.cart_apply|raw }}</button>
+                        </span>
+                    </div>
+                    {% endif %}
+
+                    {% if loading_coupons %}
+                    <div class="fc-spinner">
+                      <div class="bounce1"></div>
+                      <div class="bounce2"></div>
+                      <div class="bounce3"></div>
+                    </div>
+                    {% endif %}
+
+                    {% if error_string %}
+                    <div class="fc-alert fc-alert--warning">
+                        {{ error_string|raw }}
+                    </div>
+                    {% endif %}
+
+                    {% endblock coupon_entry %}
+                    </div><!-- data-fc-id="block-coupon-entry" -->
+
+                    {% if coupons is defined and coupons|length > 0 %}
+                    <table>
+                        {% for key,coupon_data in coupons %}
+                            {% if coupon_data is not array %}
+                                {% set coupon_data = [coupon_data] %}
+                            {% endif %}
+                            {% set coupon_code = key %}
+                            {% for i, coupon in coupon_data %}
+                                <tr class="fc-subtotal--row{% if coupon.is_applied is defined and (coupon.is_applied == false) %} fc-subtotal--row--inactive{% endif %}" data-fc-coupon-container-id="{{ coupon.id }}">
+                                    <td class="fc-subtotal__label">
+                                        <span class="fc-coupon__name">{{ coupon.name }}</span>:
+                                        <span class="fc-coupon__code">{{ coupon_code }}</span>
+                                        {% if enable_coupon_and_gift_cart_controls %}
+                                        <span class="fc-action--close">
+                                            <a href="https://{{ config.store_domain }}/cart?cart=remove_coupon&amp;coupon_code_id={{ coupon.id }}&amp;{{ session_name }}={{ session_id }}" title="{{ config.lang.cart_remove_coupon }}" data-fc-id="remove-coupon-link" data-fc-coupon-code-id="{{ coupon.id }}">
+                                                <svg class="fc-svg-icon" title="Remove Coupon" role="presentation"><use xlink:href="#fa-times-circle" /></svg>
+                                            </a>
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="fc-subtotal__value">{{ coupon.display }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% endfor %}
+                    </table>
+                    {% endif %}
+                    {% if gift_cards is defined and gift_cards|length > 0 %}
+                    <table>
+                        {% for key,gift_card_data in gift_cards %}
+                            {% if gift_card_data is not array %}
+                                {% set gift_card_data = [gift_card_data] %}
+                            {% endif %}
+                            {% set gift_card_code = key %}
+                            {% for i, gift_card in gift_card_data %}
+                                <tr class="fc-subtotal--row" data-fc-gift-card-container-id="{{ gift_card.code_id }}">
+                                    <td class="fc-subtotal__label">
+                                        <span class="fc-gift-card__name">{{ gift_card.name }}</span>:
+                                        <span class="fc-gift-card__code">{{ gift_card_code }}</span>
+                                        {% if enable_coupon_and_gift_cart_controls %}
+                                        <span class="fc-action--close">
+                                            <a href="" data-fc-id="remove-gift-card-link" data-fc-gift-card-code-id="{{ gift_card.code_id }}">
+                                                <svg class="fc-svg-icon" title="Remove Gift Card" role="presentation"><use xlink:href="#fa-times-circle" /></svg>
+                                            </a>
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="fc-subtotal__value">{{ gift_card.amount|money_format }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% endfor %}
+                    </table>
+                    {% endif %}
+                </li>
+                {% endif %}
+
+                {# detaillierte Steuerauflistung ausgeblendet – wir zeigen nur Summen oben #}
+
+                {# Gesamt inkl. Steuern unten ausgeblendet – wird oben in der Tabelle angezeigt #}
+            </ul>
+            {% endif %}
+
+            {% if context == "checkout" and (has_multiple_addresses is defined and has_multiple_addresses) and (multiship_data is defined and multiship_data|length > 1) %}
+            <div class="fc-transaction fc-transaction--multiship">
+                <button type="button" class="fc-button fc-transaction__ui__toggle" data-fc-id="button-toggle-multiship-details">{{ config.lang.cart_details|raw }}</button>
+                {% for multiship in multiship_data %}
+                <div class="fc-transaction__ui">
+                    <h5 class="fc-transaction__ui__header">{{ config.lang.cart_shipto|raw }}{{ multiship.address_name }}
+                        <span class="fc-transaction__ui__header__value">{{ multiship.total_price|money_format }}</span></h5>
+                    {% if show_multiship_details %}
+                        {% if has_inclusive_taxes %}
+                            {% set m_total_item_price = multiship.total_item_with_tax_price %}
+                            {% set m_total_shipping = multiship.total_shipping_with_tax_price %}
+                        {% else %}
+                            {% set m_total_item_price = multiship.total_item_price %}
+                            {% set m_total_shipping = multiship.total_shipping %}
+                        {% endif %}
+
+                        <table>
+                            <tr class="fc-subtotal--row">
+                                <td class="fc-subtotal__label"> {{ config.lang.checkout_shipment_subtotal|raw }}: </td>
+                                <td class="fc-subtotal__value"> {{ m_total_item_price|money_format }} </td>
+                            </tr>
+                            <tr class="fc-subtotal--row">
+                                <td class="fc-subtotal__label"> {{ multiship.shipping_service_description|raw }}: </td>
+                                <td class="fc-subtotal__value"> {{ m_total_shipping|money_format }} </td>
+                            </tr>
+                            <tr class="fc-subtotal--row">
+                                <td class="fc-subtotal__label"> {{ config.lang.checkout_shipment_tax|raw }}: </td>
+                                <td class="fc-subtotal__value"> {{ multiship.total_tax|money_format }} </td>
+                            </tr>
+                            <tr class="fc-subtotal--row">
+                                <td class="fc-subtotal__label"> {{ config.lang.checkout_shipment_total|raw }}: </td>
+                                <td class="fc-subtotal__value"> {{ multiship.total_price|money_format }} </td>
+                            </tr>
+                        </table>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+            </div>
+            {% endif %}
+
+            {% if (has_future_products is defined and has_future_products) and (is_subscription_cancel is not defined or is_subscription_cancel != true) %}
+            {% block future_products %}
+            <div class="fc-transaction fc-transaction--future">
+                {% set has_future_subscription_details = false %}
+                {% if (future_subscription_totals_by_date is defined and future_subscription_totals_by_date|length > 0) and ((has_future_shipping is defined and has_future_shipping) or (future_coupons is defined and future_coupons|length > 0) or (has_future_taxes is defined and has_future_taxes)) %}
+                    {% set has_future_subscription_details = true %}
+                {% endif %}
+                {% if (context == "cart" or context == "checkout") and has_future_subscription_details %}
+                <button type="button" class="fc-button fc-transaction__ui__toggle" data-fc-id="button-toggle-future-subscription-details">{{ config.lang.cart_details|raw }}</button>
+                {% endif %}
+                    {% if future_subscription_totals_by_date is defined and future_subscription_totals_by_date|length > 0 %}
+                    <h5 class="fc-transaction__ui__header">
+                    {% if future_subscription_totals_by_date|length > 1 %}
+                        {{ config.lang.cart_future_charges|raw }}
+                    {% else %}
+                        {{ config.lang.cart_future_charge|raw }}
+                    {% endif %}
+                    </h5>
+                    {% endif %}
+                    {% for key, subscription_item_total in future_subscription_totals_by_date %}
+                        <div class="fc-transaction__ui">
+                            <h5 class="fc-transaction__ui__header">{{ key|date("F jS, Y") }}
+                                <span class="fc-transaction__ui__header__value">{{ subscription_item_total.total|money_format }}</span>
+                            </h5>
+                        {% if has_future_subscription_details and (show_future_subscriptions_details is defined and show_future_subscriptions_details) %}
+                            <table>
+                                <tr class="fc-subtotal--row">
+                                    <td class="fc-subtotal__label"> {{ config.lang.cart_subtotal|raw }}: </td>
+                                    <td class="fc-subtotal__value">
+                                    {% if has_inclusive_taxes %}
+                                        {{ subscription_item_total.total_item_with_tax_price|money_format }}
+                                    {% else %}
+                                        {{ subscription_item_total.total_item_price|money_format }}
+                                    {% endif %}
+                                    </td>
+                                </tr>
+                                {% if future_coupons is defined and future_coupons|length > 0 %}
+                                {% for key,coupon in future_coupons %}
+                                <tr class="fc-subtotal--row fc-transaction--future__discounts">
+                                    <td class="fc-subtotal__label">{{ coupon.name }}: {{ key }}</td>
+                                    <td class="fc-subtotal__value">{{ coupon.display }}</td>
+                                </tr>
+                                {% endfor %}
+                                {% endif %}
+                                {% if has_future_shipping is defined and has_future_shipping %}
+                                <tr class="fc-subtotal--row">
+                                    <td class="fc-subtotal__label"> {{ shipping_address.future_shipping_service_description|raw }}: </td>
+                                    <td class="fc-subtotal__value">
+                                    {% if has_inclusive_taxes %}
+                                        {{ subscription_item_total.total_shipping_with_tax_price|money_format }}
+                                    {% else %}
+                                        {{ subscription_item_total.total_shipping|money_format }}
+                                    {% endif %}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% if has_future_taxes is defined and has_future_taxes %}
+                                    <tr class="fc-subtotal--row">
+                                        <td class="fc-subtotal__label"> {{ config.lang.cart_tax|raw }}: </td>
+                                        <td class="fc-subtotal__value"> {{ subscription_item_total.total_tax|money_format }} </td>
+                                    </tr>
+                                {% endif %}
+                                <tr class="fc-subtotal--row">
+                                    <td class="fc-subtotal__label"> {{ config.lang.cart_total|raw }}: </td>
+                                    <td class="fc-subtotal__value"> {{ subscription_item_total.total|money_format }} </td>
+                                </tr>
+                            </table>
+                        {% endif %}
+                        </div>
+                    {% endfor %}
+            </div>
+            {% endblock future_products %}
+            {% endif %}
+            {% endblock order_totals %}
+            </div><!-- data-fc-id="block-order-totals" -->
+            {% else %}
+            {# Cart: nur unsere Zusammenfassung ohne Foxy-Listen/Blöcke #}
+            <h3 class="fc-transaction__header" data-fc-id="ukc-order-summary-header"><span>Bestellübersicht</span></h3>
+            <table class="ukc-summary-table">
+                <tbody>
+                    <tr>
+                        <td class="ukc-summary-label">Zwischensumme</td>
+                        <td class="ukc-summary-value" data-ukc-subtotal>{{ total_item_price|money_format }}</td>
+                    </tr>
+                    <tr>
+                        <td class="ukc-summary-label">Mehrwertsteuer</td>
+                        <td class="ukc-summary-value" data-ukc-tax-total>
+                            {% if total_tax > 0 %}{{ total_tax|money_format }}{% else %}0,00 €{% endif %}
+                        </td>
+                    </tr>
+                    <tr class="ukc-summary-totalrow">
+                        <td class="ukc-summary-label ukc-bold">Gesamtpreis inkl. MwSt.</td>
+                        <td class="ukc-summary-value ukc-bold" data-ukc-total-order>{{ total_order|money_format }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="ukc-summary-sep"></div>
+            <div class="ukc-hint">Bei den angegebenen Preisen handelt es sich um Nettobeträge. Privatkunden profitieren von 0% MwSt Gemäß §12 Abs. 3 UstG</div>
+            {% endif %}
+
+
+            {% block order_payment_actions %}
+            {% if context == 'cart' %}
+            <div class="fc-actions--payment">
+            {% if items|length > 0 %}
+
+                {% block order_payment_action_checkout %}
+                <div class="ukc-checkout-section">
+                    <label class="ukc-checkout-label">Zur Kasse</label>
+                    <a class="ukc-btn ukc-btn--alt" href="https://{{ config.store_domain }}/checkout?{{ session_name }}={{ session_id }}" target="_top">Weiter zur Kasse</a>
+                </div>
+                {% endblock order_payment_action_checkout %}
+
+                {# Weitere Zahlungsmethoden (optional) #}
+                {% if payment_info_required and order_payment_options|length > 0 %}
+                <div class="ukc-more-payments-label">Weitere Zahlungsmethoden:</div>
+                <div class="ukc-payment-buttons">
+                    {% for gateway in order_payment_options %}
+                    <a class="ukc-btn ukc-btn--wallet ukc-btn--{{ gateway.name_dashed }}" data-fc-id="{{ gateway.name_dashed }}-link" href="https://{{ config.store_domain }}/checkout?ThisAction=checkout&amp;fc_payment_method={{ gateway.name }}&amp;{{ session_name }}={{ session_id }}{% if gateway.additional_params %}&amp;{{ gateway.additional_params }}{% endif %}" target="_top">
+                        {% if gateway.name_dashed == 'google_pay' or gateway.name == 'GooglePay' %}
+                            Pay with Google Pay
+                        {% else %}
+                            {{ gateway.name }}
+                        {% endif %}
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+            {% endif %}{# items|length > 0 #}
+                <div class="ukc-remove-all">
+                    <a class="ukc-btn" href="https://{{ config.store_domain }}/cart?cart=empty&amp;{{ session_name }}={{ session_id }}" data-fc-id="cart-empty-link">Alle Artikel entfernen</a>
+                </div>
+            </div>
+            {% endif %}{# context == 'cart' #}
+            {% endblock order_payment_actions %}
+        </div>
+
+
+
+        {% block cart_form_end %}
+        {% if with_controls %}
+        <script src="https://unterkonstruktion-cart.vercel.app/cart.js"></script>
+          function formatMoney(num){ return new Intl.NumberFormat(getLocale(), { style: 'currency', currency: getCurrency() }).format(num); }
+          function recalcSummary(){
+            var subtotal = 0;
+            document.querySelectorAll('.ukc-row').forEach(function(row){
+              var qtyInput = row.querySelector('input[data-fc-id="item-quantity-input"]');
+              var qty = parseInt(qtyInput?.value || '0', 10) || 0;
+              var each = parseFloat(row.getAttribute('data-price-each') || '0') || 0;
+              subtotal += each * qty;
+              var totalEl = row.querySelector('.ukc-row__total p');
+              if(totalEl){ totalEl.textContent = formatMoney(each * qty); }
+            });
+            var subEl = document.querySelector('[data-ukc-subtotal]');
+            if(subEl) subEl.textContent = formatMoney(subtotal);
+            // Sofortiges UI-Feedback für Gesamtsumme (temporär = Subtotal, bis Ajax ersetzt)
+            var totalOrderEl = document.querySelector('[data-ukc-total-order]');
+            if(totalOrderEl) totalOrderEl.textContent = formatMoney(subtotal);
+            // Steuern und Gesamtsumme werden nativ von Foxy berechnet/aktualisiert
+          }
+          function findQtyInput(itemId){
+            return document.querySelector('input[data-fc-id="item-quantity-input"][data-fc-item-id="'+itemId+'"]');
+          }
+          async function ajaxUpdate(){
+            if(!form || updating) return;
+            updating = true;
+            try{
+              var fd = new FormData(form);
+              fd.set('cart','update');
+              // Kundentyp aus Cookie in Hidden-Field spiegeln und mitsenden
+              try{
+                var cookieMatch = document.cookie.match(/(?:^|; )ukc_customer_type=([^;]+)/);
+                var val = cookieMatch ? decodeURIComponent(cookieMatch[1]) : '';
+                var inp = document.getElementById('ukc-customer-type-input');
+                if(inp) inp.value = val;
+                if(val) fd.set('customer_type', val);
+              }catch(_){}
+              // Sofort im UI vorrechnen, damit es flüssig wirkt
+              recalcSummary();
+              var res = await fetch(form.action, { method:'POST', body: fd, credentials:'include' });
+              var html = await res.text();
+              var doc = new DOMParser().parseFromString(html, 'text/html');
+              var next = doc.querySelector('#fc-cart');
+              var current = document.querySelector('#fc-cart');
+              if(next && current){ 
+                // Ersetze nur die Inhaltsbereiche, nicht die ganze Sidebar-Struktur
+                var nextSidebar = next.querySelector('.fc-sidebar--cart.ukc-summary');
+                var currSidebar = current.querySelector('.fc-sidebar--cart.ukc-summary');
+                if(nextSidebar && currSidebar){
+                  currSidebar.innerHTML = nextSidebar.innerHTML;
+                }else{
+                  current.replaceWith(next);
+                }
+                return; 
+              }
+              // Fallback: live totals/row calculation ohne kompletten Reflow
+              const locale = getLocale();
+              const currency = getCurrency();
+              // Update subtotals/total wenn vorhanden
+              const sub = doc.querySelector('[data-ukc-subtotal]');
+              const totalOrder = doc.querySelector('[data-ukc-total-order]');
+              const ship = doc.querySelector('[data-ukc-shipping]');
+              const nextContext = next?.getAttribute('data-context');
+              if(nextContext){ document.querySelectorAll('#fc-cart').forEach(function(el){ el.setAttribute('data-context', nextContext); }); }
+              if(sub){ document.querySelectorAll('[data-ukc-subtotal]').forEach(function(el){ el.innerHTML = sub.innerHTML; }); }
+              if(totalOrder){ document.querySelectorAll('[data-ukc-total-order]').forEach(function(el){ el.innerHTML = totalOrder.innerHTML; }); }
+              // Mehrwertsteuer aus neuer Seite ziehen oder lokal berechnen wenn nicht vorhanden
+              const tax = doc.querySelector('[data-ukc-tax-total]');
+              if(tax){
+                const el = document.querySelector('[data-ukc-tax-total]'); if(el) el.innerHTML = tax.innerHTML;
+              } else {
+                // Fallback: einfache Berechnung 0%/19% je nach Kundentyp (nur Anzeige)
+                var type = (document.cookie.match(/(?:^|; )ukc_customer_type=([^;]+)/)||[])[1] || 'privat';
+                var subtotalEl = document.querySelector('[data-ukc-subtotal]');
+                var taxEl = document.querySelector('[data-ukc-tax-total]');
+                var shippingEl = document.querySelector('[data-ukc-shipping]');
+                var totalEl = document.querySelector('[data-ukc-total-order]');
+                if(subtotalEl && taxEl && totalEl){
+                  var parseMoney = function(txt){ return parseFloat(String(txt).replace(/[^0-9,.-]/g,'').replace('.', '').replace(',', '.'))||0; };
+                  var formatMoney = function(num){ return new Intl.NumberFormat(locale, {style:'currency', currency}).format(num); };
+                  var subtotalVal = parseMoney(subtotalEl.textContent);
+                  var taxRate = (type === 'firma') ? 0 : 0; // Privatkunden aktuell 0% nach Vorgabe
+                  var taxVal = subtotalVal * taxRate;
+                  var shippingVal = shippingEl ? parseMoney(shippingEl.textContent) : 0;
+                  taxEl.textContent = formatMoney(taxVal);
+                  if(shippingEl) shippingEl.textContent = formatMoney(shippingVal);
+                  totalEl.textContent = formatMoney(subtotalVal + taxVal + shippingVal);
+                }
+              }
+              if(ship){ const el = document.querySelector('[data-ukc-shipping]'); if(el) el.innerHTML = ship.innerHTML; }
+
+              // Falls Kontext 'cart' ist, alle Versand-Container ausblenden (Defensivmaßnahme)
+              var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
+              if(currentContext === 'cart'){
+                document.querySelectorAll('.fc-transaction__shipping, [data-fc-id="button-toggle-multiship-details"], .fc-transaction__shipping-address').forEach(function(n){ n?.parentElement?.removeChild(n); });
+              }
+              recalcSummary();
+              
+              // Tax-Berechnung im Checkout und Cart triggern
+              if(currentContext === 'checkout' || currentContext === 'cart'){
+                var customerType = getCustomerType();
+                
+                // Customer Type direkt in billing_company setzen (wird immer übertragen)
+                if(typeof FC !== 'undefined' && FC.cart) {
+                  // Speichere ursprünglichen Wert
+                  if(!FC.cart._original_billing_company) {
+                    FC.cart._original_billing_company = FC.cart.billing_company || '';
+                  }
+                  // Setze customer_type als billing_company
+                  FC.cart.billing_company = customerType;
+                }
+                
+                // Zusätzlich: Customer Type Input setzen falls vorhanden
+                var customerTypeInput = document.getElementById('customer_type');
+                if(customerTypeInput){
+                  customerTypeInput.value = customerType;
+                }
+                
+                // Keine manuellen Steuer-Trigger mehr
+                if(currentContext === 'cart') {
+                  // Im cart Context: Cart-Update triggern, damit der customer_type übertragen wird
+                  if(typeof FC !== 'undefined' && FC.cart && FC.cart.updateHash) {
+                    FC.cart.updateHash();
+                  }
+                }
+              }
+              
+              // Bestellnummer nach AJAX-Update wiederherstellen
+              setTimeout(function(){
+                generatePurchaseOrderNumber();
+                // Zusätzliche Sicherheit: Alle PO-Felder im DOM finden und readonly machen
+                var allPOInputs = document.querySelectorAll('#purchase_order');
+                allPOInputs.forEach(function(input) {
+                  var storedPONumber = sessionStorage.getItem('ukc_po_number');
+                  if(storedPONumber) {
+                    input.value = storedPONumber;
+                    setPOFieldReadonly(input);
+                  }
+                });
+              }, 100);
+            }catch(e){
+              if(form) form.submit();
+            }finally{
+              updating = false;
+            }
+          }
+          // Kundentyp ableiten: Wenn Firmenname gesetzt => firmenkunde, sonst privat
+          function getCustomerType(){
+            try {
+              if (typeof FC !== 'undefined' && FC.cart) {
+                var company = (FC.cart.billing_company || FC.cart.shipping_company || '').trim();
+                if(company.length > 0) return 'firmenkunde';
+              }
+            } catch(e) {}
+            // Fallback via Cookie (falls vorhanden)
+            var cookies = document.cookie.split(';');
+            for(var i = 0; i < cookies.length; i++){
+              var cookie = cookies[i].trim();
+              if(cookie.indexOf('ukc_customer_type=') === 0){
+                var value = cookie.substring('ukc_customer_type='.length);
+                return value || 'privat';
+              }
+            }
+            return 'privat';
+          }
+          
+          // Firmenname in Foxy setzen (Foxy berechnet Steuern nativ)
+          function applyCompanyAndTriggerTax(){
+            var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
+            if(typeof FC === 'undefined' || !FC.cart) {
+              return;
+            }
+            
+            // Erweitere Suche nach Company-Feldern
+            var billingSelectors = [
+              '#billing_company',
+              'input[name="billing_company"]',
+              'input[data-fc-name="billing_company"]',
+              'input[id*="billing"][id*="company"]',
+              'input[name*="billing"][name*="company"]'
+            ];
+            
+            var shippingSelectors = [
+              '#shipping_company',
+              'input[name="shipping_company"]',
+              'input[data-fc-name="shipping_company"]',
+              'input[id*="shipping"][id*="company"]',
+              'input[name*="shipping"][name*="company"]'
+            ];
+            
+            var billingCompany = '';
+            var shippingCompany = '';
+            
+            // Suche billing company
+            for(var i = 0; i < billingSelectors.length; i++) {
+              var el = document.querySelector(billingSelectors[i]);
+              if(el && el.value) {
+                billingCompany = el.value.trim();
+                break;
+              }
+            }
+            
+            // Suche shipping company
+            for(var i = 0; i < shippingSelectors.length; i++) {
+              var el = document.querySelector(shippingSelectors[i]);
+              if(el && el.value) {
+                shippingCompany = el.value.trim();
+                break;
+              }
+            }
+            
+            
+            // Setze beide Felder in FC.cart
+            FC.cart.billing_company = billingCompany;
+            FC.cart.shipping_company = shippingCompany;
+            
+            // Zusätzlich: Setze auch in den hidden inputs (falls vorhanden)
+            var hiddenBilling = document.querySelector('input[name="billing_company"], input[data-fc-name="billing_company"]');
+            var hiddenShipping = document.querySelector('input[name="shipping_company"], input[data-fc-name="shipping_company"]');
+            
+            if(hiddenBilling) hiddenBilling.value = billingCompany;
+            if(hiddenShipping) hiddenShipping.value = shippingCompany;
+            
+            if(currentContext === 'checkout') { maybeTriggerFoxy(); }
+          }
+          
+          // Kundentyp-Änderung behandeln (ohne eigene Tax-Aufrufe)
+          function triggerTaxCalculation(){
+            var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
+            
+            // Tax-Berechnung sowohl im cart als auch im checkout Context
+            if(currentContext === 'checkout' || currentContext === 'cart'){
+              var customerType = getCustomerType();
+              
+              // Firmenname aus Eingabe übernehmen (falls Feld vorhanden)
+              try { applyCompanyAndTriggerTax(); } catch(e) {}
+              
+              // Zusätzlich: Customer Type Input (falls vorhanden) nur informativ setzen
+              var customerTypeInput = document.getElementById('customer_type');
+              if(customerTypeInput){ customerTypeInput.value = customerType; }
+              
+              // Keine manuellen Steuer-Requests mehr – Foxy aktualisiert die Beträge selbst
+              } else {
+            }
+          }
+          
+          
+          
+          // Sicherstellen dass Billing-Adresse sichtbar ist
+          function ensureBillingAddressVisible() {
+            var billingBlocks = [
+              '[data-fc-id="block-billing-address"]',
+              '.fc-transaction__billing',
+              '.fc-container__grid--billing',
+              '.fc-container__grid--billing-address'
+            ];
+            
+            billingBlocks.forEach(function(selector) {
+              var elements = document.querySelectorAll(selector);
+              elements.forEach(function(el) {
+                if(el) {
+                  el.style.display = 'block';
+                  el.style.visibility = 'visible';
+                }
+              });
+            });
+            
+            // Billing company field sichtbar machen
+            var companyFields = [
+              'input[name="billing_company"]',
+              'input[data-fc-name="billing_company"]',
+              '#billing_company'
+            ];
+            
+            companyFields.forEach(function(selector) {
+              var field = document.querySelector(selector);
+              if(field) {
+                field.style.display = 'block';
+                field.style.visibility = 'visible';
+              }
+            });
+          }
+          
+          // Billing-Adresse beim Laden sichtbar machen
+          ensureBillingAddressVisible();
+          
+          // Auch nach AJAX-Updates
+          setTimeout(ensureBillingAddressVisible, 1000);
+          setTimeout(ensureBillingAddressVisible, 3000);
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          // Checkout: Listener für Firmenname, debounced Tax/Shipping Trigger
+          function debounce(fn, wait){ let t; return function(){ clearTimeout(t); t = setTimeout(fn, wait); }; }
+          function getVal(sel){ var el = document.querySelector(sel); return (el && el.value ? String(el.value).trim() : ''); }
+          function hasValidAddress(){
+            var bc = getVal('[data-fc-name="billing_country"], input[name="billing_country"]');
+            var bp = getVal('[data-fc-name="billing_postal_code"], input[name="billing_postal_code"]');
+            var sc = getVal('[data-fc-name="shipping_country"], input[name="shipping_country"]');
+            var sp = getVal('[data-fc-name="shipping_postal_code"], input[name="shipping_postal_code"]');
+            return (bc && bp) || (sc && sp);
+          }
+          var maybeTriggerFoxy = debounce(function(){
+            if(typeof FC === 'undefined') return;
+            var isCheckout = document.querySelector('#fc-cart')?.getAttribute('data-context') === 'checkout';
+            if(!isCheckout) return;
+            
+            // Bei Company-Änderung auch ohne vollständige Adresse Tax triggern, Foxy darf 0% liefern
+            if(!hasValidAddress()){
+              return;
+            }
+            
+            // Shipping triggern
+            try{ FC.checkout && FC.checkout.shipping && FC.checkout.shipping.get_shipping_and_handling && FC.checkout.shipping.get_shipping_and_handling(); }catch(_){ }
+          }, 400);
+          // Hilfsfunktion: hidden Inputs für billing_company / shipping_company sicherstellen
+          function ensureCompanyHiddenInputs(){
+            var form = document.querySelector('[data-fc-id="checkout-form"]') ||
+                       document.querySelector('#fc-checkout-form') ||
+                       document.querySelector('form[action*="foxy"]') ||
+                       document.querySelector('form');
+            if(!form) return { billing: null, shipping: null };
+            var billing = form.querySelector('input[name="billing_company"], input[data-fc-name="billing_company"]');
+            var shipping = form.querySelector('input[name="shipping_company"], input[data-fc-name="shipping_company"]');
+            // Falls sichtbares Feld existiert, aber kein data-fc-name/trigger gesetzt ist: ergänzen
+            if(billing && !billing.getAttribute('data-fc-name')){
+              billing.setAttribute('data-fc-name','billing_company');
+              billing.setAttribute('data-fc-tax-trigger','true');
+            }
+            if(shipping && !shipping.getAttribute('data-fc-name')){
+              shipping.setAttribute('data-fc-name','shipping_company');
+              shipping.setAttribute('data-fc-tax-trigger','true');
+            }
+            if(!billing){
+              billing = document.createElement('input');
+              billing.type='hidden';
+              billing.name='billing_company';
+              billing.setAttribute('data-fc-name','billing_company');
+              billing.setAttribute('data-fc-tax-trigger','true');
+              billing.id='ukc_billing_company_hidden';
+              form.appendChild(billing);
+            }
+            if(!shipping){
+              shipping = document.createElement('input');
+              shipping.type='hidden';
+              shipping.name='shipping_company';
+              shipping.setAttribute('data-fc-name','shipping_company');
+              shipping.setAttribute('data-fc-tax-trigger','true');
+              shipping.id='ukc_shipping_company_hidden';
+              form.appendChild(shipping);
+            }
+            return { billing: billing, shipping: shipping };
+          }
+
+          // Sync-Funktion: sichtbare Felder -> hidden Inputs -> FC.cart (nur bei echten Änderungen)
+          function syncCompanyFields(){
+            var refs = ensureCompanyHiddenInputs();
+            var visibleBilling = document.querySelector('#billing_company') ||
+                                 document.querySelector('input[name="billing_company"]') ||
+                                 document.querySelector('input[data-fc-name="billing_company"]');
+            var visibleShipping = document.querySelector('#shipping_company') ||
+                                  document.querySelector('input[name="shipping_company"]') ||
+                                  document.querySelector('input[data-fc-name="shipping_company"]');
+            var billingVal = (visibleBilling && visibleBilling !== refs.billing) ? (visibleBilling.value||'') : (refs.billing?.value||'');
+            var shippingVal = (visibleShipping && visibleShipping !== refs.shipping) ? (visibleShipping.value||'') : (refs.shipping?.value||'');
+            var prevBill = window.__ukc_prev_billing_company || '';
+            var prevShip = window.__ukc_prev_shipping_company || '';
+            var changedBill = String(billingVal||'') !== String(prevBill||'');
+            var changedShip = String(shippingVal||'') !== String(prevShip||'');
+            
+            
+            if(refs.billing){ refs.billing.value = billingVal; if(changedBill){ try{ refs.billing.dispatchEvent(new Event('change',{bubbles:true})); }catch(_){ } } }
+            if(refs.shipping){ refs.shipping.value = shippingVal; if(changedShip){ try{ refs.shipping.dispatchEvent(new Event('change',{bubbles:true})); }catch(_){ } } }
+            if(typeof FC !== 'undefined' && FC.cart){
+              if(changedBill) FC.cart.billing_company = billingVal;
+              if(changedShip) FC.cart.shipping_company = shippingVal;
+            }
+            if(changedBill || changedShip){
+              window.__ukc_prev_billing_company = billingVal;
+              window.__ukc_prev_shipping_company = shippingVal;
+              maybeTriggerFoxy();
+            }
+          }
+
+          // Listener an sichtbare Felder
+          (function attachCompanyListeners(){
+            var debounced = debounce(function(){ syncCompanyFields(); applyCompanyAndTriggerTax(); }, 250);
+            ['#billing_company','input[name="billing_company"]','input[data-fc-name="billing_company"]','#shipping_company','input[name="shipping_company"]','input[data-fc-name="shipping_company"]']
+              .forEach(function(sel){
+                var el = document.querySelector(sel);
+                if(el){ ['input','change','blur'].forEach(function(evt){ el.addEventListener(evt, debounced); }); }
+              });
+            // Falls Foxy Felder dynamisch rendert: nochmals nach kurzer Zeit anhängen
+            setTimeout(function(){
+              ['#billing_company','input[name="billing_company"]','input[data-fc-name="billing_company"]']
+                .forEach(function(sel){
+                  var el = document.querySelector(sel);
+                  if(el){ ['input','change','blur'].forEach(function(evt){ el.addEventListener(evt, debounced); }); }
+                });
+            }, 800);
+          })();
+
+          // Seltener Fallback-Sync gegen DOM-Replacements
+          // setInterval(syncCompanyFields, 3000); // Deaktiviert um Console-Spam zu vermeiden
+          
+          // Test-Funktion: Manuell Kundentyp setzen (für Debugging)
+          window.testCustomerType = function(type) {
+            document.cookie = 'ukc_customer_type=' + type + '; path=/';
+            triggerTaxCalculation();
+          };
+          
+          // Test-Funktion: Alle Cookies anzeigen
+          window.showCookies = function() {
+          };
+          
+          // Tax-Berechnung bei Cookie-Änderungen triggern
+          var originalSetCookie = document.cookie;
+          setInterval(function(){
+            if(document.cookie !== originalSetCookie){
+              originalSetCookie = document.cookie;
+              triggerTaxCalculation();
+            }
+          }, 1000);
+          
+          // Hilfsfunktion: alle möglichen Purchase-Order-Felder finden (verschiedene Renderpfade)
+          function getPOInputs(){
+            var nodes = [];
+            try{
+              ['#purchase_order','[name="purchase_order"]','[data-fc-name="purchase_order"]'].forEach(function(sel){
+                document.querySelectorAll(sel).forEach(function(n){ if(n && nodes.indexOf(n) === -1) nodes.push(n); });
+              });
+            }catch(_){ }
+            return nodes;
+          }
+          
+          // Purchase Order Feld permanent readonly machen
+          function setPOFieldReadonly(poInput) {
+            if(poInput) {
+              poInput.readOnly = true;
+              try{ poInput.setAttribute('readonly','readonly'); }catch(_){}
+              poInput.disabled = false; // disabled = true würde das Feld grau machen, aber wir wollen es nur readonly
+              poInput.style.backgroundColor = '#f8f9fa';
+              poInput.style.cursor = 'not-allowed';
+              poInput.style.color = '#6c757d';
+              
+              // Zusätzliche Sicherheit: Event-Listener entfernen
+              poInput.onclick = function(e) { e.preventDefault(); return false; };
+              poInput.onkeydown = function(e) { e.preventDefault(); return false; };
+              poInput.onkeyup = function(e) { e.preventDefault(); return false; };
+              poInput.onkeypress = function(e) { e.preventDefault(); return false; };
+              poInput.oninput = function(e) { e.preventDefault(); return false; };
+              poInput.onpaste = function(e) { e.preventDefault(); return false; };
+            }
+          }
+          
+          // Automatische Bestellnummer für Purchase Order generieren
+          function generatePurchaseOrderNumber(){
+            var inputs = getPOInputs();
+            var poInput = inputs[0];
+            if(poInput){
+              // Prüfe ob bereits eine Bestellnummer im Session Storage gespeichert ist
+              var storedPONumber = sessionStorage.getItem('ukc_po_number');
+              
+              if(storedPONumber) {
+                // Verwende gespeicherte Bestellnummer
+                inputs.forEach(function(input){ input.value = storedPONumber; setPOFieldReadonly(input); });
+              } else if(!poInput.value) {
+                // Generiere neue Bestellnummer nur wenn keine vorhanden ist
+                var now = new Date();
+                var year = now.getFullYear();
+                var month = String(now.getMonth() + 1).padStart(2, '0');
+                var day = String(now.getDate()).padStart(2, '0');
+                var hours = String(now.getHours()).padStart(2, '0');
+                var minutes = String(now.getMinutes()).padStart(2, '0');
+                var seconds = String(now.getSeconds()).padStart(2, '0');
+                var random = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+                
+                // Prüfen ob Nutzer eingeloggt ist und PBI-Attribut hat
+                var customerId = document.querySelector('#customer_id')?.value;
+                var isLoggedIn = customerId && customerId !== '0';
+                var pbiValue = null;
+                
+                // Versuche PBI-Wert aus Custom Attributes zu holen (nur für eingeloggte Nutzer)
+                if(isLoggedIn) {
+                  try {
+                    // Prüfe ob Foxy-Daten verfügbar sind
+                    if(typeof FC !== 'undefined' && FC.cart && FC.cart.customer && FC.cart.customer.attributes) {
+                      var attributes = FC.cart.customer.attributes;
+                      for(var i = 0; i < attributes.length; i++) {
+                        if(attributes[i].name === 'PBI') {
+                          pbiValue = attributes[i].value;
+                          break;
+                        }
+                      }
+                    }
+                  } catch(e) {
+                  }
+                }
+                
+                var poNumber;
+                if(isLoggedIn && pbiValue) {
+                  // Für eingeloggte Nutzer MIT PBI-Attribut: PBI-WERT-YYYYMMDD-HHMMSS-XXXX Format
+                  poNumber = 'PBI-' + pbiValue + '-' + year + month + day + '-' + hours + minutes + seconds + '-' + random;
+                } else {
+                  // Für alle anderen (Gäste und eingeloggte Nutzer ohne PBI): Standard UKC-Format
+                  poNumber = 'UKC-' + year + month + day + '-' + hours + minutes + seconds + '-' + random;
+                }
+                
+                // Speichere Bestellnummer im Session Storage
+                sessionStorage.setItem('ukc_po_number', poNumber);
+                
+                // auf alle gefundenen Felder anwenden
+                inputs.forEach(function(input){ input.value = poNumber; setPOFieldReadonly(input); });
+              }
+            }
+          }
+          
+          // Bestellnummer beim Laden generieren
+          generatePurchaseOrderNumber();
+          // nach kurzem Delay erneut (falls PO erst spät gerendert wird)
+          setTimeout(generatePurchaseOrderNumber, 300);
+          setTimeout(generatePurchaseOrderNumber, 1000);
+          // Observer aktivieren, falls Feld später in den DOM kommt
+          setTimeout(function(){ try{ setupPOFieldObserver(); }catch(_){ } }, 200);
+          
+          // Bestellnummer auch bei Payment-Method-Wechsel generieren
+          document.addEventListener('change', function(ev){
+            if(ev.target && ev.target.name === 'fc_payment_method' && ev.target.value === 'purchase_order'){
+              setTimeout(function(){
+                try{ generatePurchaseOrderNumber(); }catch(_){}
+                try{ setupPOFieldObserver(); }catch(_){}
+              }, 100);
+            }
+          });
+          
+          // Direkter Event-Listener für Versandmethoden-Änderungen
+          document.addEventListener('change', function(ev){
+            // Prüfe ob es ein Versandmethoden-Radio-Button ist
+            if(ev.target && ev.target.type === 'radio' && ev.target.name && ev.target.name.includes('shipping')) {
+              setTimeout(function(){
+                var allPOInputs = getPOInputs();
+                allPOInputs.forEach(function(input) {
+                  var storedPONumber = sessionStorage.getItem('ukc_po_number');
+                  if(storedPONumber) {
+                    input.value = storedPONumber;
+                    setPOFieldReadonly(input);
+                  }
+                });
+              }, 200);
+            }
+          });
+          
+          // Zusätzlicher Event-Listener für alle Klicks auf Versandoptionen
+          document.addEventListener('click', function(ev){
+            // Prüfe ob auf eine Versandoption geklickt wurde
+            if(ev.target && (ev.target.closest('.fc-shipping-rates__rate') || ev.target.closest('[data-fc-id="shipping-results"]'))) {
+              setTimeout(function(){
+                var allPOInputs = getPOInputs();
+                allPOInputs.forEach(function(input) {
+                  var storedPONumber = sessionStorage.getItem('ukc_po_number');
+                  if(storedPONumber) {
+                    input.value = storedPONumber;
+                    setPOFieldReadonly(input);
+                  }
+                });
+              }, 300);
+            }
+          });
+
+          // Sobald Foxy Checkout-Section Payment aktiv wird, nochmal setzen
+          document.addEventListener('fc:payment:method:ready', function(){
+            setTimeout(function(){ try{ generatePurchaseOrderNumber(); setupPOFieldObserver(); }catch(_){ } }, 50);
+          });
+          
+          // MutationObserver für Purchase Order Feld - überwacht Änderungen am DOM
+          function setupPOFieldObserver() {
+            var poInput = document.getElementById('purchase_order') || document.querySelector('[name="purchase_order"]') || document.querySelector('[data-fc-name="purchase_order"]');
+            if(poInput) {
+              // Observer für das spezifische Feld
+              var observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                  if(mutation.type === 'attributes' && mutation.attributeName === 'readonly') {
+                    // Falls readonly-Attribut entfernt wurde, wieder hinzufügen
+                    if(!poInput.readOnly) {
+                      setPOFieldReadonly(poInput);
+                    }
+                  }
+                });
+              });
+              
+              // Beobachte Änderungen an Attributen
+              observer.observe(poInput, { 
+                attributes: true, 
+                attributeFilter: ['readonly', 'disabled', 'style'] 
+              });
+              
+              // Zusätzlicher Observer für das gesamte Dokument (falls Feld neu erstellt wird)
+              var docObserver = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                  if(mutation.type === 'childList') {
+                    mutation.addedNodes.forEach(function(node) {
+                      if(node.nodeType === 1) { // Element node
+                        var newPOInput = null;
+                        try{
+                          newPOInput = node.querySelector ? (node.querySelector('#purchase_order') || node.querySelector('[name="purchase_order"]') || node.querySelector('[data-fc-name="purchase_order"]')) : null;
+                        }catch(_){ }
+                        if(newPOInput || node.id === 'purchase_order') {
+                          var targetInput = newPOInput || node;
+                          setTimeout(function() {
+                            var storedPONumber = sessionStorage.getItem('ukc_po_number');
+                            if(storedPONumber) {
+                              targetInput.value = storedPONumber;
+                              setPOFieldReadonly(targetInput);
+                            } else {
+                              // Noch keine Nummer vorhanden -> jetzt erzeugen
+                              try{ generatePurchaseOrderNumber(); }catch(_){ }
+                            }
+                          }, 50);
+                        }
+                      }
+                    });
+                  }
+                });
+              });
+              
+              // Beobachte das gesamte Dokument
+              docObserver.observe(document.body, { 
+                childList: true, 
+                subtree: true 
+              });
+            }
+          }
+          
+          // Observer nach kurzer Verzögerung einrichten
+          setTimeout(setupPOFieldObserver, 500);
+          
+          // Kontinuierlicher Check alle 2 Sekunden
+          setInterval(function(){
+            var allPOInputs = getPOInputs();
+            allPOInputs.forEach(function(input) {
+              var storedPONumber = sessionStorage.getItem('ukc_po_number');
+              if(!storedPONumber){ try{ generatePurchaseOrderNumber(); storedPONumber = sessionStorage.getItem('ukc_po_number'); }catch(_){ } }
+              if(storedPONumber && (input.value !== storedPONumber || !input.readOnly || !input.hasAttribute('readonly'))) {
+                input.value = storedPONumber;
+                setPOFieldReadonly(input);
+              }
+            });
+          }, 2000);
+          
+          // Event-Listener für direkte Input-Änderungen bei Produktmengen
+          document.addEventListener('input', function(ev){
+            var input = ev.target;
+            if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
+              var id = input.getAttribute('data-fc-item-id');
+              if(id){
+                // Mindestwert sicherstellen
+                var value = parseInt(input.value || '1', 10) || 1;
+                if(value < 1) value = 1;
+                input.value = value;
+                
+                // Sofortige UI-Aktualisierung
+                recalcSummary();
+                ajaxUpdate();
+              }
+            }
+          });
+          
+          // Hilfsfunktion: liegt das Ziel im Sidecart?
+          function isInSidecart(node){
+            return !!(node && node.closest && node.closest('[data-fc-sidecart]'));
+          }
+          
+          document.addEventListener('click', function(ev){
+            var btn = ev.target.closest('.ukc-qty-btn');
+            if(btn && isInSidecart(btn)){
+              ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
+              var id = btn.getAttribute('data-fc-item-id');
+              var input = findQtyInput(id);
+              if(!input) return;
+              var current = parseInt(input.value || '1', 10) || 1;
+              if(btn.classList.contains('ukc-qty-minus')){
+                current = Math.max(1, current - 1);
+              }else{
+                current = current + 1;
+              }
+              input.value = current;
+              recalcSummary();
+              ajaxUpdate();
+              return;
+            }
+            var rm = ev.target.closest('.ukc-remove-btn');
+            if(rm && isInSidecart(rm)){
+              ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
+              var idr = rm.getAttribute('data-fc-item-id');
+              var row = document.querySelector('[data-fc-item-id="' + idr + '"]');
+              
+              // Sofortige visuelle Animation: Element ausblenden
+              if(row){
+                row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(-20px)';
+                
+                // Nach Animation entfernen
+                setTimeout(function(){
+                  if(row && row.parentNode){
+                    row.parentNode.removeChild(row);
+                  }
+                }, 300);
+              }
+              
+              var inp = findQtyInput(idr);
+              if(inp){ inp.value = 0; }
+              recalcSummary();
+              ajaxUpdate();
+              
+              // Prüfen, ob noch Items vorhanden sind
+              setTimeout(function(){
+                var remainingRows = document.querySelectorAll('.ukc-row[data-fc-item-id]');
+                if(remainingRows.length === 0){
+                  showEmptyCartMessage();
+                }
+              }, 400);
+              return;
+            }
+          }, false);
+
+          // Sidecart-Only: Footer-Button per JS sanft hinzufügen (nicht in Vorlage injizieren)
+          (function(){
+            var added = false;
+            function addFooter(){
+              if(added) return;
+              var root = document.querySelector('[data-fc-sidecart]');
+              if(!root) return;
+              var main = root.querySelector('.fc-cart__main__content.fc-container__grid');
+              if(!main) return;
+              if(main.querySelector('[data-ukc-go-fullcart]')){ added = true; return; }
+              var a = document.createElement('a');
+              a.className = 'ukc-btn ukc-btn--alt';
+              a.setAttribute('data-ukc-go-fullcart','');
+              a.href = 'https://' + (window.ukcStoreDomain || '{{ config.store_domain }}') + '/cart?{{ session_name }}={{ session_id }}';
+              a.target = '_top';
+              a.textContent = 'Zum Warenkorb';
+              var wrap = document.createElement('div');
+              wrap.className = 'ukc-sidecart-footer';
+              wrap.style.margin = '16px 16px 24px';
+              wrap.appendChild(a);
+              main.appendChild(wrap);
+              a.addEventListener('click', function(e){
+                e.preventDefault(); e.stopPropagation();
+                try { window.top.location.href = a.href; } catch(_){ window.location.href = a.href; }
+              });
+              added = true;
+            }
+            setTimeout(addFooter, 400);
+            document.addEventListener('fc-render-complete', addFooter);
+          })();
+
+          // Event-Listener für "Alle entfernen" Button
+          document.addEventListener('click', function(ev) {
+            var emptyBtn = ev.target.closest('[data-fc-id="cart-empty-link"]');
+            if(emptyBtn){
+              ev.preventDefault();
+              
+              // Alle Item-Rows finden und animiert entfernen
+              var allRows = document.querySelectorAll('.ukc-row[data-fc-item-id]');
+              allRows.forEach(function(row, index){
+                setTimeout(function(){
+                  row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                  row.style.opacity = '0';
+                  row.style.transform = 'translateX(-20px)';
+                  
+                  setTimeout(function(){
+                    if(row && row.parentNode){
+                      row.parentNode.removeChild(row);
+                    }
+                  }, 300);
+                }, index * 100); // Gestaffelte Animation
+              });
+              
+              // Summary zurücksetzen und leere Nachricht anzeigen
+              setTimeout(function(){
+                recalcSummary();
+                ajaxUpdate();
+                
+                // Leere Nachricht anzeigen, wenn alle Items entfernt wurden
+                showEmptyCartMessage();
+              }, allRows.length * 100 + 400);
+            }
+          }, false);
+
+          // Funktion zum Anzeigen der leeren Warenkorb-Nachricht
+          function showEmptyCartMessage(){
+            var itemsContainer = document.querySelector('.ukc-items');
+            if(!itemsContainer) return;
+            
+            // Prüfen, ob bereits eine leere Nachricht vorhanden ist
+            var existingEmpty = itemsContainer.querySelector('.ukc-empty');
+            if(existingEmpty) return;
+            
+            // Leere Nachricht erstellen
+            var emptyDiv = document.createElement('div');
+            emptyDiv.className = 'ukc-empty';
+            emptyDiv.innerHTML = '<div class="ukc-empty__content"><p class="ukc-empty__title">Ihr Warenkorb ist leer</p><a class="ukc-btn ukc-btn--primary" href="https://unterkonstruktion.de/">Weiter einkaufen</a></div>';
+            
+            // Mit Animation einblenden
+            emptyDiv.style.opacity = '0';
+            emptyDiv.style.transform = 'translateY(20px)';
+            itemsContainer.appendChild(emptyDiv);
+            
+            // Animation starten
+            setTimeout(function(){
+              emptyDiv.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+              emptyDiv.style.opacity = '1';
+              emptyDiv.style.transform = 'translateY(0)';
+            }, 50);
+          }
+
+          // Versand neu laden, wenn im CHECKOUT die Adresse per "Adresse suchen" gesetzt wird
+          function triggerShippingRefresh(){
+            try{
+              var isCheckout = document.querySelector('#fc-cart')?.getAttribute('data-context') === 'checkout';
+              if(!isCheckout) return;
+              if(!hasValidAddress()) return; // unvollständige Adresse -> nicht triggern (verhindert Flackern)
+              if(window.FC && FC.checkout && FC.checkout.shipping && typeof FC.checkout.shipping.get_shipping_and_handling === 'function'){
+                maybeTriggerFoxy();
+              } else {
+                ['shipping_country','shipping_postal_code','shipping_city'].forEach(function(name){
+                  var el = document.querySelector('[name="'+name+'"]');
+                  if(el){ el.dispatchEvent(new Event('change', { bubbles:true })); }
+                });
+              }
+            }catch(_){/* noop */}
+          }
+          // Button "Adresse suchen"
+          document.addEventListener('click', function(e){
+            if(e.target.closest('.fc-postal-code-entry__submit .fc-button')){
+              setTimeout(triggerShippingRefresh, 300);
+            }
+          });
+          // Autocomplete Auswahl-Event
+          document.addEventListener('awesomecomplete:select', function(){ setTimeout(triggerShippingRefresh, 200); });
+          // Direkte Änderungen an Land/PLZ/Ort
+          ['shipping_country','shipping_postal_code','shipping_city'].forEach(function(name){
+            var el = document.querySelector('[name="'+name+'"]');
+            if(el){ el.addEventListener('change', function(){ setTimeout(triggerShippingRefresh, 100); }); }
+          });
+
+          // Pflichtfeld-Validierung: Beim Klick auf Kaufen-Buttons fehlende Werte rot markieren
+          function markInvalidRequiredFields(){
+            try{
+              var form = document.querySelector('#fc-cart-form') || document.querySelector('form[action*="/checkout"]') || document.querySelector('form');
+              if(!form) return;
+              var requiredSelectors = [
+                '[data-fc-required]',
+                '[required]'
+              ];
+              var inputs = form.querySelectorAll(requiredSelectors.join(','));
+              inputs.forEach(function(input){
+                var val = (input.value || '').trim();
+                var isCheckbox = input.type === 'checkbox' || input.type === 'radio';
+                var invalid = isCheckbox ? !input.checked : val.length === 0;
+                if(invalid){
+                  input.classList.add('ukc-invalid');
+                  var group = input.closest('.fc-form-group');
+                  if(group){ group.classList.add('ukc-has-error'); }
+                } else {
+                  input.classList.remove('ukc-invalid');
+                  var group2 = input.closest('.fc-form-group');
+                  if(group2){ group2.classList.remove('ukc-has-error'); }
+                }
+              });
+            }catch(_){ }
+          }
+          // Auf alle relevanten Submit-/Kaufen-Buttons hängen
+          document.addEventListener('click', function(e){
+            var submitBtn = e.target.closest('.fc-button--submit, [data-fc-id="cart-continue-button"], [type="submit"], .fc-actions .fc-button--checkout');
+            if(submitBtn){ markInvalidRequiredFields(); }
+          }, true);
+
+          // Coupon-Discount in ukc-summary-table aktualisieren
+          function updateCouponInSummaryTable(){
+            try{
+              var context = document.querySelector('#fc-cart')?.getAttribute('data-context');
+              if(context !== 'checkout') return;
+              
+              // Falsch platzierte Coupon-Zeile finden
+              var wrongCouponRow = document.querySelector('tr.fc-subtotal--row[data-fc-coupon-container-id]');
+              if(!wrongCouponRow) return;
+              
+              // Coupon-Info extrahieren
+              var couponName = wrongCouponRow.querySelector('.fc-coupon__name')?.textContent?.trim();
+              var couponCode = wrongCouponRow.querySelector('.fc-coupon__code')?.textContent?.trim();
+              var couponValue = wrongCouponRow.querySelector('.fc-subtotal__value')?.textContent?.trim();
+              
+              if(!couponName || !couponValue) return;
+              
+              // ukc-summary-table finden
+              var summaryTable = document.querySelector('.ukc-summary-table tbody');
+              if(!summaryTable) return;
+              
+              // Prüfen ob Coupon-Zeile bereits existiert
+              var existingCouponRow = summaryTable.querySelector('.ukc-summary-discount');
+              if(existingCouponRow){
+                // Bestehende Zeile aktualisieren
+                var labelCell = existingCouponRow.querySelector('.ukc-summary-label');
+                var valueCell = existingCouponRow.querySelector('.ukc-summary-value');
+                if(labelCell) labelCell.textContent = couponName + (couponCode ? ' (' + couponCode + ')' : '');
+                if(valueCell) valueCell.textContent = couponValue;
+              } else {
+                // Neue Coupon-Zeile erstellen und nach Lieferkosten einfügen
+                var shippingRow = summaryTable.querySelector('tr:has(.ukc-summary-label:contains("Lieferkosten"))');
+                var totalRow = summaryTable.querySelector('.ukc-summary-totalrow');
+                
+                var newCouponRow = document.createElement('tr');
+                newCouponRow.className = 'ukc-summary-discount';
+                newCouponRow.innerHTML = '<td class="ukc-summary-label">' + couponName + (couponCode ? ' (' + couponCode + ')' : '') + '</td><td class="ukc-summary-value" data-ukc-discount>' + couponValue + '</td>';
+                
+                if(totalRow){
+                  summaryTable.insertBefore(newCouponRow, totalRow);
+                } else {
+                  summaryTable.appendChild(newCouponRow);
+                }
+              }
+              
+              // Falsch platzierte Zeile entfernen
+              wrongCouponRow.remove();
+              
+            }catch(e){
+            }
+          }
+          
+          // Coupon-Repositionierung bei DOM-Änderungen
+          var couponObserver = new MutationObserver(function(mutations){
+            var shouldUpdate = false;
+            mutations.forEach(function(mutation){
+              if(mutation.type === 'childList'){
+                mutation.addedNodes.forEach(function(node){
+                  if(node.nodeType === 1 && node.querySelector && node.querySelector('tr[data-fc-coupon-container-id]')){
+                    shouldUpdate = true;
+                  }
+                });
+              }
+            });
+            if(shouldUpdate){
+              setTimeout(updateCouponInSummaryTable, 100);
+            }
+          });
+          
+          // Observer starten
+          setTimeout(function(){
+            var target = document.querySelector('ul.fc-transaction') || document.body;
+            if(target){
+              couponObserver.observe(target, { childList: true, subtree: true });
+              updateCouponInSummaryTable(); // Initial ausführen
+            }
+            
+            // Automatischen Coupon nach kurzer Verzögerung anwenden
+            setTimeout(autoApplyCouponFromProductCodes, 1000);
+          }, 500);
+
+          // Automatischer Coupon-Code aus Produkt-Codes generieren
+          function autoApplyCouponFromProductCodes(){
+            try{
+              var context = document.querySelector('#fc-cart')?.getAttribute('data-context');
+              if(context !== 'checkout') return;
+              
+              // Alle Produkt-Codes sammeln
+              var productCodes = [];
+              var itemElements = document.querySelectorAll('[data-item-code]');
+              
+              itemElements.forEach(function(item){
+                var code = item.getAttribute('data-item-code');
+                if(code && code.includes('-')){
+                  var codeParts = code.split('-');
+                  if(codeParts.length > 1){
+                    var prefix = codeParts[0].trim();
+                    if(prefix && !productCodes.includes(prefix)){
+                      productCodes.push(prefix);
+                    }
+                  }
+                }
+              });
+              
+              if(productCodes.length === 0) return;
+              
+              // Coupon-Input-Feld und Button finden
+              var couponInput = document.querySelector('#coupon');
+              var applyButton = document.querySelector('[data-fc-id="add-coupon-button"]') || document.querySelector('.fc-coupon-entry__apply');
+              
+              
+              if(!couponInput || !applyButton) {
+                return;
+              }
+              
+              // Alle gefundenen Codes als Coupons anwenden
+              function applyNextCoupon(index){
+                if(index >= productCodes.length) return;
+                
+                var couponCode = productCodes[index];
+                
+                // Coupon-Code eintragen
+                couponInput.value = couponCode;
+                
+                // Event für Foxy.io auslösen
+                var inputEvent = new Event('input', { bubbles: true });
+                couponInput.dispatchEvent(inputEvent);
+                
+                // Kurz warten und dann anwenden
+                setTimeout(function(){
+                  applyButton.click();
+                  
+                  // Nach Anwendung zum nächsten Coupon
+                  setTimeout(function(){
+                    applyNextCoupon(index + 1);
+                  }, 500);
+                }, 100);
+                
+              }
+              
+              // Ersten Coupon anwenden
+              applyNextCoupon(0);
+              
+            }catch(e){
+            }
+          }
+
+          // Checkbox "abweichende Rechnungsadresse" für Gäste sicherstellen
+          function ensureDifferentBillingCheckbox(){
+            try{
+              var isCheckout = document.querySelector('#fc-cart')?.getAttribute('data-context') === 'checkout';
+              if(!isCheckout) return;
+              var shippingSection = document.querySelector('[data-fc-id="block-customer-shipping"]') || document.querySelector('.fc-checkout__section--customer-shipping-address');
+              if(!shippingSection) return;
+              var existing = document.querySelector('#use_different_addresses') || document.querySelector('[name="use_different_addresses"]');
+              if(existing){
+                // Sichtbar stellen
+                var wrap = existing.closest('.fc-form-group');
+                if(wrap){ wrap.style.display = ''; wrap.classList.remove('hidden'); }
+                return;
+              }
+              var container = document.createElement('div');
+              container.className = 'fc-form-group fc-checkout__section--customer-billing-address__use-different-address';
+              container.innerHTML = '<div class="fc-container__grid--use-different-address">\
+                <div class="fc-input-group-container--checkbox">\
+                  <label for="use_different_addresses" class="fc-form-label fc-form-label--different-address">\
+                    <input type="hidden" name="use_different_addresses" value="0" />\
+                    <input type="checkbox" id="use_different_addresses" name="use_different_addresses" value="1" checked />\
+                    Verwenden Sie eine andere Rechnungsadresse\
+                  </label>\
+                </div>\
+              </div>';
+              // Einfügen am Ende des Shipping-Blocks
+              shippingSection.appendChild(container);
+              // Toggle-Logik
+              var billingSection = document.querySelector('[data-fc-id="block-customer-billing"]') || document.querySelector('.fc-checkout__section--customer-billing-address');
+              var cb = container.querySelector('#use_different_addresses');
+              if(cb){
+                cb.addEventListener('change', function(){
+                  if(!billingSection) return;
+                  billingSection.style.display = cb.checked ? '' : 'none';
+                });
+                // Initial anwenden
+                if(billingSection){ billingSection.style.display = cb.checked ? '' : 'none'; }
+              }
+            }catch(_){ }
+          }
+          // beim Laden und nach möglichen DOM-Updates ausführen
+          setTimeout(ensureDifferentBillingCheckbox, 100);
+          setTimeout(ensureDifferentBillingCheckbox, 600);
+          var moDiff = new MutationObserver(function(){ ensureDifferentBillingCheckbox(); });
+          try{ moDiff.observe(document.body, { childList:true, subtree:true }); }catch(_){ }
+
+          // Wenn Versand-Raten geladen sind, automatisch erste Option wählen (falls keine gewählt)
+          function autoSelectFirstShipping(){
+            var isCheckout = document.querySelector('#fc-cart')?.getAttribute('data-context') === 'checkout';
+            if(!isCheckout) return;
+            var container = document.querySelector('[data-fc-id="shipping-results"]');
+            if(!container) return;
+            var chosen = container.querySelector('input[name="shipping_service_id"]:checked');
+            var first = container.querySelector('input[name="shipping_service_id"]');
+            if(!chosen && first){
+              first.checked = true;
+              first.dispatchEvent(new Event('change', { bubbles:true }));
+            }
+          }
+          // Beobachte Änderungen im Versandbereich
+          var shipSection = document.querySelector('[data-fc-id="block-shipping-results"]');
+          if(shipSection){
+            var mo = new MutationObserver(function(){ setTimeout(autoSelectFirstShipping, 50); });
+            mo.observe(shipSection, { childList:true, subtree:true });
+          }
+          // Sicherheitsnetz nach manueller Aktualisierung
+          document.addEventListener('click', function(e){
+            if(e.target.closest('[data-fc-id="shipping-results"]')){
+              setTimeout(autoSelectFirstShipping, 50);
+            }
+          });
+        })();
+        </script>
+        </form>
+        {% endif %}
+        {% endblock cart_form_end %}
+        <script>
+        (function(){
+          function getPOInputs(){
+            var nodes=[]; try{ ['#purchase_order','[name="purchase_order"]','[data-fc-name="purchase_order"]'].forEach(function(sel){ document.querySelectorAll(sel).forEach(function(n){ if(n&&nodes.indexOf(n)===-1) nodes.push(n); }); }); }catch(_){}
+            return nodes;
+          }
+          function setRO(el){ try{ el.readOnly=true; el.setAttribute('readonly','readonly'); el.style.cursor='not-allowed'; }catch(_){} }
+          function gen(){ try{ }catch(_){}
+            var ins=getPOInputs(); if(ins.length===0) return;
+            var stored=null; try{ stored=sessionStorage.getItem('ukc_po_number'); }catch(_){}
+            if(!stored){ var d=new Date(); var p=function(n){return String(n).padStart(2,'0');}; var po='UKC-'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())+'-'+String(Math.floor(Math.random()*10000)).padStart(4,'0'); try{ sessionStorage.setItem('ukc_po_number',po);}catch(_){} stored=po; }
+            ins.forEach(function(i){ if(i.value!==stored) i.value=stored; setRO(i); });
+          }
+          function arm(){ setTimeout(gen,50); setTimeout(gen,250); setTimeout(gen,800); }
+          document.addEventListener('change',function(e){ if(e.target && e.target.name==='fc_payment_method' && e.target.value==='purchase_order'){ arm(); }});
+          arm();
+          try{ var mo=new MutationObserver(function(){ gen(); }); mo.observe(document.body,{childList:true,subtree:true}); }catch(_){}
+        })();
+        </script>
+    </div>{# .fc-cart-container #}
+
+    {% endif %} {# not is_updateinfo #}
+
+</div>{# #fc-cart-responsive / #fc-cart-non-responsive #}
+
+</div><!-- data-fc-container="cart" -->
+{% endblock %}{# cart #}
+{# ===================================================== #}
+    </div>
+  </div>
+</div>
