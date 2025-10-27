@@ -1290,6 +1290,15 @@
       });
     }
 
+    // Add Foxy cart event listeners for automatic updates
+    function updateSummary() {
+      console.log('FC CART EVENT TRIGGERED - updating summary');
+      scheduleUpdate();
+    }
+    
+    document.addEventListener('fc:cart:update', updateSummary);
+    document.addEventListener('fc:cart:change', updateSummary);
+
     // Initial runs
     function kick(){ scheduleUpdate(); setupTaxTrigger(); setTimeout(update,300); setTimeout(update,800); setTimeout(update,1500); }
     document.addEventListener('DOMContentLoaded', kick);
