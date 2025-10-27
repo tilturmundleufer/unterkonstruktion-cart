@@ -250,23 +250,26 @@ module.exports = async (req, res) => {
     const taxableBase = (country === 'DE') ? (items + shipping + discount) : 0; // Versand & Rabatt berücksichtigen
     const amount = Number((taxableBase * rate).toFixed(2));
 
-    // Build minimal Foxy-compliant payload (per official example)
+    // Build Foxy-expected payload (see research notes): ok + version + taxes[]
     const taxConfiguration = {
       ok: true,
-      details: "",
-      name: "custom tax",
-      expand_taxes: [
+      version: 1,
+      taxes: [
         {
-          name: "Tax",
+          name: name,
           rate: Number.isFinite(rate) ? rate : 0,
-          amount: Number.isFinite(amount) ? amount : 0
+          percentage: Math.round((Number.isFinite(rate) ? rate : 0) * 100),
+          rate_percentage: Math.round((Number.isFinite(rate) ? rate : 0) * 100),
+          rate_decimal: Number.isFinite(rate) ? rate : 0,
+          apply_to_shipping: true,
+          compound: false,
+          destination: 'shipping',
+          type: 'percentage'
         }
-      ],
-      total_amount: Number.isFinite(amount) ? amount : 0,
-      total_rate: Number.isFinite(rate) ? rate : 0
+      ]
     };
 
-    console.log('foxy-tax', { country, hasCompany, pct, rate, taxableBase, amount, expand_taxes: taxConfiguration.expand_taxes, total_amount: taxConfiguration.total_amount, total_rate: taxConfiguration.total_rate, ct: req.__contentType || req.headers['content-type'] || '' });
+    console.log('foxy-tax', { country, hasCompany, pct, rate, taxableBase, amount, taxes: taxConfiguration.taxes, ct: req.__contentType || req.headers['content-type'] || '' });
 
     // JSONP support (older Foxy flows)
     const cb = isGet ? (query.callback || query.jsonp || '') : (payload && (payload.callback || payload.jsonp));
@@ -282,7 +285,7 @@ module.exports = async (req, res) => {
     console.error('Custom Tax Endpoint error:', err);
     // Fail-safe: always return a harmless 0% response (support JSONP as well)
     try {
-      const fallback = { ok: false, details: 'fallback', name: 'Steuer (Fallback 0%)', expand_taxes: [{ name: 'Steuer (Fallback 0%)', rate: 0, amount: 0 }], total_amount: 0, total_rate: 0 };
+      const fallback = { ok: true, version: 1, taxes: [ { name: 'Steuer (Fallback 0%)', rate: 0, percentage: 0, rate_percentage: 0, rate_decimal: 0, apply_to_shipping: true, compound: false, destination: 'shipping', type: 'percentage' } ] };
       const q = readQuery(req);
       const cb = (q.callback || q.jsonp || '');
       res.setHeader('Access-Control-Allow-Origin', '*');
