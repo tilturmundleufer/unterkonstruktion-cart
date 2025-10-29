@@ -31,6 +31,30 @@
     if(totalOrderEl) totalOrderEl.textContent = formatMoney(subtotal);
     // Steuern und Gesamtsumme werden nativ von Foxy berechnet/aktualisiert
   }
+  function updateTaxSummary() {
+    if (!window.FC || !FC.cart) return;
+  
+    var taxEl   = document.querySelector('[data-ukc-tax-total]');
+    var totalEl = document.querySelector('[data-ukc-total-order]');
+    var subEl   = document.querySelector('[data-ukc-subtotal]');
+    var shipEl  = document.querySelector('[data-ukc-shipping]');
+    if (!taxEl || !totalEl || !subEl) return;
+  
+    var currency = FC.cart.currency_code || getCurrency() || 'EUR';
+    var fmt = function (val) {
+      return new Intl.NumberFormat(getLocale(), { style: 'currency', currency: currency })
+        .format(Number(val || 0));
+    };
+  
+    var sub  = Number(FC.cart.total_item_price || 0);
+    var tax  = Number(FC.cart.total_tax || 0);
+    var ship = Number(FC.cart.total_shipping || FC.cart.total_future_shipping || 0);
+  
+    taxEl.textContent = fmt(tax);
+    if (shipEl) shipEl.textContent = fmt(ship);
+    subEl.textContent = fmt(sub);
+    totalEl.textContent = fmt(sub + tax + ship);
+  }
   function findQtyInput(itemId){
     return document.querySelector('input[data-fc-id="item-quantity-input"][data-fc-item-id="'+itemId+'"]');
   }
@@ -60,11 +84,13 @@
         var nextSidebar = next.querySelector('.fc-sidebar--cart.ukc-summary');
         var currSidebar = current.querySelector('.fc-sidebar--cart.ukc-summary');
         if(nextSidebar && currSidebar){
-          currSidebar.innerHTML = nextSidebar.innerHTML;
-        }else{
-          current.replaceWith(next);
+            currSidebar.innerHTML = nextSidebar.innerHTML;
+        } else {
+            current.replaceWith(next);
         }
-        return; 
+        // nach DOM-Replace Steuer-Anzeige aktualisieren
+        setTimeout(updateTaxSummary, 50);
+        return;
       }
       // Fallback: live totals/row calculation ohne kompletten Reflow
       const locale = getLocale();
@@ -108,6 +134,7 @@
         document.querySelectorAll('.fc-transaction__shipping, [data-fc-id="button-toggle-multiship-details"], .fc-transaction__shipping-address').forEach(function(n){ n?.parentElement?.removeChild(n); });
       }
       recalcSummary();
+      updateTaxSummary();
       
       // Tax-Berechnung im Checkout und Cart triggern
       if(currentContext === 'checkout' || currentContext === 'cart'){
@@ -404,7 +431,22 @@
 
   // Listener an sichtbare Felder
   (function attachCompanyListeners(){
-    var debounced = debounce(function(){ syncCompanyFields(); applyCompanyAndTriggerTax(); }, 250);
+    var debounced = debounce(function(){
+        // Felder zu FC.cart spiegeln
+        syncCompanyFields();
+        // Sichtbare Felder -> FC.cart & Hidden, evtl. Versand-Refresh
+        applyCompanyAndTriggerTax();
+      
+        // WICHTIG: Steuer-Neuberechnung anstoßen, weil "Firma" alleine kein Tax-Event auslöst
+        try {
+          if (typeof FC !== 'undefined' && FC.cart && typeof FC.cart.getTaxes === 'function') {
+            var address = FC.cart.shipping_address || (FC.json && FC.json.shipping_address) || {};
+            FC.cart.getTaxes({ address: address });
+            // kurz danach UI-Refresh
+            setTimeout(updateTaxSummary, 250);
+          }
+        } catch(e) { /* noop */ }
+    }, 250);
     ['#billing_company','input[name="billing_company"]','input[data-fc-name="billing_company"]','#shipping_company','input[name="shipping_company"]','input[data-fc-name="shipping_company"]']
       .forEach(function(sel){
         var el = document.querySelector(sel);
@@ -590,6 +632,12 @@
   // Sobald Foxy Checkout-Section Payment aktiv wird, nochmal setzen
   document.addEventListener('fc:payment:method:ready', function(){
     setTimeout(function(){ try{ generatePurchaseOrderNumber(); setupPOFieldObserver(); }catch(_){ } }, 50);
+  });
+  document.addEventListener('fc:cart:update', function(){
+    setTimeout(updateTaxSummary, 50);
+  });
+  document.addEventListener('fc:cart:change', function(){
+    setTimeout(updateTaxSummary, 50);
   });
   
   // MutationObserver für Purchase Order Feld - überwacht Änderungen am DOM
@@ -1308,4 +1356,6 @@
   function kick(){ scheduleUpdate(); setTimeout(update,300); setTimeout(update,800); setTimeout(update,1500); setupLivePriceUpdates(); }
   document.addEventListener('DOMContentLoaded', kick);
   if(document.readyState==='complete' || document.readyState==='interactive') kick();
+
+  setTimeout(updateTaxSummary, 100);
 })();
