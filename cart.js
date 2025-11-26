@@ -24,12 +24,21 @@
       var totalEl = row.querySelector('.ukc-row__total p');
       if(totalEl){ totalEl.textContent = formatMoney(each * qty); }
     });
+    
+    // Steuersatz ermitteln (0% für beide Kundentypen nach aktueller Vorgabe)
+    var taxRate = 0;
+    var tax = subtotal * taxRate;
+    var shipping = 0; // Versand wird separat berechnet
+    var total = subtotal + tax + shipping;
+    
+    // Update UI-Elemente
     var subEl = document.querySelector('[data-ukc-subtotal]');
-    if(subEl) subEl.textContent = formatMoney(subtotal);
-    // Sofortiges UI-Feedback für Gesamtsumme (temporär = Subtotal, bis Ajax ersetzt)
+    var taxEl = document.querySelector('[data-ukc-tax-total]');
     var totalOrderEl = document.querySelector('[data-ukc-total-order]');
-    if(totalOrderEl) totalOrderEl.textContent = formatMoney(subtotal);
-    // Steuern und Gesamtsumme werden nativ von Foxy berechnet/aktualisiert
+    
+    if(subEl) subEl.textContent = formatMoney(subtotal);
+    if(taxEl) taxEl.textContent = formatMoney(tax);
+    if(totalOrderEl) totalOrderEl.textContent = formatMoney(total);
   }
   function updateTaxSummary() {
     if (!window.FC || !FC.cart) return;
@@ -80,16 +89,20 @@
       var next = doc.querySelector('#fc-cart');
       var current = document.querySelector('#fc-cart');
       if(next && current){ 
-        // Ersetze nur die Inhaltsbereiche, nicht die ganze Sidebar-Struktur
-        var nextSidebar = next.querySelector('.fc-sidebar--cart.ukc-summary');
-        var currSidebar = current.querySelector('.fc-sidebar--cart.ukc-summary');
-        if(nextSidebar && currSidebar){
-            currSidebar.innerHTML = nextSidebar.innerHTML;
+        // Aktualisiere nur die Items-Liste, NICHT die Summary (verhindert Flashing auf 0)
+        var nextItems = next.querySelector('.ukc-items');
+        var currItems = current.querySelector('.ukc-items');
+        if(nextItems && currItems){
+            currItems.innerHTML = nextItems.innerHTML;
         } else {
+            // Fallback: kompletter Replace
             current.replaceWith(next);
         }
-        // nach DOM-Replace Steuer-Anzeige aktualisieren
-        setTimeout(updateTaxSummary, 50);
+        // Summary-Werte bleiben erhalten und werden durch recalcSummary schon aktualisiert
+        // Nur noch Item-Counts und andere Meta-Daten aktualisieren
+        var nextCount = next.querySelector('[data-fc-order-quantity-integer]');
+        var currCount = current.querySelector('[data-fc-order-quantity-integer]');
+        if(nextCount && currCount) currCount.textContent = nextCount.textContent;
         return;
       }
       // Fallback: live totals/row calculation ohne kompletten Reflow
