@@ -529,8 +529,7 @@
           if (typeof FC !== 'undefined' && FC.cart && typeof FC.cart.getTaxes === 'function') {
             var address = FC.cart.shipping_address || (FC.json && FC.json.shipping_address) || {};
             FC.cart.getTaxes({ address: address });
-            // kurz danach UI-Refresh
-            setTimeout(updateTaxSummary, 250);
+            // FoxyCart updated UI automatisch nach getTaxes()
           }
         } catch(e) { /* noop */ }
     }, 250);
@@ -720,12 +719,8 @@
   document.addEventListener('fc:payment:method:ready', function(){
     setTimeout(function(){ try{ generatePurchaseOrderNumber(); setupPOFieldObserver(); }catch(_){ } }, 50);
   });
-  document.addEventListener('fc:cart:update', function(){
-    setTimeout(updateTaxSummary, 50);
-  });
-  document.addEventListener('fc:cart:change', function(){
-    setTimeout(updateTaxSummary, 50);
-  });
+  // fc:cart:update und fc:cart:change Event Listener entfernt
+  // FoxyCart's native UI-Updates werden genutzt
   
   // MutationObserver für Purchase Order Feld - überwacht Änderungen am DOM
   function setupPOFieldObserver() {
@@ -1474,5 +1469,5 @@
   document.addEventListener('DOMContentLoaded', kick);
   if(document.readyState==='complete' || document.readyState==='interactive') kick();
 
-  setTimeout(updateTaxSummary, 100);
+  // updateTaxSummary() komplett entfernt - FoxyCart native Lösung
 })();
