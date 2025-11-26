@@ -89,7 +89,7 @@
       var next = doc.querySelector('#fc-cart');
       var current = document.querySelector('#fc-cart');
       if(next && current){ 
-        // Aktualisiere nur die Items-Liste, NICHT die Summary (verhindert Flashing auf 0)
+        // 1. Aktualisiere Items-Liste
         var nextItems = next.querySelector('.ukc-items');
         var currItems = current.querySelector('.ukc-items');
         if(nextItems && currItems){
@@ -97,9 +97,27 @@
         } else {
             // Fallback: kompletter Replace
             current.replaceWith(next);
+            return;
         }
-        // Summary-Werte bleiben erhalten und werden durch recalcSummary schon aktualisiert
-        // Nur noch Item-Counts und andere Meta-Daten aktualisieren
+        
+        // 2. Extrahiere Summary-Werte aus Server-Response und aktualisiere UI
+        var nextSubtotal = next.querySelector('[data-ukc-subtotal]');
+        var nextTax = next.querySelector('[data-ukc-tax-total]');
+        var nextTotal = next.querySelector('[data-ukc-total-order]');
+        var nextShipping = next.querySelector('[data-ukc-shipping]');
+        
+        var currSubtotal = current.querySelector('[data-ukc-subtotal]');
+        var currTax = current.querySelector('[data-ukc-tax-total]');
+        var currTotal = current.querySelector('[data-ukc-total-order]');
+        var currShipping = current.querySelector('[data-ukc-shipping]');
+        
+        // Aktualisiere Summary-Werte aus Server-Response
+        if(nextSubtotal && currSubtotal) currSubtotal.textContent = nextSubtotal.textContent;
+        if(nextTax && currTax) currTax.textContent = nextTax.textContent;
+        if(nextTotal && currTotal) currTotal.textContent = nextTotal.textContent;
+        if(nextShipping && currShipping) currShipping.textContent = nextShipping.textContent;
+        
+        // 3. Item-Count aktualisieren
         var nextCount = next.querySelector('[data-fc-order-quantity-integer]');
         var currCount = current.querySelector('[data-fc-order-quantity-integer]');
         if(nextCount && currCount) currCount.textContent = nextCount.textContent;
