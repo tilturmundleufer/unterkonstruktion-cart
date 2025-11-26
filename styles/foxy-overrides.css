@@ -1641,18 +1641,20 @@ nav.fc-sidecart-only-fixed {
    /* Grid zu Flex: Summary OBEN, dann Formular */
    #fc-checkout-container.fc-checkout__main.fc-checkout__row {
      grid-template-columns: 1fr !important;
-     gap: 8px !important; /* Reduziert von 16px auf 8px */
+     gap: 0 !important; /* KEIN Gap zwischen Summary und Form */
      max-width: 100% !important;
      display: flex !important;
      flex-direction: column !important; /* Normale Reihenfolge */
    }
    
    /* Summary oben (order: -1 damit sie VOR dem Formular kommt) */
-   .fc-sidebar--checkout {
+   .fc-sidebar--checkout,
+   .fc-sidebar--cart.ukc-summary {
      grid-column: 1;
      position: static !important;
      max-width: 100% !important;
-     margin: 0 0 8px 0 !important; /* Reduziert von 16px auf 8px */
+     margin: 0 !important; /* Alle Margins entfernt */
+     padding-bottom: 12px !important; /* Nur kleiner Abstand unten */
      order: -1 !important; /* Garantiert dass Summary VOR Formular erscheint */
    }
    
@@ -1663,16 +1665,29 @@ nav.fc-sidecart-only-fixed {
      padding-top: 0 !important;
    }
    
+   /* Checkout Fieldsets - Abstand reduzieren */
+   .fc-checkout__main__form fieldset {
+     margin-top: 0 !important;
+     margin-bottom: 12px !important;
+   }
+   
+   /* Erstes Fieldset ohne Top-Margin */
+   .fc-checkout__main__form fieldset:first-of-type {
+     margin-top: 0 !important;
+   }
+   
    /* Checkout Form */
    .fc-checkout__main__form {
      max-width: 100% !important;
-     padding: 16px !important;
+     padding: 8px 16px 16px 16px !important; /* Weniger padding oben */
+     margin-top: 0 !important;
      box-sizing: border-box !important;
    }
    
    .fc-checkout__main__form fieldset {
      max-width: 100% !important;
      padding: 12px !important;
+     margin-top: 0 !important; /* Kein margin-top */
    }
    
    /* Form Inputs */
