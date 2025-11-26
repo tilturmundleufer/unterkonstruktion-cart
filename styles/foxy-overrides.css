@@ -1492,10 +1492,33 @@ nav.fc-sidecart-only-fixed {
      padding: 0 !important;
    }
    
-   /* Cart Items Container */
-   .ukc-items {
+   /* Cart Items Container - VOLLE BREITE */
+   .ukc-items,
+   .fc-cart__items,
+   .fc-cart__items--with-images,
+   .fc-cart__items--without-images {
      max-width: 100% !important;
+     width: 100% !important;
      overflow: hidden !important;
+     box-sizing: border-box !important;
+   }
+   
+   /* Cart Main Content - VOLLE BREITE */
+   .fc-cart__main__content,
+   .fc-container__grid {
+     max-width: 100% !important;
+     width: 100% !important;
+     box-sizing: border-box !important;
+   }
+   
+   /* Summary unten (bleibt normale Order) */
+   .ukc-cart:not([data-fc-sidecart] *) .ukc-summary {
+     order: 2 !important; /* Summary kommt NACH den Items */
+   }
+   
+   /* Items Container explizit oben */
+   .fc-cart__main__content {
+     order: 1 !important; /* Items kommen ZUERST */
    }
    
    /* Individual Cart Rows - VOLLE BREITE */
@@ -1606,23 +1629,22 @@ nav.fc-sidecart-only-fixed {
      box-sizing: border-box !important;
    }
    
-   /* Grid umkehren: Summary OBEN, dann Formular */
+   /* Grid zu Flex: Summary OBEN, dann Formular */
    #fc-checkout-container.fc-checkout__main.fc-checkout__row {
      grid-template-columns: 1fr !important;
      gap: 16px;
      max-width: 100% !important;
      display: flex !important;
-     flex-direction: column-reverse !important; /* Summary kommt zuerst */
+     flex-direction: column !important; /* Normale Reihenfolge */
    }
    
-   /* Summary oben */
-   .fc-sidebar--checkout,
-   .fc-sidebar--cart.ukc-summary {
+   /* Summary oben (order: -1 damit sie VOR dem Formular kommt) */
+   .fc-sidebar--checkout {
      grid-column: 1;
      position: static !important;
      max-width: 100% !important;
      margin: 0 0 16px 0 !important;
-     order: -1 !important; /* Garantiert dass Summary oben ist */
+     order: -1 !important; /* Garantiert dass Summary VOR Formular erscheint */
    }
    
    /* Checkout Form darunter */
