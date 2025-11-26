@@ -11,30 +11,49 @@
   // Global flag für Auto-Updater (verhindert Konflikt mit AJAX-Update)
   window.__ukc_ajax_updating = false;
   
-  // ===== SESSION PERSISTENCE FIX =====
-  // Problem: In manchen Browsern (Safari) geht die Session bei Refresh verloren
-  // Lösung: Session in localStorage speichern und wiederherstellen
+  // ===== SESSION PERSISTENCE FIX (Chrome-optimiert) =====
+  // Problem: In Chrome auf Mac geht die Session bei Refresh verloren
+  // Lösung: Session in localStorage speichern und als Cookie mit korrekten SameSite Settings
   (function sessionPersistence(){
     var STORAGE_KEY = 'ukc_foxy_session';
     var SESSION_NAME_KEY = 'ukc_foxy_session_name';
+    var COOKIE_NAME = 'ukc_foxy_sid';
     
     // Session aus Template lesen und speichern
     function saveCurrentSession(){
       try {
-        var sessionInput = document.querySelector('input[name*="fssid"], input[name*="fc_sid"], input[type="hidden"][name]');
+        // Mehrere Wege versuchen, die Session zu finden
+        var sessionInput = document.querySelector('input[name="fssid"], input[name="fc_sid"]');
+        if(!sessionInput) {
+          sessionInput = document.querySelector('input[type="hidden"][name*="sid"]');
+        }
+        
         if(sessionInput && sessionInput.value){
           var sessionName = sessionInput.name;
           var sessionId = sessionInput.value;
           
           // Nur speichern wenn es eine echte Session ist (nicht leer)
           if(sessionId && sessionId.length > 5){
+            // 1. localStorage (für alle Browser)
             localStorage.setItem(STORAGE_KEY, sessionId);
             localStorage.setItem(SESSION_NAME_KEY, sessionName);
+            
+            // 2. First-Party Cookie (für Chrome) - 24h Lifetime
+            var expires = new Date();
+            expires.setTime(expires.getTime() + (24 * 60 * 60 * 1000));
+            document.cookie = COOKIE_NAME + '=' + sessionId + 
+              '; expires=' + expires.toUTCString() +
+              '; path=/' +
+              '; SameSite=Lax'; // Chrome-kompatibel ohne Secure
+            
             console.log('[UKC] Session gespeichert:', sessionName, '=', sessionId.substring(0, 10) + '...');
+            console.log('[UKC] Cookie gesetzt:', COOKIE_NAME);
           }
+        } else {
+          console.warn('[UKC] Kein Session Input gefunden im DOM');
         }
       } catch(e) {
-        console.warn('[UKC] Session speichern fehlgeschlagen:', e);
+        console.error('[UKC] Session speichern fehlgeschlagen:', e);
       }
     }
     
@@ -44,6 +63,22 @@
     // Auch nach AJAX-Updates speichern
     setTimeout(saveCurrentSession, 500);
     setTimeout(saveCurrentSession, 1500);
+    setTimeout(saveCurrentSession, 3000);
+    
+    // Bei jedem DOM-Update prüfen (falls Session später geladen wird)
+    var checkCount = 0;
+    var checkInterval = setInterval(function(){
+      checkCount++;
+      if(checkCount > 10) {
+        clearInterval(checkInterval);
+        return;
+      }
+      
+      var hasSession = localStorage.getItem(STORAGE_KEY);
+      if(!hasSession) {
+        saveCurrentSession();
+      }
+    }, 1000);
   })();
   function getLocale(){ return document.querySelector('#fc-cart')?.dataset.locale || 'de-DE'; }
   function getCurrency(){ return document.querySelector('#fc-cart')?.dataset.currency || 'EUR'; }

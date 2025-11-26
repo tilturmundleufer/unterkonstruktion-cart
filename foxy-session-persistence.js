@@ -13,36 +13,70 @@
   var SESSION_LIFETIME = 24 * 60 * 60 * 1000; // 24 Stunden
   
   /**
-   * Speichert die Session-ID in localStorage
+   * Speichert die Session-ID in localStorage UND als Cookie (Chrome-Fallback)
    */
   function saveSessionId(sessionId) {
     if (!sessionId) return;
     
     try {
+      // 1. localStorage
       localStorage.setItem(STORAGE_KEY, sessionId);
       localStorage.setItem(STORAGE_EXPIRY_KEY, Date.now() + SESSION_LIFETIME);
-      console.log('[FoxyCart] Session gespeichert:', sessionId);
+      
+      // 2. First-Party Cookie als Fallback (Chrome-kompatibel)
+      var expires = new Date();
+      expires.setTime(expires.getTime() + SESSION_LIFETIME);
+      
+      // Mehrere Cookie-Varianten setzen für maximale Kompatibilität
+      var cookieString = 'ukc_foxy_sid=' + sessionId + 
+        '; expires=' + expires.toUTCString() +
+        '; path=/';
+      
+      // Chrome: SameSite=Lax funktioniert ohne Secure
+      document.cookie = cookieString + '; SameSite=Lax';
+      
+      // Safari: Auch ohne SameSite versuchen
+      document.cookie = cookieString;
+      
+      console.log('[FoxyCart] Session gespeichert (localStorage + Cookie):', sessionId.substring(0, 10) + '...');
+      console.log('[FoxyCart] Cookie gesetzt:', document.cookie.includes('ukc_foxy_sid') ? 'YES' : 'NO');
     } catch(e) {
       console.warn('[FoxyCart] Konnte Session nicht speichern:', e);
     }
   }
   
   /**
-   * Holt die Session-ID aus localStorage
+   * Holt die Session-ID aus localStorage oder Cookie
    */
   function getSessionId() {
     try {
+      // 1. Versuche aus localStorage
       var expiry = parseInt(localStorage.getItem(STORAGE_EXPIRY_KEY) || '0', 10);
       
       // Session abgelaufen?
-      if (expiry < Date.now()) {
+      if (expiry > 0 && expiry < Date.now()) {
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(STORAGE_EXPIRY_KEY);
         console.log('[FoxyCart] Session abgelaufen');
         return null;
       }
       
-      return localStorage.getItem(STORAGE_KEY);
+      var sessionFromStorage = localStorage.getItem(STORAGE_KEY);
+      if (sessionFromStorage) {
+        return sessionFromStorage;
+      }
+      
+      // 2. Fallback: Aus Cookie lesen (Chrome-Fallback)
+      var match = document.cookie.match(/(?:^|; )ukc_foxy_sid=([^;]+)/);
+      if (match && match[1]) {
+        console.log('[FoxyCart] Session aus Cookie gelesen (Chrome-Fallback)');
+        // Auch in localStorage speichern für nächstes Mal
+        localStorage.setItem(STORAGE_KEY, match[1]);
+        localStorage.setItem(STORAGE_EXPIRY_KEY, Date.now() + SESSION_LIFETIME);
+        return match[1];
+      }
+      
+      return null;
     } catch(e) {
       console.warn('[FoxyCart] Konnte Session nicht lesen:', e);
       return null;
