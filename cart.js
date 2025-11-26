@@ -870,22 +870,32 @@
         if(value < 1) value = 1;
         input.value = value;
         
-        // Sofortige UI-Aktualisierung ohne Ajax
+        // Sofortige UI-Aktualisierung
         recalcSummary();
         
-        // Debounced Ajax-Update nach 800ms
+        // Debounced Update nach 800ms
         clearTimeout(qtyInputDebounce);
         qtyInputDebounce = setTimeout(function(){
-          // Im Sidecart: FoxyCart API verwenden
-          if(isInSidecart(input) && window.FC && FC.cart){
-            try {
-              FC.cart.updateItem(id, { quantity: value });
-              console.log('[UKC Sidecart] Quantity via FC.cart.updateItem:', id, '=', value);
-            } catch(e) {
-              console.error('[UKC Sidecart] FC.cart.updateItem error:', e);
+          // Im Sidecart: FoxyCart API (kein Form vorhanden)
+          if(isInSidecart(input)){
+            if(window.FC && FC.json && FC.json.api_action){
+              var updateUrl = FC.json.api_action + '/' + id;
+              fetch(updateUrl, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ quantity: value })
+              }).then(function(r){
+                if(r.ok) {
+                  console.log('[UKC Sidecart] Quantity updated via API:', id, '=', value);
+                  if(FC.cart && FC.cart.update) FC.cart.update();
+                }
+              }).catch(function(e){
+                console.error('[UKC Sidecart] API update failed:', e);
+              });
             }
           } else {
-            // Im Fullpage Cart: AJAX verwenden
+            // Im Fullpage Cart: AJAX
             ajaxUpdate();
           }
         }, 800);
@@ -898,19 +908,29 @@
     var input = ev.target;
     if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
       clearTimeout(qtyInputDebounce);
-      var id = input.getAttribute('data-fc-item-id');
-      var value = parseInt(input.value || '1', 10) || 1;
       
-      // Im Sidecart: FoxyCart API verwenden
-      if(isInSidecart(input) && window.FC && FC.cart){
-        try {
-          FC.cart.updateItem(id, { quantity: value });
-          console.log('[UKC Sidecart] Quantity via FC.cart.updateItem (blur):', id, '=', value);
-        } catch(e) {
-          console.error('[UKC Sidecart] FC.cart.updateItem error:', e);
+      // Im Sidecart: FoxyCart API
+      if(isInSidecart(input)){
+        var id = input.getAttribute('data-fc-item-id');
+        var value = parseInt(input.value || '1', 10) || 1;
+        if(window.FC && FC.json && FC.json.api_action){
+          var updateUrl = FC.json.api_action + '/' + id;
+          fetch(updateUrl, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ quantity: value })
+          }).then(function(r){
+            if(r.ok) {
+              console.log('[UKC Sidecart] Quantity updated via API (blur):', id, '=', value);
+              if(FC.cart && FC.cart.update) FC.cart.update();
+            }
+          }).catch(function(e){
+            console.error('[UKC Sidecart] API update failed:', e);
+          });
         }
       } else {
-        // Im Fullpage Cart: AJAX verwenden
+        // Fullpage Cart
         ajaxUpdate();
       }
     }
@@ -925,9 +945,11 @@
     var btn = ev.target.closest('.ukc-qty-btn');
     if(btn){
       ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
+      
       var id = btn.getAttribute('data-fc-item-id');
       var input = findQtyInput(id);
       if(!input) return;
+      
       var current = parseInt(input.value || '1', 10) || 1;
       if(btn.classList.contains('ukc-qty-minus')){
         current = Math.max(1, current - 1);
@@ -937,16 +959,26 @@
       input.value = current;
       recalcSummary();
       
-      // Im Sidecart: FoxyCart API verwenden
-      if(isInSidecart(btn) && window.FC && FC.cart){
-        try {
-          FC.cart.updateItem(id, { quantity: current });
-          console.log('[UKC Sidecart] Quantity via FC.cart.updateItem (button):', id, '=', current);
-        } catch(e) {
-          console.error('[UKC Sidecart] FC.cart.updateItem error:', e);
+      // Im Sidecart: FoxyCart API
+      if(isInSidecart(btn)){
+        if(window.FC && FC.json && FC.json.api_action){
+          var updateUrl = FC.json.api_action + '/' + id;
+          fetch(updateUrl, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ quantity: current })
+          }).then(function(r){
+            if(r.ok) {
+              console.log('[UKC Sidecart] Quantity updated via API (button):', id, '=', current);
+              if(FC.cart && FC.cart.update) FC.cart.update();
+            }
+          }).catch(function(e){
+            console.error('[UKC Sidecart] API update failed:', e);
+          });
         }
       } else {
-        // Im Fullpage Cart: AJAX verwenden
+        // Fullpage Cart: AJAX
         ajaxUpdate();
       }
       return;

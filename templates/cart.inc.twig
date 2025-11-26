@@ -373,7 +373,7 @@
                                 {% if context == 'receipt' %}
                                 <p class="text-center">{{ item.quantity }}</p>
                                 {% elseif item.parent_code == '' or (item.parent_code != '' and item.quantity_min == 0) %}
-                                {% if with_controls and checkout_sub_cancel == false %}
+                                {% if (with_controls or context == 'cart') and checkout_sub_cancel == false %}
                                 <input type="hidden" id="id{{ item.item_number }}" name="id{{ item.item_number }}" value="{{ item.id }}" />
                                 <!-- Menge-Label ausgeblendet -->
                                 <div class="ukc-qty-control" data-fc-item-id="{{ item.id }}">
@@ -389,7 +389,7 @@
                                 {% endif %}
                             </div>
 
-                            {% if with_controls and checkout_sub_cancel == false and (item.parent_code == '' or (item.parent_code != '' and item.quantity_min == 0)) %}
+                            {% if (with_controls or context == 'cart') and checkout_sub_cancel == false and (item.parent_code == '' or (item.parent_code != '' and item.quantity_min == 0)) %}
                             <div class="ukc-row__remove">
                                 <a class="ukc-remove-btn" href="#" title="{{ config.lang.cart_remove_item }}" data-fc-id="item-remove-link" data-fc-item-id="{{ item.id }}">Entfernen</a>
                             </div>
