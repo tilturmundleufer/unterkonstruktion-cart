@@ -13,16 +13,35 @@
   
   // ===== SESSION PERSISTENCE FIX (Chrome-optimiert) =====
   // Problem: In Chrome auf Mac geht die Session bei Refresh verloren
-  // Lösung: Session in localStorage speichern und als Cookie mit korrekten SameSite Settings
+  // Lösung: Session in localStorage speichern UND beim Page-Load wiederverwenden
   (function sessionPersistence(){
     var STORAGE_KEY = 'ukc_foxy_session';
     var SESSION_NAME_KEY = 'ukc_foxy_session_name';
     var COOKIE_NAME = 'ukc_foxy_sid';
     
+    // Session aus localStorage/Cookie lesen
+    function getStoredSession(){
+      try {
+        // 1. localStorage
+        var sessionId = localStorage.getItem(STORAGE_KEY);
+        var sessionName = localStorage.getItem(SESSION_NAME_KEY) || 'fssid';
+        
+        if(sessionId && sessionId.length > 5) {
+          return { id: sessionId, name: sessionName };
+        }
+        
+        // 2. Fallback: Cookie
+        var match = document.cookie.match(new RegExp('(?:^|; )' + COOKIE_NAME + '=([^;]+)'));
+        if(match && match[1]) {
+          return { id: match[1], name: 'fssid' };
+        }
+      } catch(e) {}
+      return null;
+    }
+    
     // Session aus Template lesen und speichern
     function saveCurrentSession(){
       try {
-        // Mehrere Wege versuchen, die Session zu finden
         var sessionInput = document.querySelector('input[name="fssid"], input[name="fc_sid"]');
         if(!sessionInput) {
           sessionInput = document.querySelector('input[type="hidden"][name*="sid"]');
@@ -32,53 +51,94 @@
           var sessionName = sessionInput.name;
           var sessionId = sessionInput.value;
           
-          // Nur speichern wenn es eine echte Session ist (nicht leer)
           if(sessionId && sessionId.length > 5){
-            // 1. localStorage (für alle Browser)
             localStorage.setItem(STORAGE_KEY, sessionId);
             localStorage.setItem(SESSION_NAME_KEY, sessionName);
             
-            // 2. First-Party Cookie (für Chrome) - 24h Lifetime
             var expires = new Date();
             expires.setTime(expires.getTime() + (24 * 60 * 60 * 1000));
             document.cookie = COOKIE_NAME + '=' + sessionId + 
               '; expires=' + expires.toUTCString() +
               '; path=/' +
-              '; SameSite=Lax'; // Chrome-kompatibel ohne Secure
+              '; SameSite=Lax';
             
             console.log('[UKC] Session gespeichert:', sessionName, '=', sessionId.substring(0, 10) + '...');
-            console.log('[UKC] Cookie gesetzt:', COOKIE_NAME);
+            return { id: sessionId, name: sessionName };
           }
-        } else {
-          console.warn('[UKC] Kein Session Input gefunden im DOM');
         }
       } catch(e) {
         console.error('[UKC] Session speichern fehlgeschlagen:', e);
       }
+      return null;
     }
     
-    // Session beim Laden speichern
-    saveCurrentSession();
-    
-    // Auch nach AJAX-Updates speichern
-    setTimeout(saveCurrentSession, 500);
-    setTimeout(saveCurrentSession, 1500);
-    setTimeout(saveCurrentSession, 3000);
-    
-    // Bei jedem DOM-Update prüfen (falls Session später geladen wird)
-    var checkCount = 0;
-    var checkInterval = setInterval(function(){
-      checkCount++;
-      if(checkCount > 10) {
-        clearInterval(checkInterval);
-        return;
-      }
+    // Session an FoxyCart Links/Forms anhängen
+    function attachSessionToElements(session){
+      if(!session || !session.id) return;
       
-      var hasSession = localStorage.getItem(STORAGE_KEY);
-      if(!hasSession) {
-        saveCurrentSession();
-      }
+      // FoxyCart Links
+      document.querySelectorAll('a[href*="foxycart.com"]').forEach(function(link){
+        var href = link.getAttribute('href') || '';
+        if(href && !href.includes('fssid=') && !href.includes('fc_sid=')){
+          var separator = href.includes('?') ? '&' : '?';
+          link.setAttribute('href', href + separator + session.name + '=' + session.id);
+        }
+      });
+      
+      // FoxyCart Forms
+      document.querySelectorAll('form[action*="foxycart.com"]').forEach(function(form){
+        var existing = form.querySelector('input[name="fssid"], input[name="fc_sid"]');
+        if(!existing) {
+          var input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = session.name;
+          input.value = session.id;
+          form.appendChild(input);
+        } else {
+          existing.value = session.id;
+        }
+      });
+    }
+    
+    // FC.sid setzen (wenn FC Object existiert)
+    function injectIntoFC(session){
+      if(!session || !window.FC) return;
+      try {
+        if(!FC.sid || FC.sid === '') {
+          FC.sid = session.id;
+          console.log('[UKC] FC.sid gesetzt:', session.id.substring(0, 10) + '...');
+        }
+      } catch(e) {}
+    }
+    
+    // INIT: Beim Page-Load
+    var stored = getStoredSession();
+    if(stored) {
+      console.log('[UKC] Gespeicherte Session gefunden:', stored.id.substring(0, 10) + '...');
+      attachSessionToElements(stored);
+      setTimeout(function(){ injectIntoFC(stored); }, 100);
+      setTimeout(function(){ attachSessionToElements(stored); }, 500);
+    } else {
+      console.log('[UKC] Keine gespeicherte Session - warte auf neue Session');
+    }
+    
+    // Session speichern wenn vorhanden
+    var saved = saveCurrentSession();
+    if(saved) {
+      attachSessionToElements(saved);
+      setTimeout(function(){ injectIntoFC(saved); }, 100);
+    }
+    
+    // Wiederholungen für dynamische Inhalte
+    setTimeout(function(){
+      var s = getStoredSession() || saveCurrentSession();
+      if(s) { attachSessionToElements(s); injectIntoFC(s); }
     }, 1000);
+    
+    setTimeout(function(){
+      var s = getStoredSession() || saveCurrentSession();
+      if(s) { attachSessionToElements(s); injectIntoFC(s); }
+    }, 2000);
   })();
   function getLocale(){ return document.querySelector('#fc-cart')?.dataset.locale || 'de-DE'; }
   function getCurrency(){ return document.querySelector('#fc-cart')?.dataset.currency || 'EUR'; }
