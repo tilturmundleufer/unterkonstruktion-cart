@@ -8,6 +8,8 @@
   }
   var form = document.getElementById('fc-cart-form');
   var updating = false;
+  // Global flag für Auto-Updater (verhindert Konflikt mit AJAX-Update)
+  window.__ukc_ajax_updating = false;
   function getLocale(){ return document.querySelector('#fc-cart')?.dataset.locale || 'de-DE'; }
   function getCurrency(){ return document.querySelector('#fc-cart')?.dataset.currency || 'EUR'; }
   function getCustomerType(){
@@ -70,6 +72,7 @@
   async function ajaxUpdate(){
     if(!form || updating) return;
     updating = true;
+    window.__ukc_ajax_updating = true; // Pausiere Auto-Updater
     try{
       var fd = new FormData(form);
       fd.set('cart','update');
@@ -213,6 +216,10 @@
       if(form) form.submit();
     }finally{
       updating = false;
+      // Auto-Updater nach kurzem Delay wieder aktivieren (gibt Zeit für Foxy-Update)
+      setTimeout(function(){
+        window.__ukc_ajax_updating = false;
+      }, 500);
     }
   }
   // Kundentyp ableiten: Wenn Firmenname gesetzt => firmenkunde, sonst privat
@@ -1236,7 +1243,8 @@
   function nearlyEqual(a,b){ return Math.abs(Number(a)-Number(b)) < 0.005; }
 
   function update(){
-    if(updating) return;
+    // Pausiere Auto-Update während AJAX-Update läuft
+    if(updating || window.__ukc_ajax_updating) return;
     var snap = readCart();
     if(!snap) return;
     var subEl = document.querySelector('[data-ukc-subtotal]');
@@ -1329,7 +1337,8 @@
     function nearlyEqual(a,b){ return Math.abs(Number(a)-Number(b)) < 0.005; }
 
     function update(){
-      if(updating) return; // prevent MO feedback loop
+      // Pausiere Auto-Update während AJAX-Update läuft
+      if(updating || window.__ukc_ajax_updating) return;
       var snap = readCart();
       if(!snap) return;
       var subEl = document.querySelector('[data-ukc-subtotal]');
@@ -1337,21 +1346,11 @@
       var shipEls = document.querySelectorAll('[data-ukc-shipping]');
       var totalEl = document.querySelector('[data-ukc-total-order]');
 
-      // DEBUG: Log update values
-      console.log('UPDATE DEBUG:', {
-        snap: snap,
-        prev: prev,
-        taxEl: taxEl,
-        taxElText: taxEl ? taxEl.textContent : 'no element',
-        taxChanged: !nearlyEqual(prev.tax, snap.tax)
-      });
-
       // Only write when value actually changes
       updating = true;
       try{
         if(subEl && !nearlyEqual(prev.sub, snap.sub)) subEl.textContent = fmt(snap.sub);
         if(taxEl && !nearlyEqual(prev.tax, snap.tax)) {
-          console.log('UPDATING TAX:', prev.tax, '->', snap.tax, 'formatted:', fmt(snap.tax));
           taxEl.textContent = fmt(snap.tax);
         }
         if(shipEls && shipEls.forEach){
