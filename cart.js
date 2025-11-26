@@ -27,20 +27,12 @@
       if(totalEl){ totalEl.textContent = formatMoney(each * qty); }
     });
     
-    // Steuersatz ermitteln (0% für beide Kundentypen nach aktueller Vorgabe)
-    var taxRate = 0;
-    var tax = subtotal * taxRate;
-    var shipping = 0; // Versand wird separat berechnet
-    var total = subtotal + tax + shipping;
-    
-    // Update UI-Elemente
+    // Update NUR Subtotal - Tax und Total kommen vom Server!
     var subEl = document.querySelector('[data-ukc-subtotal]');
-    var taxEl = document.querySelector('[data-ukc-tax-total]');
-    var totalOrderEl = document.querySelector('[data-ukc-total-order]');
-    
     if(subEl) subEl.textContent = formatMoney(subtotal);
-    if(taxEl) taxEl.textContent = formatMoney(tax);
-    if(totalOrderEl) totalOrderEl.textContent = formatMoney(total);
+    
+    // Tax und Total NICHT überschreiben - die kommen aus der Server-Response
+    // Die werden in ajaxUpdate() nach der Server-Antwort gesetzt
   }
   function updateTaxSummary() {
     if (!window.FC || !FC.cart) return;

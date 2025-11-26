@@ -1467,22 +1467,97 @@ nav.fc-sidecart-only-fixed {
      display: none !important;
    }
    
+   /* ============================================ */
+   /* MOBILE: Alle Elemente auf Bildschirmbreite beschränken */
+   /* ============================================ */
+   
+   /* Body und Hauptcontainer */
+   body, html {
+     overflow-x: hidden !important;
+     max-width: 100vw !important;
+   }
+   
+   /* Cart Container */
+   .ukc-cart__container {
+     padding: 8px !important;
+     max-width: 100vw !important;
+     box-sizing: border-box !important;
+   }
+   
    /* Fullpage Cart auf Mobile optimieren */
    .ukc-cart:not([data-fc-sidecart] *) .ukc-cart__grid {
      flex-direction: column;
-     gap: 20px;
+     gap: 16px;
+     max-width: 100% !important;
+     padding: 0 !important;
    }
    
+   /* Cart Items Container */
+   .ukc-items {
+     max-width: 100% !important;
+     overflow: hidden !important;
+   }
+   
+   /* Individual Cart Rows */
+   .ukc-row {
+     grid-template-columns: 80px 1fr;
+     grid-template-areas:
+       "thumb details"
+       "thumb qty"
+       "total total"
+       "remove remove";
+     gap: 8px;
+     padding: 12px !important;
+     max-width: 100% !important;
+     box-sizing: border-box !important;
+   }
+   
+   .ukc-row__thumb { grid-area: thumb; }
+   .ukc-row__details { 
+     grid-area: details;
+     min-width: 0 !important;
+     max-width: 100% !important;
+   }
+   .ukc-row__details .fc-cart__item__name {
+     font-size: 14px !important;
+     line-height: 1.3 !important;
+     word-break: break-word !important;
+   }
+   .ukc-row__qty { 
+     grid-area: qty;
+     justify-self: start;
+   }
+   .ukc-row__total { 
+     grid-area: total;
+     text-align: left !important;
+     padding-top: 8px;
+     border-top: 1px solid var(--border);
+   }
+   .ukc-row__remove { 
+     grid-area: remove;
+     text-align: center !important;
+   }
+   
+   /* Summary */
    .ukc-cart:not([data-fc-sidecart] *) .ukc-summary {
      position: static;
-     width: 100%;
+     width: 100% !important;
+     max-width: 100% !important;
      flex: 1;
+     margin: 0 !important;
+     box-sizing: border-box !important;
+   }
+   
+   .ukc-summary-table {
+     width: 100% !important;
+     max-width: 100% !important;
    }
    
    /* Quantity Controls auf Mobile größer */
    .ukc-qty-control {
      grid-template-columns: 50px 1fr 50px;
-     gap: 10px;
+     gap: 8px;
+     max-width: 200px;
    }
    
    .ukc-qty-btn {
@@ -1494,16 +1569,80 @@ nav.fc-sidecart-only-fixed {
    .ukc-row__qty input[type=number] {
      height: 50px !important;
      font-size: 18px !important;
+     max-width: 80px !important;
    }
    
-   /* Checkout auf Mobile anpassen */
+   /* ============================================ */
+   /* MOBILE: Checkout auf Mobile anpassen */
+   /* ============================================ */
+   
+   /* Checkout Container */
+   #fc-checkout-container,
+   .fc-checkout__main,
+   .fc-checkout__main__contents {
+     max-width: 100vw !important;
+     padding: 8px !important;
+     box-sizing: border-box !important;
+   }
+   
    #fc-checkout-container.fc-checkout__main.fc-checkout__row {
-     grid-template-columns: 1fr;
+     grid-template-columns: 1fr !important;
+     gap: 16px;
+     max-width: 100% !important;
    }
    
    .fc-sidebar--checkout {
      grid-column: 1;
      position: static;
+     max-width: 100% !important;
+     margin: 0 !important;
+   }
+   
+   /* Checkout Form */
+   .fc-checkout__main__form {
+     max-width: 100% !important;
+     padding: 16px !important;
+     box-sizing: border-box !important;
+   }
+   
+   .fc-checkout__main__form fieldset {
+     max-width: 100% !important;
+     padding: 12px !important;
+   }
+   
+   /* Form Inputs */
+   .fc-form-control,
+   .fc-checkout__main__form .fc-form-control,
+   .fc-checkout__main__form input,
+   .fc-checkout__main__form select {
+     max-width: 100% !important;
+     box-sizing: border-box !important;
+   }
+   
+   /* Buttons */
+   .ukc-btn,
+   .fc-button {
+     max-width: 100% !important;
+     box-sizing: border-box !important;
+   }
+   
+   /* Empty Cart */
+   .ukc-empty {
+     width: 100% !important;
+     max-width: 100% !important;
+     padding: 20px !important;
+     box-sizing: border-box !important;
+   }
+   
+   /* Images nicht über Container hinaus */
+   img {
+     max-width: 100% !important;
+     height: auto !important;
+   }
+   
+   .ukc-row__thumb .fc-cart__item__image__img {
+     width: 80px !important;
+     height: 80px !important;
    }
 }
 
