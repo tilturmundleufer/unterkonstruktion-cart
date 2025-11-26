@@ -876,7 +876,18 @@
         // Debounced Ajax-Update nach 800ms
         clearTimeout(qtyInputDebounce);
         qtyInputDebounce = setTimeout(function(){
-          ajaxUpdate();
+          // Im Sidecart: FoxyCart API verwenden
+          if(isInSidecart(input) && window.FC && FC.cart){
+            try {
+              FC.cart.updateItem(id, { quantity: value });
+              console.log('[UKC Sidecart] Quantity via FC.cart.updateItem:', id, '=', value);
+            } catch(e) {
+              console.error('[UKC Sidecart] FC.cart.updateItem error:', e);
+            }
+          } else {
+            // Im Fullpage Cart: AJAX verwenden
+            ajaxUpdate();
+          }
         }, 800);
       }
     }
@@ -887,7 +898,21 @@
     var input = ev.target;
     if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
       clearTimeout(qtyInputDebounce);
-      ajaxUpdate();
+      var id = input.getAttribute('data-fc-item-id');
+      var value = parseInt(input.value || '1', 10) || 1;
+      
+      // Im Sidecart: FoxyCart API verwenden
+      if(isInSidecart(input) && window.FC && FC.cart){
+        try {
+          FC.cart.updateItem(id, { quantity: value });
+          console.log('[UKC Sidecart] Quantity via FC.cart.updateItem (blur):', id, '=', value);
+        } catch(e) {
+          console.error('[UKC Sidecart] FC.cart.updateItem error:', e);
+        }
+      } else {
+        // Im Fullpage Cart: AJAX verwenden
+        ajaxUpdate();
+      }
     }
   }, true);
   
@@ -911,7 +936,19 @@
       }
       input.value = current;
       recalcSummary();
-      ajaxUpdate();
+      
+      // Im Sidecart: FoxyCart API verwenden
+      if(isInSidecart(btn) && window.FC && FC.cart){
+        try {
+          FC.cart.updateItem(id, { quantity: current });
+          console.log('[UKC Sidecart] Quantity via FC.cart.updateItem (button):', id, '=', current);
+        } catch(e) {
+          console.error('[UKC Sidecart] FC.cart.updateItem error:', e);
+        }
+      } else {
+        // Im Fullpage Cart: AJAX verwenden
+        ajaxUpdate();
+      }
       return;
     }
     var rm = ev.target.closest('.ukc-remove-btn');
