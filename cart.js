@@ -133,6 +133,31 @@
   }
   async function ajaxUpdate(){
     if(!form || updating) return;
+    
+    // Check: Ist das Form im DOM verbunden?
+    if(!form.isConnected || !document.body.contains(form)){
+      console.warn('[UKC] Form ist nicht im DOM verbunden - Skip AJAX');
+      updating = false;
+      return;
+    }
+    
+    // CORS-Check: Nur auf FoxyCart-Domain AJAX machen
+    var currentDomain = window.location.hostname;
+    var formDomain = '';
+    try {
+      formDomain = new URL(form.action).hostname;
+    } catch(e) {}
+    
+    var isSameOrigin = currentDomain === formDomain || formDomain.includes('foxycart.com') && currentDomain.includes('foxycart.com');
+    
+    if(!isSameOrigin){
+      console.log('[UKC] Cross-Origin detected (' + currentDomain + ' → ' + formDomain + ') - Skip AJAX');
+      // Bei Cross-Origin: kein AJAX, da CORS-Fehler
+      // Die Updates werden durch normale Page-Loads gemacht
+      updating = false;
+      return;
+    }
+    
     updating = true;
     window.__ukc_ajax_updating = true; // Pausiere Auto-Updater
     try{

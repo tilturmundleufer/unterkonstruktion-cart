@@ -161,6 +161,51 @@
   }
   
   /**
+   * Versucht FoxyCart's FC.sid zu setzen (falls FC Object existiert)
+   */
+  function injectSessionIntoFC(sessionId) {
+    if (!sessionId) return;
+    
+    // Warte auf FC Object und setze Session
+    var attempts = 0;
+    var maxAttempts = 10;
+    
+    var checkFC = function() {
+      if (window.FC) {
+        console.log('[FoxyCart] FC Object gefunden - injiziere Session');
+        
+        // Versuche FC.sid zu setzen
+        try {
+          if (!FC.sid || FC.sid === '') {
+            FC.sid = sessionId;
+            console.log('[FoxyCart] ✓ FC.sid gesetzt:', sessionId.substring(0, 10) + '...');
+          }
+        } catch(e) {
+          console.warn('[FoxyCart] Konnte FC.sid nicht setzen:', e);
+        }
+        
+        // Versuche FC.cart.sid zu setzen
+        try {
+          if (FC.cart && (!FC.cart.sid || FC.cart.sid === '')) {
+            FC.cart.sid = sessionId;
+            console.log('[FoxyCart] ✓ FC.cart.sid gesetzt');
+          }
+        } catch(e) {}
+        
+        return true;
+      }
+      
+      attempts++;
+      if (attempts < maxAttempts) {
+        setTimeout(checkFC, 500);
+      }
+      return false;
+    };
+    
+    checkFC();
+  }
+  
+  /**
    * Initialisiert Session-Persistence
    */
   function init() {
@@ -176,21 +221,40 @@
       console.log('[FoxyCart] Keine Session gefunden - wird bei Add-to-Cart erstellt');
     } else {
       console.log('[FoxyCart] Verwende Session:', sessionId.substring(0, 10) + '...');
+      
+      // Versuche Session in FC Object zu injizieren
+      injectSessionIntoFC(sessionId);
     }
     
     // Session-ID zu ALLEN FoxyCart Links/Forms hinzufügen (auch ohne Session)
     function attachSessionToAll() {
       var currentSession = sessionId || getSessionId();
-      if (!currentSession) return;
+      if (!currentSession) {
+        console.log('[FoxyCart] Keine Session zum Anhängen gefunden');
+        return;
+      }
       
-      // Add-to-Cart Links
-      var addToCartLinks = document.querySelectorAll('a[href*="foxycart.com/cart"], a[href*="foxycart.com"][href*="cart"]');
+      console.log('[FoxyCart] Hänge Session an Elemente:', currentSession.substring(0, 10) + '...');
+      
+      // Add-to-Cart Links (erweiterte Selektoren)
+      var addToCartLinks = document.querySelectorAll(
+        'a[href*="foxycart.com/cart"], ' +
+        'a[href*="foxycart.com"][href*="cart"], ' +
+        'a[href*=".foxycart.com"], ' +
+        'a[data-foxy-href]'
+      );
       addToCartLinks.forEach(function(link) {
         addSessionToElement(link, currentSession);
       });
       
-      // Add-to-Cart Forms
-      var addToCartForms = document.querySelectorAll('form[action*="foxycart.com/cart"], form[action*="foxycart.com"][action*="cart"]');
+      // Add-to-Cart Forms (erweiterte Selektoren)
+      var addToCartForms = document.querySelectorAll(
+        'form[action*="foxycart.com/cart"], ' +
+        'form[action*="foxycart.com"][action*="cart"], ' +
+        'form[action*=".foxycart.com"], ' +
+        'form.foxycart, ' +
+        'form[data-foxy-form]'
+      );
       addToCartForms.forEach(function(form) {
         addSessionToElement(form, currentSession);
       });
@@ -201,14 +265,30 @@
         addSessionToElement(link, currentSession);
       });
       
-      console.log('[FoxyCart] Session zu', addToCartLinks.length, 'Links und', addToCartForms.length, 'Forms hinzugefügt');
+      console.log('[FoxyCart] ✓ Session zu', addToCartLinks.length, 'Links,', addToCartForms.length, 'Forms und', checkoutLinks.length, 'Checkout-Links hinzugefügt');
     }
     
+    // Sofort beim Init
     attachSessionToAll();
     
-    // Wiederholt Session anhängen (für dynamische Inhalte)
-    setTimeout(attachSessionToAll, 1000);
-    setTimeout(attachSessionToAll, 3000);
+    // Wiederholt Session anhängen (für dynamische Inhalte und FoxyCart Loader)
+    setTimeout(attachSessionToAll, 100);  // Sehr früh
+    setTimeout(attachSessionToAll, 500);  // Nach kurzem Delay
+    setTimeout(attachSessionToAll, 1000); // Nach 1s
+    setTimeout(attachSessionToAll, 2000); // Nach 2s
+    setTimeout(attachSessionToAll, 3000); // Nach 3s
+    
+    // Interval für sehr dynamische Seiten (max 20s)
+    var intervalCount = 0;
+    var maxIntervals = 20;
+    var persistInterval = setInterval(function() {
+      attachSessionToAll();
+      intervalCount++;
+      if (intervalCount >= maxIntervals) {
+        clearInterval(persistInterval);
+        console.log('[FoxyCart] Session Persistence Interval beendet');
+      }
+    }, 1000);
     
     // FoxyCart Event Listener für neue Cart-Actions
     document.addEventListener('click', function(e) {
