@@ -104,30 +104,8 @@
     // Tax und Total NICHT überschreiben - die kommen aus der Server-Response
     // Die werden in ajaxUpdate() nach der Server-Antwort gesetzt
   }
-  function updateTaxSummary() {
-    if (!window.FC || !FC.cart) return;
-  
-    var taxEl   = document.querySelector('[data-ukc-tax-total]');
-    var totalEl = document.querySelector('[data-ukc-total-order]');
-    var subEl   = document.querySelector('[data-ukc-subtotal]');
-    var shipEl  = document.querySelector('[data-ukc-shipping]');
-    if (!taxEl || !totalEl || !subEl) return;
-  
-    var currency = FC.cart.currency_code || getCurrency() || 'EUR';
-    var fmt = function (val) {
-      return new Intl.NumberFormat(getLocale(), { style: 'currency', currency: currency })
-        .format(Number(val || 0));
-    };
-  
-    var sub  = Number(FC.cart.total_item_price || 0);
-    var tax  = Number(FC.cart.total_tax || 0);
-    var ship = Number(FC.cart.total_shipping || FC.cart.total_future_shipping || 0);
-  
-    taxEl.textContent = fmt(tax);
-    if (shipEl) shipEl.textContent = fmt(ship);
-    subEl.textContent = fmt(sub);
-    totalEl.textContent = fmt(sub + tax + ship);
-  }
+  // Tax Summary Updates werden komplett von FoxyCart's nativer Lösung übernommen
+  // Keine Custom Tax-Berechnungen mehr nötig
   function findQtyInput(itemId){
     return document.querySelector('input[data-fc-id="item-quantity-input"][data-fc-item-id="'+itemId+'"]');
   }
@@ -224,29 +202,13 @@
       if(nextContext){ document.querySelectorAll('#fc-cart').forEach(function(el){ el.setAttribute('data-context', nextContext); }); }
       if(sub){ document.querySelectorAll('[data-ukc-subtotal]').forEach(function(el){ el.innerHTML = sub.innerHTML; }); }
       if(totalOrder){ document.querySelectorAll('[data-ukc-total-order]').forEach(function(el){ el.innerHTML = totalOrder.innerHTML; }); }
-      // Mehrwertsteuer aus neuer Seite ziehen oder lokal berechnen wenn nicht vorhanden
+      // Mehrwertsteuer aus Server-Response ziehen (FoxyCart native Berechnung)
       const tax = doc.querySelector('[data-ukc-tax-total]');
       if(tax){
-        const el = document.querySelector('[data-ukc-tax-total]'); if(el) el.innerHTML = tax.innerHTML;
-      } else {
-        // Fallback: einfache Berechnung 0%/19% je nach Kundentyp (nur Anzeige)
-        var type = (document.cookie.match(/(?:^|; )ukc_customer_type=([^;]+)/)||[])[1] || 'privat';
-        var subtotalEl = document.querySelector('[data-ukc-subtotal]');
-        var taxEl = document.querySelector('[data-ukc-tax-total]');
-        var shippingEl = document.querySelector('[data-ukc-shipping]');
-        var totalEl = document.querySelector('[data-ukc-total-order]');
-        if(subtotalEl && taxEl && totalEl){
-          var parseMoney = function(txt){ return parseFloat(String(txt).replace(/[^0-9,.-]/g,'').replace('.', '').replace(',', '.'))||0; };
-          var formatMoney = function(num){ return new Intl.NumberFormat(locale, {style:'currency', currency}).format(num); };
-          var subtotalVal = parseMoney(subtotalEl.textContent);
-          var taxRate = (type === 'firma') ? 0 : 0; // Privatkunden aktuell 0% nach Vorgabe
-          var taxVal = subtotalVal * taxRate;
-          var shippingVal = shippingEl ? parseMoney(shippingEl.textContent) : 0;
-          taxEl.textContent = formatMoney(taxVal);
-          if(shippingEl) shippingEl.textContent = formatMoney(shippingVal);
-          totalEl.textContent = formatMoney(subtotalVal + taxVal + shippingVal);
-        }
+        const el = document.querySelector('[data-ukc-tax-total]'); 
+        if(el) el.innerHTML = tax.innerHTML;
       }
+      // Kein Fallback mehr - FoxyCart's Server-Response ist immer korrekt
       if(ship){ const el = document.querySelector('[data-ukc-shipping]'); if(el) el.innerHTML = ship.innerHTML; }
 
       // Falls Kontext 'cart' ist, alle Versand-Container ausblenden (Defensivmaßnahme)
@@ -255,7 +217,7 @@
         document.querySelectorAll('.fc-transaction__shipping, [data-fc-id="button-toggle-multiship-details"], .fc-transaction__shipping-address').forEach(function(n){ n?.parentElement?.removeChild(n); });
       }
       recalcSummary();
-      updateTaxSummary();
+      // updateTaxSummary() entfernt - FoxyCart native Lösung nutzen
       
       // Tax-Berechnung im Checkout und Cart triggern
       if(currentContext === 'checkout' || currentContext === 'cart'){
@@ -1386,38 +1348,17 @@
       if(!window.FC || !FC.cart) return null;
       var c = FC.cart;
       
-      // Check if company field has value (firmenkunde = 19% tax)
-      var companyField = document.querySelector('#billing_company, input[name="billing_company"], input[data-fc-name="billing_company"]');
-      var hasCompany = companyField && companyField.value && companyField.value.trim() !== '';
-      
-      // Use Foxy tax data directly from API
+      // Nutze FoxyCart's native Werte DIREKT ohne Manipulation
       var subtotal = Number(c.total_item_price || 0);
       var shipping = Number(c.total_shipping || c.total_future_shipping || 0);
       var foxyTax = Number(c.total_tax || 0);
-      
-      // DEBUG: Log tax values
-      console.log('TAX DEBUG:', {
-        hasCompany: hasCompany,
-        companyValue: companyField ? companyField.value : 'no field',
-        foxyTax: foxyTax,
-        subtotal: subtotal,
-        shipping: shipping,
-        total_tax: c.total_tax,
-        total_item_price: c.total_item_price,
-        total_shipping: c.total_shipping
-      });
-      
-      // If Foxy tax is 0 but we have a company, calculate manually as fallback
-      if(foxyTax === 0 && hasCompany) {
-        foxyTax = (subtotal + shipping) * 0.19;
-        console.log('TAX FALLBACK CALCULATED:', foxyTax);
-      }
+      var total = Number(c.total_order || 0);
       
       return {
         sub: subtotal,
-        tax: foxyTax, // Use Foxy tax directly from API
+        tax: foxyTax, // FoxyCart's native Tax-Berechnung
         ship: shipping,
-        tot: Number(c.total_order || (subtotal + foxyTax + shipping))
+        tot: total || (subtotal + foxyTax + shipping)
       };
     }
 
