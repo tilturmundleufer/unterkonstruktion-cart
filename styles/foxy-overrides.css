@@ -1462,27 +1462,48 @@ nav.fc-sidecart-only-fixed {
     padding-top: 0; /* Kein Padding mehr nötig */
   }
   
-   /* Sidecart Breite auf mobilen Geräten anpassen */
-   [data-fc-with-sidecart="reveal"].cart-visible [data-fc-store-page],
-   [data-fc-with-sidecart="reveal"].cart-visible [data-fc-ui-block] {
-     transform: translate3d(-350px, 0, 0) !important;
+  /* Auf Mobile: Sidecart komplett ausblenden, da wir zum Fullpage-Cart redirecten */
+  [data-fc-sidecart] {
+     display: none !important;
    }
    
-   [data-fc-sidecart] {
-     width: 350px !important;
-     max-width: 350px !important;
+   /* Fullpage Cart auf Mobile optimieren */
+   .ukc-cart:not([data-fc-sidecart] *) .ukc-cart__grid {
+     flex-direction: column;
+     gap: 20px;
    }
    
-   [data-fc-sidecart] .ukc-summary {
-     margin: 10px;
-     padding: 15px;
-     width: calc(100% - 20px);
-     max-width: 330px;
+   .ukc-cart:not([data-fc-sidecart] *) .ukc-summary {
+     position: static;
+     width: 100%;
+     flex: 1;
    }
    
-   [data-fc-sidecart] .fc-sidebar--cart {
-     padding: 0 10px;
-     max-width: 350px;
+   /* Quantity Controls auf Mobile größer */
+   .ukc-qty-control {
+     grid-template-columns: 50px 1fr 50px;
+     gap: 10px;
+   }
+   
+   .ukc-qty-btn {
+     width: 50px !important;
+     height: 50px !important;
+     font-size: 20px !important;
+   }
+   
+   .ukc-row__qty input[type=number] {
+     height: 50px !important;
+     font-size: 18px !important;
+   }
+   
+   /* Checkout auf Mobile anpassen */
+   #fc-checkout-container.fc-checkout__main.fc-checkout__row {
+     grid-template-columns: 1fr;
+   }
+   
+   .fc-sidebar--checkout {
+     grid-column: 1;
+     position: static;
    }
 }
 

@@ -716,6 +716,8 @@
   }, 2000);
   
   // Event-Listener für direkte Input-Änderungen bei Produktmengen
+  // Debounce für input-Event um zu verhindern, dass während dem Tippen der DOM ersetzt wird
+  var qtyInputDebounce = null;
   document.addEventListener('input', function(ev){
     var input = ev.target;
     if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
@@ -726,12 +728,26 @@
         if(value < 1) value = 1;
         input.value = value;
         
-        // Sofortige UI-Aktualisierung
+        // Sofortige UI-Aktualisierung ohne Ajax
         recalcSummary();
-        ajaxUpdate();
+        
+        // Debounced Ajax-Update nach 800ms
+        clearTimeout(qtyInputDebounce);
+        qtyInputDebounce = setTimeout(function(){
+          ajaxUpdate();
+        }, 800);
       }
     }
   });
+  
+  // Bei Blur (Fokus verlassen) sofort updaten
+  document.addEventListener('blur', function(ev){
+    var input = ev.target;
+    if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
+      clearTimeout(qtyInputDebounce);
+      ajaxUpdate();
+    }
+  }, true);
   
   // Hilfsfunktion: liegt das Ziel im Sidecart?
   function isInSidecart(node){
@@ -792,6 +808,49 @@
     }
   }, false);
 
+  // Mobile-Detection und Sidecart-Redirect
+  function isMobile(){
+    return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }
+  
+  // Wenn auf Mobile das Sidecart geöffnet wird, direkt zum Fullpage-Cart weiterleiten
+  if(isMobile()){
+    var sidecartRoot = document.querySelector('[data-fc-sidecart]');
+    if(sidecartRoot){
+      // Extrahiere Session-Info
+      var sessionName = 'fssid';
+      var sessionId = '';
+      try {
+        var urlParams = new URLSearchParams(window.location.search);
+        sessionId = urlParams.get('fssid') || urlParams.get('fc_sid') || '';
+        if(!sessionId) {
+          var form = document.querySelector('form[action*="cart"]');
+          if(form) {
+            var sessionInput = form.querySelector('input[name*="fssid"], input[name*="fc_sid"], input[name*="session"]');
+            if(sessionInput) {
+              sessionName = sessionInput.name;
+              sessionId = sessionInput.value;
+            }
+          }
+        }
+      } catch(e) {}
+      
+      // Redirect zum Fullpage-Cart
+      var cartDomain = 'unterkonstruktion.foxycart.com';
+      var cartUrl = 'https://' + cartDomain + '/cart';
+      if(sessionId) {
+        cartUrl += '?' + sessionName + '=' + sessionId;
+      }
+      
+      // Sofortiger Redirect
+      try { 
+        window.top.location.href = cartUrl; 
+      } catch(_){ 
+        window.location.href = cartUrl; 
+      }
+    }
+  }
+  
   // Sidecart-Only: Footer-Button per JS sanft hinzufügen (nicht in Vorlage injizieren)
   (function(){
     var added = false;
@@ -806,15 +865,15 @@
       a.className = 'ukc-btn ukc-btn--alt';
       a.setAttribute('data-ukc-go-fullcart','');
       // Extract session info from current URL or form
-      var sessionName = 'fc_sid';
+      var sessionName = 'fssid';
       var sessionId = '';
       try {
         var urlParams = new URLSearchParams(window.location.search);
-        sessionId = urlParams.get('fc_sid') || '';
+        sessionId = urlParams.get('fssid') || urlParams.get('fc_sid') || '';
         if(!sessionId) {
           var form = document.querySelector('form[action*="cart"]');
           if(form) {
-            var sessionInput = form.querySelector('input[name*="fc_sid"], input[name*="session"]');
+            var sessionInput = form.querySelector('input[name*="fssid"], input[name*="fc_sid"], input[name*="session"]');
             if(sessionInput) {
               sessionName = sessionInput.name;
               sessionId = sessionInput.value;
