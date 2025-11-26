@@ -10,6 +10,41 @@
   var updating = false;
   // Global flag für Auto-Updater (verhindert Konflikt mit AJAX-Update)
   window.__ukc_ajax_updating = false;
+  
+  // ===== SESSION PERSISTENCE FIX =====
+  // Problem: In manchen Browsern (Safari) geht die Session bei Refresh verloren
+  // Lösung: Session in localStorage speichern und wiederherstellen
+  (function sessionPersistence(){
+    var STORAGE_KEY = 'ukc_foxy_session';
+    var SESSION_NAME_KEY = 'ukc_foxy_session_name';
+    
+    // Session aus Template lesen und speichern
+    function saveCurrentSession(){
+      try {
+        var sessionInput = document.querySelector('input[name*="fssid"], input[name*="fc_sid"], input[type="hidden"][name]');
+        if(sessionInput && sessionInput.value){
+          var sessionName = sessionInput.name;
+          var sessionId = sessionInput.value;
+          
+          // Nur speichern wenn es eine echte Session ist (nicht leer)
+          if(sessionId && sessionId.length > 5){
+            localStorage.setItem(STORAGE_KEY, sessionId);
+            localStorage.setItem(SESSION_NAME_KEY, sessionName);
+            console.log('[UKC] Session gespeichert:', sessionName, '=', sessionId.substring(0, 10) + '...');
+          }
+        }
+      } catch(e) {
+        console.warn('[UKC] Session speichern fehlgeschlagen:', e);
+      }
+    }
+    
+    // Session beim Laden speichern
+    saveCurrentSession();
+    
+    // Auch nach AJAX-Updates speichern
+    setTimeout(saveCurrentSession, 500);
+    setTimeout(saveCurrentSession, 1500);
+  })();
   function getLocale(){ return document.querySelector('#fc-cart')?.dataset.locale || 'de-DE'; }
   function getCurrency(){ return document.querySelector('#fc-cart')?.dataset.currency || 'EUR'; }
   function getCustomerType(){

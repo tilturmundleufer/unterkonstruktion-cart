@@ -53,34 +53,43 @@
    * Extrahiert Session-ID aus verschiedenen Quellen
    */
   function extractSessionId() {
-    // 1. Aus URL-Parametern
+    // 1. Aus URL-Parametern (höchste Priorität)
     var urlParams = new URLSearchParams(window.location.search);
     var sessionId = urlParams.get('fssid') || urlParams.get('fc_sid');
     if (sessionId) {
-      console.log('[FoxyCart] Session aus URL:', sessionId);
+      console.log('[FoxyCart] Session aus URL:', sessionId.substring(0, 10) + '...');
       return sessionId;
     }
     
-    // 2. Aus Cookies
-    var match = document.cookie.match(/(?:^|; )(?:fssid|fc_sid)=([^;]+)/);
-    if (match) {
-      console.log('[FoxyCart] Session aus Cookie:', match[1]);
-      return match[1];
+    // 2. Aus Hidden Inputs im DOM (FoxyCart Templates)
+    var sessionInput = document.querySelector('input[name="fssid"], input[name="fc_sid"]');
+    if (sessionInput && sessionInput.value) {
+      sessionId = sessionInput.value;
+      console.log('[FoxyCart] Session aus Hidden Input:', sessionId.substring(0, 10) + '...');
+      return sessionId;
     }
     
     // 3. Aus FoxyCart Object (falls geladen)
     if (window.FC && FC.sid) {
-      console.log('[FoxyCart] Session aus FC.sid:', FC.sid);
+      console.log('[FoxyCart] Session aus FC.sid:', FC.sid.substring(0, 10) + '...');
       return FC.sid;
     }
     
-    // 4. Aus localStorage
+    // 4. Aus Cookies (funktioniert nicht bei Third-Party blocking)
+    var match = document.cookie.match(/(?:^|; )(?:fssid|fc_sid)=([^;]+)/);
+    if (match) {
+      console.log('[FoxyCart] Session aus Cookie:', match[1].substring(0, 10) + '...');
+      return match[1];
+    }
+    
+    // 5. Aus localStorage (Fallback)
     var storedSession = getSessionId();
     if (storedSession) {
-      console.log('[FoxyCart] Session aus localStorage:', storedSession);
+      console.log('[FoxyCart] Session aus localStorage:', storedSession.substring(0, 10) + '...');
       return storedSession;
     }
     
+    console.warn('[FoxyCart] Keine Session gefunden!');
     return null;
   }
   
@@ -97,16 +106,22 @@
       var href = element.getAttribute('href') || '';
       if (href && !href.includes('fssid=') && !href.includes('fc_sid=')) {
         var separator = href.includes('?') ? '&' : '?';
-        element.setAttribute('href', href + separator + 'fssid=' + sessionId);
+        var newHref = href + separator + 'fssid=' + sessionId;
+        element.setAttribute('href', newHref);
+        console.log('[FoxyCart] Session zu Link hinzugefügt:', href.substring(0, 50) + '...');
       }
     } else if (tagName === 'form') {
-      // Form: Hidden Input hinzufügen
-      if (!element.querySelector('input[name="fssid"], input[name="fc_sid"]')) {
+      // Form: Hidden Input hinzufügen oder aktualisieren
+      var existingInput = element.querySelector('input[name="fssid"], input[name="fc_sid"]');
+      if (existingInput) {
+        existingInput.value = sessionId;
+      } else {
         var input = document.createElement('input');
         input.type = 'hidden';
         input.name = 'fssid';
         input.value = sessionId;
         element.appendChild(input);
+        console.log('[FoxyCart] Session zu Form hinzugefügt');
       }
     }
   }
@@ -125,25 +140,45 @@
     
     if (!sessionId) {
       console.log('[FoxyCart] Keine Session gefunden - wird bei Add-to-Cart erstellt');
-      return;
+    } else {
+      console.log('[FoxyCart] Verwende Session:', sessionId.substring(0, 10) + '...');
     }
     
-    console.log('[FoxyCart] Verwende Session:', sessionId);
+    // Session-ID zu ALLEN FoxyCart Links/Forms hinzufügen (auch ohne Session)
+    function attachSessionToAll() {
+      var currentSession = sessionId || getSessionId();
+      if (!currentSession) return;
+      
+      // Add-to-Cart Links
+      var addToCartLinks = document.querySelectorAll('a[href*="foxycart.com/cart"], a[href*="foxycart.com"][href*="cart"]');
+      addToCartLinks.forEach(function(link) {
+        addSessionToElement(link, currentSession);
+      });
+      
+      // Add-to-Cart Forms
+      var addToCartForms = document.querySelectorAll('form[action*="foxycart.com/cart"], form[action*="foxycart.com"][action*="cart"]');
+      addToCartForms.forEach(function(form) {
+        addSessionToElement(form, currentSession);
+      });
+      
+      // Checkout Links
+      var checkoutLinks = document.querySelectorAll('a[href*="foxycart.com/checkout"], a[href*="/checkout"]');
+      checkoutLinks.forEach(function(link) {
+        addSessionToElement(link, currentSession);
+      });
+      
+      console.log('[FoxyCart] Session zu', addToCartLinks.length, 'Links und', addToCartForms.length, 'Forms hinzugefügt');
+    }
     
-    // Session-ID zu allen Add-to-Cart Links/Forms hinzufügen
-    var addToCartLinks = document.querySelectorAll('a[href*="foxycart.com/cart"]');
-    addToCartLinks.forEach(function(link) {
-      addSessionToElement(link, sessionId);
-    });
+    attachSessionToAll();
     
-    var addToCartForms = document.querySelectorAll('form[action*="foxycart.com/cart"]');
-    addToCartForms.forEach(function(form) {
-      addSessionToElement(form, sessionId);
-    });
+    // Wiederholt Session anhängen (für dynamische Inhalte)
+    setTimeout(attachSessionToAll, 1000);
+    setTimeout(attachSessionToAll, 3000);
     
     // FoxyCart Event Listener für neue Cart-Actions
     document.addEventListener('click', function(e) {
-      var target = e.target.closest('a[href*="foxycart.com"], button[data-foxy-product]');
+      var target = e.target.closest('a[href*="foxycart.com"], button[data-foxy-product], form[action*="foxycart.com"]');
       if (target) {
         var currentSession = getSessionId();
         if (currentSession) {
