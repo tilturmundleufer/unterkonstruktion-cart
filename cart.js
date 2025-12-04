@@ -11,29 +11,21 @@
   // Global flag für Auto-Updater (verhindert Konflikt mit AJAX-Update)
   window.__ukc_ajax_updating = false;
   
-  // ===== SESSION PERSISTENCE FIX (Chrome-optimiert, Anti-Duplikat) =====
+  // ===== SESSION PERSISTENCE FIX (nur localStorage, keine Cookies) =====
   // Problem: In Chrome auf Mac geht die Session bei Refresh verloren
-  // Lösung: Session in localStorage speichern UND beim Page-Load wiederverwenden
+  // Lösung: Session in localStorage speichern (Cookies verursachen Duplikate)
   (function sessionPersistence(){
     var STORAGE_KEY = 'ukc_foxy_session';
     var SESSION_NAME_KEY = 'ukc_foxy_session_name';
-    var COOKIE_NAME = 'ukc_foxy_sid';
     
-    // Session aus localStorage/Cookie lesen
+    // Session aus localStorage lesen
     function getStoredSession(){
       try {
-        // 1. localStorage
         var sessionId = localStorage.getItem(STORAGE_KEY);
         var sessionName = localStorage.getItem(SESSION_NAME_KEY) || 'fcsid';
         
         if(sessionId && sessionId.length > 5) {
           return { id: sessionId, name: sessionName };
-        }
-        
-        // 2. Fallback: Cookie
-        var match = document.cookie.match(new RegExp('(?:^|; )' + COOKIE_NAME + '=([^;]+)'));
-        if(match && match[1]) {
-          return { id: match[1], name: 'fcsid' };
         }
       } catch(e) {}
       return null;
@@ -52,15 +44,9 @@
           var sessionId = sessionInput.value;
           
           if(sessionId && sessionId.length > 5){
+            // Nur in localStorage speichern (keine Cookies = keine Duplikate)
             localStorage.setItem(STORAGE_KEY, sessionId);
             localStorage.setItem(SESSION_NAME_KEY, sessionName);
-            
-            var expires = new Date();
-            expires.setTime(expires.getTime() + (24 * 60 * 60 * 1000));
-            document.cookie = COOKIE_NAME + '=' + sessionId + 
-              '; expires=' + expires.toUTCString() +
-              '; path=/' +
-              '; SameSite=Lax';
             
             console.log('[UKC] Session gespeichert:', sessionName, '=', sessionId.substring(0, 10) + '...');
             return { id: sessionId, name: sessionName };
