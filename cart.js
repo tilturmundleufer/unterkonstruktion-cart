@@ -11,135 +11,9 @@
   // Global flag für Auto-Updater (verhindert Konflikt mit AJAX-Update)
   window.__ukc_ajax_updating = false;
   
-  // ===== SESSION PERSISTENCE FIX (Chrome-optimiert) =====
-  // Problem: In Chrome auf Mac geht die Session bei Refresh verloren
-  // Lösung: Session in localStorage speichern UND beim Page-Load wiederverwenden
-  (function sessionPersistence(){
-    var STORAGE_KEY = 'ukc_foxy_session';
-    var SESSION_NAME_KEY = 'ukc_foxy_session_name';
-    var COOKIE_NAME = 'ukc_foxy_sid';
-    
-    // Session aus localStorage/Cookie lesen
-    function getStoredSession(){
-      try {
-        // 1. localStorage
-        var sessionId = localStorage.getItem(STORAGE_KEY);
-        var sessionName = localStorage.getItem(SESSION_NAME_KEY) || 'fssid';
-        
-        if(sessionId && sessionId.length > 5) {
-          return { id: sessionId, name: sessionName };
-        }
-        
-        // 2. Fallback: Cookie
-        var match = document.cookie.match(new RegExp('(?:^|; )' + COOKIE_NAME + '=([^;]+)'));
-        if(match && match[1]) {
-          return { id: match[1], name: 'fssid' };
-        }
-      } catch(e) {}
-      return null;
-    }
-    
-    // Session aus Template lesen und speichern
-    function saveCurrentSession(){
-      try {
-        var sessionInput = document.querySelector('input[name="fssid"], input[name="fc_sid"]');
-        if(!sessionInput) {
-          sessionInput = document.querySelector('input[type="hidden"][name*="sid"]');
-        }
-        
-        if(sessionInput && sessionInput.value){
-          var sessionName = sessionInput.name;
-          var sessionId = sessionInput.value;
-          
-          if(sessionId && sessionId.length > 5){
-            localStorage.setItem(STORAGE_KEY, sessionId);
-            localStorage.setItem(SESSION_NAME_KEY, sessionName);
-            
-            var expires = new Date();
-            expires.setTime(expires.getTime() + (24 * 60 * 60 * 1000));
-            document.cookie = COOKIE_NAME + '=' + sessionId + 
-              '; expires=' + expires.toUTCString() +
-              '; path=/' +
-              '; SameSite=Lax';
-            
-            console.log('[UKC] Session gespeichert:', sessionName, '=', sessionId.substring(0, 10) + '...');
-            return { id: sessionId, name: sessionName };
-          }
-        }
-      } catch(e) {
-        console.error('[UKC] Session speichern fehlgeschlagen:', e);
-      }
-      return null;
-    }
-    
-    // Session an FoxyCart Links/Forms anhängen
-    function attachSessionToElements(session){
-      if(!session || !session.id) return;
-      
-      // FoxyCart Links
-      document.querySelectorAll('a[href*="foxycart.com"]').forEach(function(link){
-        var href = link.getAttribute('href') || '';
-        if(href && !href.includes('fssid=') && !href.includes('fc_sid=')){
-          var separator = href.includes('?') ? '&' : '?';
-          link.setAttribute('href', href + separator + session.name + '=' + session.id);
-        }
-      });
-      
-      // FoxyCart Forms
-      document.querySelectorAll('form[action*="foxycart.com"]').forEach(function(form){
-        var existing = form.querySelector('input[name="fssid"], input[name="fc_sid"]');
-        if(!existing) {
-          var input = document.createElement('input');
-          input.type = 'hidden';
-          input.name = session.name;
-          input.value = session.id;
-          form.appendChild(input);
-        } else {
-          existing.value = session.id;
-        }
-      });
-    }
-    
-    // FC.sid setzen (wenn FC Object existiert)
-    function injectIntoFC(session){
-      if(!session || !window.FC) return;
-      try {
-        if(!FC.sid || FC.sid === '') {
-          FC.sid = session.id;
-          console.log('[UKC] FC.sid gesetzt:', session.id.substring(0, 10) + '...');
-        }
-      } catch(e) {}
-    }
-    
-    // INIT: Beim Page-Load
-    var stored = getStoredSession();
-    if(stored) {
-      console.log('[UKC] Gespeicherte Session gefunden:', stored.id.substring(0, 10) + '...');
-      attachSessionToElements(stored);
-      setTimeout(function(){ injectIntoFC(stored); }, 100);
-      setTimeout(function(){ attachSessionToElements(stored); }, 500);
-    } else {
-      console.log('[UKC] Keine gespeicherte Session - warte auf neue Session');
-    }
-    
-    // Session speichern wenn vorhanden
-    var saved = saveCurrentSession();
-    if(saved) {
-      attachSessionToElements(saved);
-      setTimeout(function(){ injectIntoFC(saved); }, 100);
-    }
-    
-    // Wiederholungen für dynamische Inhalte
-    setTimeout(function(){
-      var s = getStoredSession() || saveCurrentSession();
-      if(s) { attachSessionToElements(s); injectIntoFC(s); }
-    }, 1000);
-    
-    setTimeout(function(){
-      var s = getStoredSession() || saveCurrentSession();
-      if(s) { attachSessionToElements(s); injectIntoFC(s); }
-    }, 2000);
-  })();
+  // ===== SESSION HANDLING =====
+  // FoxyCart verwaltet Sessions selbst über Cookies und iframe-Kommunikation
+  // Kein manuelles Session-Handling nötig - das verursacht Cross-Domain-Probleme!
   function getLocale(){ return document.querySelector('#fc-cart')?.dataset.locale || 'de-DE'; }
   function getCurrency(){ return document.querySelector('#fc-cart')?.dataset.currency || 'EUR'; }
   function getCustomerType(){
@@ -983,30 +857,8 @@
   if(isMobile()){
     var sidecartRoot = document.querySelector('[data-fc-sidecart]');
     if(sidecartRoot){
-      // Extrahiere Session-Info
-      var sessionName = 'fssid';
-      var sessionId = '';
-      try {
-        var urlParams = new URLSearchParams(window.location.search);
-        sessionId = urlParams.get('fssid') || urlParams.get('fc_sid') || '';
-        if(!sessionId) {
-          var form = document.querySelector('form[action*="cart"]');
-          if(form) {
-            var sessionInput = form.querySelector('input[name*="fssid"], input[name*="fc_sid"], input[name*="session"]');
-            if(sessionInput) {
-              sessionName = sessionInput.name;
-              sessionId = sessionInput.value;
-            }
-          }
-        }
-      } catch(e) {}
-      
-      // Redirect zum Fullpage-Cart
-      var cartDomain = 'unterkonstruktion.foxycart.com';
-      var cartUrl = 'https://' + cartDomain + '/cart';
-      if(sessionId) {
-        cartUrl += '?' + sessionName + '=' + sessionId;
-      }
+      // Redirect zum Fullpage-Cart (Session wird automatisch übertragen)
+      var cartUrl = 'https://unterkonstruktion.foxycart.com/cart';
       
       // Sofortiger Redirect
       try { 
@@ -1030,30 +882,9 @@
       var a = document.createElement('a');
       a.className = 'ukc-btn ukc-btn--alt';
       a.setAttribute('data-ukc-go-fullcart','');
-      // Extract session info from current URL or form
-      var sessionName = 'fssid';
-      var sessionId = '';
-      try {
-        var urlParams = new URLSearchParams(window.location.search);
-        sessionId = urlParams.get('fssid') || urlParams.get('fc_sid') || '';
-        if(!sessionId) {
-          var form = document.querySelector('form[action*="cart"]');
-          if(form) {
-            var sessionInput = form.querySelector('input[name*="fssid"], input[name*="fc_sid"], input[name*="session"]');
-            if(sessionInput) {
-              sessionName = sessionInput.name;
-              sessionId = sessionInput.value;
-            }
-          }
-        }
-      } catch(e) {}
       
-      // Use FoxyCart domain for cart link
-      var cartDomain = 'unterkonstruktion.foxycart.com';
-      var cartUrl = 'https://' + cartDomain + '/cart';
-      if(sessionId) {
-        cartUrl += '?' + sessionName + '=' + sessionId;
-      }
+      // Einfacher Link zum Fullpage-Cart (Session wird automatisch übertragen)
+      var cartUrl = 'https://unterkonstruktion.foxycart.com/cart';
       a.href = cartUrl;
       a.target = '_top';
       a.textContent = 'Zum Warenkorb';
