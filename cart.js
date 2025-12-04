@@ -11,9 +11,130 @@
   // Global flag für Auto-Updater (verhindert Konflikt mit AJAX-Update)
   window.__ukc_ajax_updating = false;
   
-  // ===== SESSION HANDLING =====
-  // FoxyCart verwaltet Sessions selbst über Cookies und iframe-Kommunikation
-  // Kein manuelles Session-Handling nötig - das verursacht Cross-Domain-Probleme!
+  // ===== SESSION PERSISTENCE FIX (Chrome-optimiert, Anti-Duplikat) =====
+  // Problem: In Chrome auf Mac geht die Session bei Refresh verloren
+  // Lösung: Session in localStorage speichern UND beim Page-Load wiederverwenden
+  (function sessionPersistence(){
+    var STORAGE_KEY = 'ukc_foxy_session';
+    var SESSION_NAME_KEY = 'ukc_foxy_session_name';
+    var COOKIE_NAME = 'ukc_foxy_sid';
+    
+    // Session aus localStorage/Cookie lesen
+    function getStoredSession(){
+      try {
+        // 1. localStorage
+        var sessionId = localStorage.getItem(STORAGE_KEY);
+        var sessionName = localStorage.getItem(SESSION_NAME_KEY) || 'fcsid';
+        
+        if(sessionId && sessionId.length > 5) {
+          return { id: sessionId, name: sessionName };
+        }
+        
+        // 2. Fallback: Cookie
+        var match = document.cookie.match(new RegExp('(?:^|; )' + COOKIE_NAME + '=([^;]+)'));
+        if(match && match[1]) {
+          return { id: match[1], name: 'fcsid' };
+        }
+      } catch(e) {}
+      return null;
+    }
+    
+    // Session aus Template lesen und speichern
+    function saveCurrentSession(){
+      try {
+        var sessionInput = document.querySelector('input[name="fcsid"], input[name="fc_sid"], input[name="fssid"]');
+        if(!sessionInput) {
+          sessionInput = document.querySelector('input[type="hidden"][name*="sid"]');
+        }
+        
+        if(sessionInput && sessionInput.value){
+          var sessionName = sessionInput.name;
+          var sessionId = sessionInput.value;
+          
+          if(sessionId && sessionId.length > 5){
+            localStorage.setItem(STORAGE_KEY, sessionId);
+            localStorage.setItem(SESSION_NAME_KEY, sessionName);
+            
+            var expires = new Date();
+            expires.setTime(expires.getTime() + (24 * 60 * 60 * 1000));
+            document.cookie = COOKIE_NAME + '=' + sessionId + 
+              '; expires=' + expires.toUTCString() +
+              '; path=/' +
+              '; SameSite=Lax';
+            
+            console.log('[UKC] Session gespeichert:', sessionName, '=', sessionId.substring(0, 10) + '...');
+            return { id: sessionId, name: sessionName };
+          }
+        }
+      } catch(e) {
+        console.error('[UKC] Session speichern fehlgeschlagen:', e);
+      }
+      return null;
+    }
+    
+    // Session an FoxyCart Links/Forms anhängen (mit Anti-Duplikat-Prüfung)
+    function attachSessionToElements(session){
+      if(!session || !session.id) return;
+      
+      // FoxyCart Links - VERBESSERTE Duplikat-Prüfung
+      document.querySelectorAll('a[href*="foxycart.com"]').forEach(function(link){
+        var href = link.getAttribute('href') || '';
+        // Prüfe auf ALLE möglichen Session-Parameter (fcsid, fc_sid, fssid)
+        if(href && !href.includes('fcsid=') && !href.includes('fc_sid=') && !href.includes('fssid=')){
+          var separator = href.includes('?') ? '&' : '?';
+          link.setAttribute('href', href + separator + session.name + '=' + session.id);
+          console.log('[UKC] Session an Link angehängt:', href.substring(0, 50) + '...');
+        }
+      });
+      
+      // FoxyCart Forms
+      document.querySelectorAll('form[action*="foxycart.com"]').forEach(function(form){
+        var existing = form.querySelector('input[name="fcsid"], input[name="fc_sid"], input[name="fssid"]');
+        if(!existing) {
+          var input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = session.name;
+          input.value = session.id;
+          form.appendChild(input);
+        } else if(existing.value !== session.id) {
+          existing.value = session.id;
+        }
+      });
+    }
+    
+    // FC.sid setzen (wenn FC Object existiert)
+    function injectIntoFC(session){
+      if(!session || !window.FC) return;
+      try {
+        if(!FC.sid || FC.sid === '') {
+          FC.sid = session.id;
+          console.log('[UKC] FC.sid gesetzt:', session.id.substring(0, 10) + '...');
+        }
+      } catch(e) {}
+    }
+    
+    // INIT: Beim Page-Load - NUR EINMAL ausführen!
+    var stored = getStoredSession();
+    var saved = saveCurrentSession();
+    var session = saved || stored;
+    
+    if(session) {
+      console.log('[UKC] Session verfügbar:', session.id.substring(0, 10) + '...');
+      attachSessionToElements(session);
+      setTimeout(function(){ injectIntoFC(session); }, 100);
+    } else {
+      console.log('[UKC] Keine Session gefunden - warte auf FoxyCart');
+    }
+    
+    // Nur EINE verzögerte Wiederholung für dynamische Inhalte
+    setTimeout(function(){
+      var s = getStoredSession() || saveCurrentSession();
+      if(s) { 
+        attachSessionToElements(s); 
+        injectIntoFC(s); 
+      }
+    }, 1500);
+  })();
   function getLocale(){ return document.querySelector('#fc-cart')?.dataset.locale || 'de-DE'; }
   function getCurrency(){ return document.querySelector('#fc-cart')?.dataset.currency || 'EUR'; }
   function getCustomerType(){
@@ -848,6 +969,18 @@
     }
   }, false);
 
+  // Hilfsfunktion: Session-ID aus localStorage holen
+  function getSessionForUrl(){
+    try {
+      var sessionId = localStorage.getItem('ukc_foxy_session');
+      var sessionName = localStorage.getItem('ukc_foxy_session_name') || 'fcsid';
+      if(sessionId && sessionId.length > 5) {
+        return { id: sessionId, name: sessionName };
+      }
+    } catch(e) {}
+    return null;
+  }
+  
   // Mobile-Detection und Sidecart-Redirect
   function isMobile(){
     return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -857,8 +990,12 @@
   if(isMobile()){
     var sidecartRoot = document.querySelector('[data-fc-sidecart]');
     if(sidecartRoot){
-      // Redirect zum Fullpage-Cart (Session wird automatisch übertragen)
+      // Redirect zum Fullpage-Cart MIT Session-ID
       var cartUrl = 'https://unterkonstruktion.foxycart.com/cart';
+      var session = getSessionForUrl();
+      if(session && session.id) {
+        cartUrl += '?' + session.name + '=' + session.id;
+      }
       
       // Sofortiger Redirect
       try { 
@@ -883,8 +1020,14 @@
       a.className = 'ukc-btn ukc-btn--alt';
       a.setAttribute('data-ukc-go-fullcart','');
       
-      // Einfacher Link zum Fullpage-Cart (Session wird automatisch übertragen)
+      // Link zum Fullpage-Cart MIT Session-ID (einmalig!)
       var cartUrl = 'https://unterkonstruktion.foxycart.com/cart';
+      var session = getSessionForUrl();
+      if(session && session.id) {
+        cartUrl += '?' + session.name + '=' + session.id;
+        console.log('[UKC] Warenkorb-Button mit Session erstellt:', session.id.substring(0, 10) + '...');
+      }
+      
       a.href = cartUrl;
       a.target = '_top';
       a.textContent = 'Zum Warenkorb';
@@ -895,7 +1038,13 @@
       main.appendChild(wrap);
       a.addEventListener('click', function(e){
         e.preventDefault(); e.stopPropagation();
-        try { window.top.location.href = a.href; } catch(_){ window.location.href = a.href; }
+        // Session nochmal frisch holen beim Klick (falls zwischenzeitlich aktualisiert)
+        var freshSession = getSessionForUrl();
+        var finalUrl = 'https://unterkonstruktion.foxycart.com/cart';
+        if(freshSession && freshSession.id) {
+          finalUrl += '?' + freshSession.name + '=' + freshSession.id;
+        }
+        try { window.top.location.href = finalUrl; } catch(_){ window.location.href = finalUrl; }
       });
       added = true;
     }
