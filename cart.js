@@ -127,7 +127,24 @@
     try{ var m = document.cookie.match(/(?:^|; )ukc_customer_type=([^;]+)/); return m ? decodeURIComponent(m[1]) : ''; }catch(_){ return ''; }
   }
   function formatMoney(num){ return new Intl.NumberFormat(getLocale(), { style: 'currency', currency: getCurrency() }).format(num); }
-  // recalcSummary() ENTFERNT - FoxyCart macht alle Berechnungen selbst
+  function recalcSummary(){
+    var subtotal = 0;
+    document.querySelectorAll('.ukc-row').forEach(function(row){
+      var qtyInput = row.querySelector('input[data-fc-id="item-quantity-input"]');
+      var qty = parseInt(qtyInput?.value || '0', 10) || 0;
+      var each = parseFloat(row.getAttribute('data-price-each') || '0') || 0;
+      subtotal += each * qty;
+      var totalEl = row.querySelector('.ukc-row__total p');
+      if(totalEl){ totalEl.textContent = formatMoney(each * qty); }
+    });
+    
+    // Update NUR Subtotal - Tax und Total kommen vom Server!
+    var subEl = document.querySelector('[data-ukc-subtotal]');
+    if(subEl) subEl.textContent = formatMoney(subtotal);
+    
+    // Tax und Total NICHT überschreiben - die kommen aus der Server-Response
+    // Die werden in ajaxUpdate() nach der Server-Antwort gesetzt
+  }
   // Tax Summary Updates werden komplett von FoxyCart's nativer Lösung übernommen
   // Keine Custom Tax-Berechnungen mehr nötig
   function findQtyInput(itemId){
@@ -173,7 +190,8 @@
         if(inp) inp.value = val;
         if(val) fd.set('customer_type', val);
       }catch(_){}
-      // FoxyCart berechnet alle Werte - keine Client-seitige Berechnung mehr
+      // Sofort im UI vorrechnen, damit es flüssig wirkt
+      recalcSummary();
       var res = await fetch(form.action, { method:'POST', body: fd, credentials:'include' });
       var html = await res.text();
       var doc = new DOMParser().parseFromString(html, 'text/html');
@@ -239,7 +257,7 @@
       if(currentContext === 'cart'){
         document.querySelectorAll('.fc-transaction__shipping, [data-fc-id="button-toggle-multiship-details"], .fc-transaction__shipping-address').forEach(function(n){ n?.parentElement?.removeChild(n); });
       }
-      // FoxyCart berechnet alle Werte - keine Client-seitige Berechnung mehr
+      recalcSummary();
       // updateTaxSummary() entfernt - FoxyCart native Lösung nutzen
       
       // Tax-Berechnung im Checkout und Cart triggern
@@ -840,7 +858,8 @@
         if(value < 1) value = 1;
         input.value = value;
         
-        // FoxyCart aktualisiert UI - kein manuelles recalc mehr
+        // Sofortige UI-Aktualisierung
+        recalcSummary();
         
         // Debounced Update nach 800ms
         clearTimeout(qtyInputDebounce);
@@ -896,7 +915,7 @@
         current = current + 1;
       }
       input.value = current;
-      // FoxyCart aktualisiert UI - kein manuelles recalc mehr
+      recalcSummary();
       ajaxUpdate();
       return;
     }
@@ -922,7 +941,7 @@
       
       var inp = findQtyInput(idr);
       if(inp){ inp.value = 0; }
-      // FoxyCart aktualisiert UI - kein manuelles recalc mehr
+      recalcSummary();
       ajaxUpdate();
       
       // Prüfen, ob noch Items vorhanden sind
@@ -1043,7 +1062,7 @@
       
       // Summary zurücksetzen und leere Nachricht anzeigen
       setTimeout(function(){
-        // FoxyCart aktualisiert UI - kein manuelles recalc mehr
+        recalcSummary();
         ajaxUpdate();
         
         // Leere Nachricht anzeigen, wenn alle Items entfernt wurden
