@@ -319,17 +319,14 @@
       if(form) form.submit();
     }finally{
       updating = false;
-      console.log('[UKC AJAX] AJAX-Update abgeschlossen, Auto-Updater wird in 500ms wieder aktiviert');
-      // Auto-Updater nach kurzem Delay wieder aktivieren (gibt Zeit für Foxy-Update)
+      console.log('[UKC AJAX] AJAX-Update abgeschlossen');
+      // Auto-Updater wieder aktivieren OHNE manuellen Trigger
+      // WICHTIG: KEIN scheduleUpdate() aufrufen, da FC.cart noch alte Werte hat!
+      // Der Auto-Updater läuft automatisch über MutationObserver bei echten FoxyCart-Updates
       setTimeout(function(){
-        console.log('[UKC AJAX] Auto-Updater wird jetzt wieder aktiviert');
+        console.log('[UKC AJAX] Auto-Updater entsperrt (FC.cart hat möglicherweise noch alte Werte, daher kein manueller Trigger)');
         window.__ukc_ajax_updating = false;
-        // Trigger explizites Update der Summary-Werte
-        if(typeof window.__ukc_scheduleUpdate === 'function'){
-          console.log('[UKC AJAX] Triggere Auto-Updater manuell');
-          window.__ukc_scheduleUpdate();
-        }
-      }, 500);
+      }, 1000);
     }
   }
   // Kundentyp ableiten: Wenn Firmenname gesetzt => firmenkunde, sonst privat
@@ -1364,6 +1361,13 @@
       return;
     }
     
+    // Im Cart-Kontext: Auto-Updater deaktivieren (FC.cart wird im Cart nicht korrekt aktualisiert)
+    var ctx = document.querySelector('#fc-cart')?.getAttribute('data-context');
+    if(ctx === 'cart') {
+      console.log('[UKC Auto-Updater] Im Cart-Kontext deaktiviert - Server-Response ist die einzige Wahrheit');
+      return;
+    }
+    
     var snap = readCart();
     if(!snap) return;
     
@@ -1460,6 +1464,13 @@
     function update(){
       // Pausiere Auto-Update während AJAX-Update läuft
       if(updating || window.__ukc_ajax_updating) return;
+      
+      // Im Cart-Kontext: Auto-Updater deaktivieren (FC.cart wird im Cart nicht korrekt aktualisiert)
+      var ctx = document.querySelector('#fc-cart')?.getAttribute('data-context');
+      if(ctx === 'cart') {
+        return;
+      }
+      
       var snap = readCart();
       if(!snap) return;
       var subEl = document.querySelector('[data-ukc-subtotal]');
