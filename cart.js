@@ -220,16 +220,40 @@
         var currTotal = current.querySelector('[data-ukc-total-order]');
         var currShipping = current.querySelector('[data-ukc-shipping]');
         
+        console.log('[UKC] Summary-Elemente gefunden:', {
+          nextTax: !!nextTax, nextTotal: !!nextTotal,
+          currTax: !!currTax, currTotal: !!currTotal
+        });
+        
         // Aktualisiere Summary-Werte aus Server-Response
-        if(nextSubtotal && currSubtotal) currSubtotal.textContent = nextSubtotal.textContent;
-        if(nextTax && currTax) currTax.textContent = nextTax.textContent;
-        if(nextTotal && currTotal) currTotal.textContent = nextTotal.textContent;
-        if(nextShipping && currShipping) currShipping.textContent = nextShipping.textContent;
+        if(nextSubtotal && currSubtotal) {
+          console.log('[UKC] Subtotal Update:', nextSubtotal.textContent);
+          currSubtotal.textContent = nextSubtotal.textContent;
+        }
+        if(nextTax && currTax) {
+          console.log('[UKC] Tax Update:', nextTax.textContent);
+          currTax.textContent = nextTax.textContent;
+        }
+        if(nextTotal && currTotal) {
+          console.log('[UKC] Total Update:', nextTotal.textContent);
+          currTotal.textContent = nextTotal.textContent;
+        }
+        if(nextShipping && currShipping) {
+          console.log('[UKC] Shipping Update:', nextShipping.textContent);
+          currShipping.textContent = nextShipping.textContent;
+        }
         
         // 3. Item-Count aktualisieren
         var nextCount = next.querySelector('[data-fc-order-quantity-integer]');
         var currCount = current.querySelector('[data-fc-order-quantity-integer]');
         if(nextCount && currCount) currCount.textContent = nextCount.textContent;
+        
+        // 4. Trigger sofortiges Update für Auto-Updater
+        setTimeout(function(){
+          if(typeof window.__ukc_scheduleUpdate === 'function'){
+            window.__ukc_scheduleUpdate();
+          }
+        }, 100);
         return;
       }
       // Fallback: live totals/row calculation ohne kompletten Reflow
@@ -309,6 +333,10 @@
       // Auto-Updater nach kurzem Delay wieder aktivieren (gibt Zeit für Foxy-Update)
       setTimeout(function(){
         window.__ukc_ajax_updating = false;
+        // Trigger explizites Update der Summary-Werte
+        if(typeof window.__ukc_scheduleUpdate === 'function'){
+          window.__ukc_scheduleUpdate();
+        }
       }, 500);
     }
   }
@@ -1371,6 +1399,9 @@
       timeoutId = setTimeout(update, 120);
     });
   }
+  
+  // Global verfügbar machen für AJAX-Handler
+  window.__ukc_scheduleUpdate = scheduleUpdate;
 
   if(window.MutationObserver){
     try{
