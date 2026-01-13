@@ -205,37 +205,47 @@
       var current = document.querySelector('#fc-cart');
       console.log('[UKC AJAX] Parser fertig, next:', !!next, 'current:', !!current);
       if(next && current){ 
+        console.log('[UKC AJAX] AJAX-Update wird ausgeführt');
+        
         // 1. Aktualisiere Items-Liste
         var nextItems = next.querySelector('.ukc-items');
         var currItems = current.querySelector('.ukc-items');
         if(nextItems && currItems){
+            console.log('[UKC AJAX] Items-Liste wird aktualisiert');
             currItems.innerHTML = nextItems.innerHTML;
         } else {
+            console.log('[UKC AJAX] Items NICHT gefunden - Fallback: kompletter Replace');
             // Fallback: kompletter Replace
             current.replaceWith(next);
             return;
         }
         
-        // 2. Aktualisiere Summary-Tabelle (WICHTIG: Hier sind Tax und Total!)
-        var nextSummaryTable = next.querySelector('.ukc-summary-table');
-        var currSummaryTable = current.querySelector('.ukc-summary-table');
+        // 2. Aktualisiere die gesamte Sidebar (inkl. Summary-Tabelle)
+        var nextSidebar = next.querySelector('.fc-sidebar--cart.ukc-summary');
+        var currSidebar = current.querySelector('.fc-sidebar--cart.ukc-summary');
         
-        console.log('[UKC AJAX] AJAX-Update wird ausgeführt');
-        
-        if(nextSummaryTable && currSummaryTable) {
-          console.log('[UKC AJAX] Summary-Table gefunden, wird aktualisiert');
-          console.log('[UKC AJAX] VORHER - Tax:', currSummaryTable.querySelector('[data-ukc-tax-total]')?.textContent);
-          console.log('[UKC AJAX] VORHER - Total:', currSummaryTable.querySelector('[data-ukc-total-order]')?.textContent);
+        if(nextSidebar && currSidebar) {
+          console.log('[UKC AJAX] Sidebar gefunden, wird KOMPLETT aktualisiert');
+          console.log('[UKC AJAX] VORHER - Tax:', currSidebar.querySelector('[data-ukc-tax-total]')?.textContent);
+          console.log('[UKC AJAX] VORHER - Total:', currSidebar.querySelector('[data-ukc-total-order]')?.textContent);
           
-          currSummaryTable.innerHTML = nextSummaryTable.innerHTML;
+          // Ersetze den gesamten Sidebar-Inhalt
+          currSidebar.innerHTML = nextSidebar.innerHTML;
           
-          console.log('[UKC AJAX] NACHHER - Tax:', currSummaryTable.querySelector('[data-ukc-tax-total]')?.textContent);
-          console.log('[UKC AJAX] NACHHER - Total:', currSummaryTable.querySelector('[data-ukc-total-order]')?.textContent);
+          console.log('[UKC AJAX] NACHHER - Tax:', currSidebar.querySelector('[data-ukc-tax-total]')?.textContent);
+          console.log('[UKC AJAX] NACHHER - Total:', currSidebar.querySelector('[data-ukc-total-order]')?.textContent);
         } else {
-          console.log('[UKC AJAX] Summary-Table NICHT gefunden!', {
-            nextSummaryTable: !!nextSummaryTable,
-            currSummaryTable: !!currSummaryTable
+          console.log('[UKC AJAX] Sidebar NICHT gefunden!', {
+            nextSidebar: !!nextSidebar,
+            currSidebar: !!currSidebar
           });
+          // Fallback: versuche nur die Tabelle zu aktualisieren
+          var nextSummaryTable = next.querySelector('.ukc-summary-table');
+          var currSummaryTable = current.querySelector('.ukc-summary-table');
+          if(nextSummaryTable && currSummaryTable) {
+            console.log('[UKC AJAX] Fallback: nur Summary-Table aktualisiert');
+            currSummaryTable.innerHTML = nextSummaryTable.innerHTML;
+          }
         }
         
         // 3. Item-Count aktualisieren
