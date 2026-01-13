@@ -128,6 +128,7 @@
   }
   function formatMoney(num){ return new Intl.NumberFormat(getLocale(), { style: 'currency', currency: getCurrency() }).format(num); }
   function recalcSummary(){
+    console.log('[UKC recalcSummary] Wird aufgerufen');
     var subtotal = 0;
     document.querySelectorAll('.ukc-row').forEach(function(row){
       var qtyInput = row.querySelector('input[data-fc-id="item-quantity-input"]');
@@ -140,10 +141,14 @@
     
     // Update NUR Subtotal - Tax und Total kommen vom Server!
     var subEl = document.querySelector('[data-ukc-subtotal]');
-    if(subEl) subEl.textContent = formatMoney(subtotal);
+    if(subEl) {
+      console.log('[UKC recalcSummary] Subtotal aktualisiert:', formatMoney(subtotal));
+      subEl.textContent = formatMoney(subtotal);
+    }
     
     // Tax und Total NICHT überschreiben - die kommen aus der Server-Response
     // Die werden in ajaxUpdate() nach der Server-Antwort gesetzt
+    console.log('[UKC recalcSummary] Fertig - Tax und Total wurden NICHT angefasst');
   }
   // Tax Summary Updates werden komplett von FoxyCart's nativer Lösung übernommen
   // Keine Custom Tax-Berechnungen mehr nötig
@@ -194,9 +199,11 @@
       recalcSummary();
       var res = await fetch(form.action, { method:'POST', body: fd, credentials:'include' });
       var html = await res.text();
+      console.log('[UKC AJAX] Server-Response erhalten, HTML-Länge:', html.length);
       var doc = new DOMParser().parseFromString(html, 'text/html');
       var next = doc.querySelector('#fc-cart');
       var current = document.querySelector('#fc-cart');
+      console.log('[UKC AJAX] Parser fertig, next:', !!next, 'current:', !!current);
       if(next && current){ 
         // 1. Aktualisiere Items-Liste
         var nextItems = next.querySelector('.ukc-items');
@@ -213,11 +220,19 @@
         var nextSummaryTable = next.querySelector('.ukc-summary-table');
         var currSummaryTable = current.querySelector('.ukc-summary-table');
         
+        console.log('[UKC AJAX] AJAX-Update wird ausgeführt');
+        
         if(nextSummaryTable && currSummaryTable) {
-          console.log('[UKC] Summary-Table wird aktualisiert');
+          console.log('[UKC AJAX] Summary-Table gefunden, wird aktualisiert');
+          console.log('[UKC AJAX] VORHER - Tax:', currSummaryTable.querySelector('[data-ukc-tax-total]')?.textContent);
+          console.log('[UKC AJAX] VORHER - Total:', currSummaryTable.querySelector('[data-ukc-total-order]')?.textContent);
+          
           currSummaryTable.innerHTML = nextSummaryTable.innerHTML;
+          
+          console.log('[UKC AJAX] NACHHER - Tax:', currSummaryTable.querySelector('[data-ukc-tax-total]')?.textContent);
+          console.log('[UKC AJAX] NACHHER - Total:', currSummaryTable.querySelector('[data-ukc-total-order]')?.textContent);
         } else {
-          console.log('[UKC] Summary-Table NICHT gefunden!', {
+          console.log('[UKC AJAX] Summary-Table NICHT gefunden!', {
             nextSummaryTable: !!nextSummaryTable,
             currSummaryTable: !!currSummaryTable
           });
@@ -304,11 +319,14 @@
       if(form) form.submit();
     }finally{
       updating = false;
+      console.log('[UKC AJAX] AJAX-Update abgeschlossen, Auto-Updater wird in 500ms wieder aktiviert');
       // Auto-Updater nach kurzem Delay wieder aktivieren (gibt Zeit für Foxy-Update)
       setTimeout(function(){
+        console.log('[UKC AJAX] Auto-Updater wird jetzt wieder aktiviert');
         window.__ukc_ajax_updating = false;
         // Trigger explizites Update der Summary-Werte
         if(typeof window.__ukc_scheduleUpdate === 'function'){
+          console.log('[UKC AJAX] Triggere Auto-Updater manuell');
           window.__ukc_scheduleUpdate();
         }
       }, 500);
@@ -916,6 +934,7 @@
       }else{
         current = current + 1;
       }
+      console.log('[UKC Button] +/- Button geklickt, neue Menge:', current);
       input.value = current;
       recalcSummary();
       ajaxUpdate();
@@ -1340,9 +1359,21 @@
 
   function update(){
     // Pausiere Auto-Update während AJAX-Update läuft
-    if(updating || window.__ukc_ajax_updating) return;
+    if(updating || window.__ukc_ajax_updating) {
+      console.log('[UKC Auto-Updater] Pausiert (updating=' + updating + ', ajax=' + window.__ukc_ajax_updating + ')');
+      return;
+    }
+    
     var snap = readCart();
     if(!snap) return;
+    
+    console.log('[UKC Auto-Updater] Läuft jetzt!', {
+      sub: snap.sub,
+      tax: snap.tax,
+      ship: snap.ship,
+      tot: snap.tot
+    });
+    
     var subEl = document.querySelector('[data-ukc-subtotal]');
     var taxEl = document.querySelector('[data-ukc-tax-total]');
     var shipEls = document.querySelectorAll('[data-ukc-shipping]');
@@ -1350,12 +1381,24 @@
 
     updating = true;
     try{
-      if(subEl && !nearlyEqual(prev.sub, snap.sub)) subEl.textContent = fmt(snap.sub);
-      if(taxEl && !nearlyEqual(prev.tax, snap.tax)) taxEl.textContent = fmt(snap.tax);
-      if(shipEls && shipEls.forEach){
-        if(!nearlyEqual(prev.ship, snap.ship)) shipEls.forEach(function(el){ el.textContent = fmt(snap.ship); });
+      if(subEl && !nearlyEqual(prev.sub, snap.sub)) {
+        console.log('[UKC Auto-Updater] Subtotal: ' + prev.sub + ' -> ' + snap.sub);
+        subEl.textContent = fmt(snap.sub);
       }
-      if(totalEl && !nearlyEqual(prev.tot, snap.tot)) totalEl.textContent = fmt(snap.tot);
+      if(taxEl && !nearlyEqual(prev.tax, snap.tax)) {
+        console.log('[UKC Auto-Updater] Tax: ' + prev.tax + ' -> ' + snap.tax);
+        taxEl.textContent = fmt(snap.tax);
+      }
+      if(shipEls && shipEls.forEach){
+        if(!nearlyEqual(prev.ship, snap.ship)) {
+          console.log('[UKC Auto-Updater] Shipping: ' + prev.ship + ' -> ' + snap.ship);
+          shipEls.forEach(function(el){ el.textContent = fmt(snap.ship); });
+        }
+      }
+      if(totalEl && !nearlyEqual(prev.tot, snap.tot)) {
+        console.log('[UKC Auto-Updater] Total: ' + prev.tot + ' -> ' + snap.tot);
+        totalEl.textContent = fmt(snap.tot);
+      }
       prev = snap;
     } finally {
       updating = false;
