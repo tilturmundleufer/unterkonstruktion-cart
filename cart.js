@@ -248,12 +248,8 @@
         var currCount = current.querySelector('[data-fc-order-quantity-integer]');
         if(nextCount && currCount) currCount.textContent = nextCount.textContent;
         
-        // 4. Trigger sofortiges Update für Auto-Updater
-        setTimeout(function(){
-          if(typeof window.__ukc_scheduleUpdate === 'function'){
-            window.__ukc_scheduleUpdate();
-          }
-        }, 100);
+        // 4. NICHT den Auto-Updater triggern - die Werte aus der Server-Response sind bereits gesetzt!
+        // Auto-Updater würde nur alte Werte aus FC.cart zurückschreiben
         return;
       }
       // Fallback: live totals/row calculation ohne kompletten Reflow
@@ -330,14 +326,12 @@
       if(form) form.submit();
     }finally{
       updating = false;
-      // Auto-Updater nach kurzem Delay wieder aktivieren (gibt Zeit für Foxy-Update)
+      // Auto-Updater nach längerem Delay wieder aktivieren (gibt FoxyCart Zeit, seine Werte zu aktualisieren)
       setTimeout(function(){
         window.__ukc_ajax_updating = false;
-        // Trigger explizites Update der Summary-Werte
-        if(typeof window.__ukc_scheduleUpdate === 'function'){
-          window.__ukc_scheduleUpdate();
-        }
-      }, 500);
+        // Auto-Updater wird über MutationObserver automatisch getriggert
+        // KEIN manueller Trigger mehr, um zu verhindern dass alte FC.cart Werte die Server-Response überschreiben
+      }, 2000);
     }
   }
   // Kundentyp ableiten: Wenn Firmenname gesetzt => firmenkunde, sonst privat
@@ -1367,6 +1361,14 @@
   function update(){
     // Pausiere Auto-Update während AJAX-Update läuft
     if(updating || window.__ukc_ajax_updating) return;
+    
+    // Im Cart-Kontext: KEIN Auto-Update (verhindert Überschreiben der Server-Response-Werte)
+    var ctx = document.querySelector('#fc-cart')?.getAttribute('data-context');
+    if(ctx === 'cart') {
+      console.log('[UKC Auto-Updater] Deaktiviert im Cart-Kontext');
+      return;
+    }
+    
     var snap = readCart();
     if(!snap) return;
     var subEl = document.querySelector('[data-ukc-subtotal]');
@@ -1443,6 +1445,14 @@
     function update(){
       // Pausiere Auto-Update während AJAX-Update läuft
       if(updating || window.__ukc_ajax_updating) return;
+      
+      // Im Cart-Kontext: KEIN Auto-Update (verhindert Überschreiben der Server-Response-Werte)
+      var ctx = document.querySelector('#fc-cart')?.getAttribute('data-context');
+      if(ctx === 'cart') {
+        console.log('[UKC Live Price Updater] Deaktiviert im Cart-Kontext');
+        return;
+      }
+      
       var snap = readCart();
       if(!snap) return;
       var subEl = document.querySelector('[data-ukc-subtotal]');
