@@ -419,7 +419,7 @@
 
 
 
-        <div class="fc-sidebar fc-sidebar--cart ukc-summary">
+        <div class="fc-sidebar fc-sidebar--cart ukc-summary" data-ukc-summary-root>
             {% if context != 'checkout' %}
             {% block logo %}
             <div class="fc-logo">
@@ -485,7 +485,7 @@
             {% block order_totals %}
             <h3 class="fc-transaction__header" data-fc-id="ukc-order-summary-header"><span>Bestellübersicht</span></h3>
 
-            <table class="ukc-summary-table">
+            <table class="ukc-summary-table" data-ukc-summary-table>
                 <tbody>
                     <tr>
                         <td class="ukc-summary-label">Zwischensumme</td>
@@ -857,7 +857,7 @@
             {% else %}
             {# Cart: nur unsere Zusammenfassung ohne Foxy-Listen/Blöcke #}
             <h3 class="fc-transaction__header" data-fc-id="ukc-order-summary-header"><span>Bestellübersicht</span></h3>
-            <table class="ukc-summary-table">
+            <table class="ukc-summary-table" data-ukc-summary-table>
                 <tbody>
                     <tr>
                         <td class="ukc-summary-label">Zwischensumme</td>

@@ -8,6 +8,7 @@
   }
   var form = document.getElementById('fc-cart-form');
   var updating = false;
+  var pendingUpdate = false;
   // Global flag für Auto-Updater (verhindert Konflikt mit AJAX-Update)
   window.__ukc_ajax_updating = false;
   
@@ -48,7 +49,6 @@
             localStorage.setItem(STORAGE_KEY, sessionId);
             localStorage.setItem(SESSION_NAME_KEY, sessionName);
             
-            console.log('[UKC] Session gespeichert:', sessionName, '=', sessionId.substring(0, 10) + '...');
             return { id: sessionId, name: sessionName };
           }
         }
@@ -69,7 +69,6 @@
         if(href && !href.includes('fcsid=') && !href.includes('fc_sid=') && !href.includes('fssid=')){
           var separator = href.includes('?') ? '&' : '?';
           link.setAttribute('href', href + separator + session.name + '=' + session.id);
-          console.log('[UKC] Session an Link angehängt:', href.substring(0, 50) + '...');
         }
       });
       
@@ -94,7 +93,6 @@
       try {
         if(!FC.sid || FC.sid === '') {
           FC.sid = session.id;
-          console.log('[UKC] FC.sid gesetzt:', session.id.substring(0, 10) + '...');
         }
       } catch(e) {}
     }
@@ -105,11 +103,9 @@
     var session = saved || stored;
     
     if(session) {
-      console.log('[UKC] Session verfügbar:', session.id.substring(0, 10) + '...');
       attachSessionToElements(session);
       setTimeout(function(){ injectIntoFC(session); }, 100);
     } else {
-      console.log('[UKC] Keine Session gefunden - warte auf FoxyCart');
     }
     
     // Nur EINE verzögerte Wiederholung für dynamische Inhalte
@@ -128,7 +124,6 @@
   }
   function formatMoney(num){ return new Intl.NumberFormat(getLocale(), { style: 'currency', currency: getCurrency() }).format(num); }
   function recalcSummary(){
-    console.log('[UKC recalcSummary] Wird aufgerufen');
     var subtotal = 0;
     document.querySelectorAll('.ukc-row').forEach(function(row){
       var qtyInput = row.querySelector('input[data-fc-id="item-quantity-input"]');
@@ -141,22 +136,29 @@
     
     // Update NUR Subtotal - Tax und Total kommen vom Server!
     var subEl = document.querySelector('[data-ukc-subtotal]');
-    if(subEl) {
-      console.log('[UKC recalcSummary] Subtotal aktualisiert:', formatMoney(subtotal));
-      subEl.textContent = formatMoney(subtotal);
-    }
+    if(subEl) subEl.textContent = formatMoney(subtotal);
     
     // Tax und Total NICHT überschreiben - die kommen aus der Server-Response
     // Die werden in ajaxUpdate() nach der Server-Antwort gesetzt
-    console.log('[UKC recalcSummary] Fertig - Tax und Total wurden NICHT angefasst');
   }
   // Tax Summary Updates werden komplett von FoxyCart's nativer Lösung übernommen
   // Keine Custom Tax-Berechnungen mehr nötig
   function findQtyInput(itemId){
     return document.querySelector('input[data-fc-id="item-quantity-input"][data-fc-item-id="'+itemId+'"]');
   }
+  function requestUpdate(){
+    if(updating){
+      pendingUpdate = true;
+      return;
+    }
+    ajaxUpdate();
+  }
   async function ajaxUpdate(){
-    if(!form || updating) return;
+    if(!form) return;
+    if(updating){
+      pendingUpdate = true;
+      return;
+    }
     
     // Check: Ist das Form im DOM verbunden?
     if(!form.isConnected || !document.body.contains(form)){
@@ -175,7 +177,6 @@
     var isSameOrigin = currentDomain === formDomain || formDomain.includes('foxycart.com') && currentDomain.includes('foxycart.com');
     
     if(!isSameOrigin){
-      console.log('[UKC] Cross-Origin detected (' + currentDomain + ' → ' + formDomain + ') - Skip AJAX');
       // Bei Cross-Origin: kein AJAX, da CORS-Fehler
       // Die Updates werden durch normale Page-Loads gemacht
       updating = false;
@@ -199,51 +200,34 @@
       recalcSummary();
       var res = await fetch(form.action, { method:'POST', body: fd, credentials:'include' });
       var html = await res.text();
-      console.log('[UKC AJAX] Server-Response erhalten, HTML-Länge:', html.length);
       var doc = new DOMParser().parseFromString(html, 'text/html');
       var next = doc.querySelector('#fc-cart');
       var current = document.querySelector('#fc-cart');
-      console.log('[UKC AJAX] Parser fertig, next:', !!next, 'current:', !!current);
       if(next && current){ 
-        console.log('[UKC AJAX] AJAX-Update wird ausgeführt');
         
         // 1. Aktualisiere Items-Liste
         var nextItems = next.querySelector('.ukc-items');
         var currItems = current.querySelector('.ukc-items');
         if(nextItems && currItems){
-            console.log('[UKC AJAX] Items-Liste wird aktualisiert');
             currItems.innerHTML = nextItems.innerHTML;
         } else {
-            console.log('[UKC AJAX] Items NICHT gefunden - Fallback: kompletter Replace');
             // Fallback: kompletter Replace
             current.replaceWith(next);
             return;
         }
         
         // 2. Aktualisiere die gesamte Sidebar (inkl. Summary-Tabelle)
-        var nextSidebar = next.querySelector('.fc-sidebar--cart.ukc-summary');
-        var currSidebar = current.querySelector('.fc-sidebar--cart.ukc-summary');
+        var nextSidebar = next.querySelector('[data-ukc-summary-root]');
+        var currSidebar = current.querySelector('[data-ukc-summary-root]');
         
         if(nextSidebar && currSidebar) {
-          console.log('[UKC AJAX] Sidebar gefunden, wird KOMPLETT aktualisiert');
-          console.log('[UKC AJAX] VORHER - Tax:', currSidebar.querySelector('[data-ukc-tax-total]')?.textContent);
-          console.log('[UKC AJAX] VORHER - Total:', currSidebar.querySelector('[data-ukc-total-order]')?.textContent);
-          
           // Ersetze den gesamten Sidebar-Inhalt
           currSidebar.innerHTML = nextSidebar.innerHTML;
-          
-          console.log('[UKC AJAX] NACHHER - Tax:', currSidebar.querySelector('[data-ukc-tax-total]')?.textContent);
-          console.log('[UKC AJAX] NACHHER - Total:', currSidebar.querySelector('[data-ukc-total-order]')?.textContent);
         } else {
-          console.log('[UKC AJAX] Sidebar NICHT gefunden!', {
-            nextSidebar: !!nextSidebar,
-            currSidebar: !!currSidebar
-          });
           // Fallback: versuche nur die Tabelle zu aktualisieren
-          var nextSummaryTable = next.querySelector('.ukc-summary-table');
-          var currSummaryTable = current.querySelector('.ukc-summary-table');
+          var nextSummaryTable = next.querySelector('[data-ukc-summary-table]');
+          var currSummaryTable = current.querySelector('[data-ukc-summary-table]');
           if(nextSummaryTable && currSummaryTable) {
-            console.log('[UKC AJAX] Fallback: nur Summary-Table aktualisiert');
             currSummaryTable.innerHTML = nextSummaryTable.innerHTML;
           }
         }
@@ -329,14 +313,16 @@
       if(form) form.submit();
     }finally{
       updating = false;
-      console.log('[UKC AJAX] AJAX-Update abgeschlossen');
       // Auto-Updater wieder aktivieren OHNE manuellen Trigger
       // WICHTIG: KEIN scheduleUpdate() aufrufen, da FC.cart noch alte Werte hat!
       // Der Auto-Updater läuft automatisch über MutationObserver bei echten FoxyCart-Updates
       setTimeout(function(){
-        console.log('[UKC AJAX] Auto-Updater entsperrt (FC.cart hat möglicherweise noch alte Werte, daher kein manueller Trigger)');
         window.__ukc_ajax_updating = false;
-      }, 1000);
+        if(pendingUpdate){
+          pendingUpdate = false;
+          setTimeout(function(){ ajaxUpdate(); }, 0);
+        }
+      }, 300);
     }
   }
   // Kundentyp ableiten: Wenn Firmenname gesetzt => firmenkunde, sonst privat
@@ -619,24 +605,16 @@
   // Seltener Fallback-Sync gegen DOM-Replacements
   // setInterval(syncCompanyFields, 3000); // Deaktiviert um Console-Spam zu vermeiden
   
-  // Test-Funktion: Manuell Kundentyp setzen (für Debugging)
-  window.testCustomerType = function(type) {
-    document.cookie = 'ukc_customer_type=' + type + '; path=/';
-    triggerTaxCalculation();
-  };
-  
-  // Test-Funktion: Alle Cookies anzeigen
-  window.showCookies = function() {
-  };
-  
   // Tax-Berechnung bei Cookie-Änderungen triggern
   var originalSetCookie = document.cookie;
   setInterval(function(){
+    var ctx = document.querySelector('#fc-cart')?.getAttribute('data-context');
+    if(ctx !== 'checkout' && ctx !== 'cart') return;
     if(document.cookie !== originalSetCookie){
       originalSetCookie = document.cookie;
       triggerTaxCalculation();
     }
-  }, 1000);
+  }, 5000);
   
   // Hilfsfunktion: alle möglichen Purchase-Order-Felder finden (verschiedene Renderpfade)
   function getPOInputs(){
@@ -792,6 +770,8 @@
   
   // MutationObserver für Purchase Order Feld - überwacht Änderungen am DOM
   function setupPOFieldObserver() {
+    var ctx = document.querySelector('#fc-cart')?.getAttribute('data-context');
+    if(ctx !== 'checkout') return;
     var poInput = document.getElementById('purchase_order') || document.querySelector('[name="purchase_order"]') || document.querySelector('[data-fc-name="purchase_order"]');
     if(poInput) {
       // Observer für das spezifische Feld
@@ -855,6 +835,7 @@
   // Kontinuierlicher Check alle 2 Sekunden
   setInterval(function(){
     var allPOInputs = getPOInputs();
+    if(allPOInputs.length === 0) return;
     allPOInputs.forEach(function(input) {
       var storedPONumber = sessionStorage.getItem('ukc_po_number');
       if(!storedPONumber){ try{ generatePurchaseOrderNumber(); storedPONumber = sessionStorage.getItem('ukc_po_number'); }catch(_){ } }
@@ -863,7 +844,7 @@
         setPOFieldReadonly(input);
       }
     });
-  }, 2000);
+  }, 5000);
   
   // Event-Listener für direkte Input-Änderungen bei Produktmengen
   // Debounce für input-Event um zu verhindern, dass während dem Tippen der DOM ersetzt wird
@@ -873,7 +854,6 @@
     if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
       // Im Sidecart: Lass FoxyCart's native Handler laufen - nicht eingreifen!
       if(isInSidecart(input)){
-        console.log('[UKC Sidecart] Input Event - FoxyCart native handling');
         return; // Exit, FoxyCart übernimmt
       }
       
@@ -891,7 +871,7 @@
         // Debounced Update nach 800ms
         clearTimeout(qtyInputDebounce);
         qtyInputDebounce = setTimeout(function(){
-          ajaxUpdate();
+          requestUpdate();
         }, 800);
       }
     }
@@ -903,13 +883,12 @@
     if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
       // Im Sidecart: FoxyCart übernimmt
       if(isInSidecart(input)){
-        console.log('[UKC Sidecart] Blur Event - FoxyCart native handling');
         return;
       }
       
       // Nur Fullpage Cart
       clearTimeout(qtyInputDebounce);
-      ajaxUpdate();
+      requestUpdate();
     }
   }, true);
   
@@ -923,7 +902,6 @@
     if(btn){
       // Im Sidecart: Lass FoxyCart's native Handler (data-fc-id) laufen
       if(isInSidecart(btn)){
-        console.log('[UKC Sidecart] Button Click - FoxyCart native handling');
         // NICHT preventDefault! FoxyCart braucht das Event
         return; // Exit, FoxyCart übernimmt
       }
@@ -941,10 +919,9 @@
       }else{
         current = current + 1;
       }
-      console.log('[UKC Button] +/- Button geklickt, neue Menge:', current);
       input.value = current;
       recalcSummary();
-      ajaxUpdate();
+      requestUpdate();
       return;
     }
     var rm = ev.target.closest('.ukc-remove-btn');
@@ -970,7 +947,7 @@
       var inp = findQtyInput(idr);
       if(inp){ inp.value = 0; }
       recalcSummary();
-      ajaxUpdate();
+      requestUpdate();
       
       // Prüfen, ob noch Items vorhanden sind
       setTimeout(function(){
@@ -1039,7 +1016,6 @@
       var session = getSessionForUrl();
       if(session && session.id) {
         cartUrl += '?' + session.name + '=' + session.id;
-        console.log('[UKC] Warenkorb-Button mit Session erstellt:', session.id.substring(0, 10) + '...');
       }
       
       a.href = cartUrl;
@@ -1091,7 +1067,7 @@
       // Summary zurücksetzen und leere Nachricht anzeigen
       setTimeout(function(){
         recalcSummary();
-        ajaxUpdate();
+        requestUpdate();
         
         // Leere Nachricht anzeigen, wenn alle Items entfernt wurden
         showEmptyCartMessage();
@@ -1259,6 +1235,8 @@
   
   // Observer starten
   setTimeout(function(){
+    var context = document.querySelector('#fc-cart')?.getAttribute('data-context');
+    if(context !== 'checkout') return;
     var target = document.querySelector('ul.fc-transaction') || document.body;
     if(target){
       couponObserver.observe(target, { childList: true, subtree: true });
@@ -1312,7 +1290,12 @@
   setTimeout(ensureDifferentBillingCheckbox, 100);
   setTimeout(ensureDifferentBillingCheckbox, 600);
   var moDiff = new MutationObserver(function(){ ensureDifferentBillingCheckbox(); });
-  try{ moDiff.observe(document.body, { childList:true, subtree:true }); }catch(_){ }
+  try{
+    var ctx = document.querySelector('#fc-cart')?.getAttribute('data-context');
+    if(ctx === 'checkout'){
+      moDiff.observe(document.body, { childList:true, subtree:true });
+    }
+  }catch(_){ }
 
   // Wenn Versand-Raten geladen sind, automatisch erste Option wählen (falls keine gewählt)
   function autoSelectFirstShipping(){
@@ -1363,31 +1346,15 @@
   }
 
   function nearlyEqual(a,b){ return Math.abs(Number(a)-Number(b)) < 0.005; }
+  function isCartContext(){
+    return root.getAttribute('data-context') === 'cart';
+  }
 
   function update(){
-    // Pausiere Auto-Update während AJAX-Update läuft
-    if(updating || window.__ukc_ajax_updating) {
-      console.log('[UKC Auto-Updater] Pausiert (updating=' + updating + ', ajax=' + window.__ukc_ajax_updating + ')');
-      return;
-    }
-    
-    // Im Cart-Kontext: Auto-Updater deaktivieren (FC.cart wird im Cart nicht korrekt aktualisiert)
-    var ctx = document.querySelector('#fc-cart')?.getAttribute('data-context');
-    if(ctx === 'cart') {
-      console.log('[UKC Auto-Updater] Im Cart-Kontext deaktiviert - Server-Response ist die einzige Wahrheit');
-      return;
-    }
-    
+    if(updating || window.__ukc_ajax_updating) return;
+    if(isCartContext()) return;
     var snap = readCart();
     if(!snap) return;
-    
-    console.log('[UKC Auto-Updater] Läuft jetzt!', {
-      sub: snap.sub,
-      tax: snap.tax,
-      ship: snap.ship,
-      tot: snap.tot
-    });
-    
     var subEl = document.querySelector('[data-ukc-subtotal]');
     var taxEl = document.querySelector('[data-ukc-tax-total]');
     var shipEls = document.querySelectorAll('[data-ukc-shipping]');
@@ -1395,24 +1362,12 @@
 
     updating = true;
     try{
-      if(subEl && !nearlyEqual(prev.sub, snap.sub)) {
-        console.log('[UKC Auto-Updater] Subtotal: ' + prev.sub + ' -> ' + snap.sub);
-        subEl.textContent = fmt(snap.sub);
-      }
-      if(taxEl && !nearlyEqual(prev.tax, snap.tax)) {
-        console.log('[UKC Auto-Updater] Tax: ' + prev.tax + ' -> ' + snap.tax);
-        taxEl.textContent = fmt(snap.tax);
-      }
+      if(subEl && !nearlyEqual(prev.sub, snap.sub)) subEl.textContent = fmt(snap.sub);
+      if(taxEl && !nearlyEqual(prev.tax, snap.tax)) taxEl.textContent = fmt(snap.tax);
       if(shipEls && shipEls.forEach){
-        if(!nearlyEqual(prev.ship, snap.ship)) {
-          console.log('[UKC Auto-Updater] Shipping: ' + prev.ship + ' -> ' + snap.ship);
-          shipEls.forEach(function(el){ el.textContent = fmt(snap.ship); });
-        }
+        if(!nearlyEqual(prev.ship, snap.ship)) shipEls.forEach(function(el){ el.textContent = fmt(snap.ship); });
       }
-      if(totalEl && !nearlyEqual(prev.tot, snap.tot)) {
-        console.log('[UKC Auto-Updater] Total: ' + prev.tot + ' -> ' + snap.tot);
-        totalEl.textContent = fmt(snap.tot);
-      }
+      if(totalEl && !nearlyEqual(prev.tot, snap.tot)) totalEl.textContent = fmt(snap.tot);
       prev = snap;
     } finally {
       updating = false;
@@ -1430,9 +1385,6 @@
       timeoutId = setTimeout(update, 120);
     });
   }
-  
-  // Global verfügbar machen für AJAX-Handler
-  window.__ukc_scheduleUpdate = scheduleUpdate;
 
   if(window.MutationObserver){
     try{
@@ -1441,152 +1393,10 @@
     }catch(_){}
   }
 
-  // Live price updates for checkout summary
-  function setupLivePriceUpdates(){
-    var root = document.querySelector('#fc-cart');
-    if(!root) return;
+  document.addEventListener('fc:cart:update', scheduleUpdate);
+  document.addEventListener('fc:cart:change', scheduleUpdate);
 
-    function currency(){ return (window.FC && FC.cart && FC.cart.currency_code) || 'EUR'; }
-    function fmt(v){ try{ return new Intl.NumberFormat('de-DE',{style:'currency',currency:currency()}).format(Number(v||0)); }catch(e){ return (Number(v||0)).toFixed(2)+'\u00a0€'; } }
-
-    var prev = { sub: null, tax: null, ship: null, tot: null };
-    var updating = false;
-    function readCart(){
-      if(!window.FC || !FC.cart) return null;
-      var c = FC.cart;
-      
-      // Nutze FoxyCart's native Werte DIREKT ohne Manipulation
-      var subtotal = Number(c.total_item_price || 0);
-      var shipping = Number(c.total_shipping || c.total_future_shipping || 0);
-      var foxyTax = Number(c.total_tax || 0);
-      var total = Number(c.total_order || 0);
-      
-      return {
-        sub: subtotal,
-        tax: foxyTax, // FoxyCart's native Tax-Berechnung
-        ship: shipping,
-        tot: total || (subtotal + foxyTax + shipping)
-      };
-    }
-
-    function nearlyEqual(a,b){ return Math.abs(Number(a)-Number(b)) < 0.005; }
-
-    function update(){
-      // Pausiere Auto-Update während AJAX-Update läuft
-      if(updating || window.__ukc_ajax_updating) return;
-      
-      // Im Cart-Kontext: Auto-Updater deaktivieren (FC.cart wird im Cart nicht korrekt aktualisiert)
-      var ctx = document.querySelector('#fc-cart')?.getAttribute('data-context');
-      if(ctx === 'cart') {
-        return;
-      }
-      
-      var snap = readCart();
-      if(!snap) return;
-      var subEl = document.querySelector('[data-ukc-subtotal]');
-      var taxEl = document.querySelector('[data-ukc-tax-total]');
-      var shipEls = document.querySelectorAll('[data-ukc-shipping]');
-      var totalEl = document.querySelector('[data-ukc-total-order]');
-
-      // Only write when value actually changes
-      updating = true;
-      try{
-        if(subEl && !nearlyEqual(prev.sub, snap.sub)) subEl.textContent = fmt(snap.sub);
-        if(taxEl && !nearlyEqual(prev.tax, snap.tax)) {
-          taxEl.textContent = fmt(snap.tax);
-        }
-        if(shipEls && shipEls.forEach){
-          if(!nearlyEqual(prev.ship, snap.ship)) shipEls.forEach(function(el){ el.textContent = fmt(snap.ship); });
-        }
-        if(totalEl && !nearlyEqual(prev.tot, snap.tot)) totalEl.textContent = fmt(snap.tot);
-        prev = snap;
-      } finally {
-        updating = false;
-      }
-    }
-
-    var rafScheduled = false; var timeoutId = null;
-    function scheduleUpdate(){
-      if(rafScheduled) return;
-      rafScheduled = true;
-      requestAnimationFrame(function(){
-        rafScheduled = false;
-        update();
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(update, 120); // minor debounce to coalesce bursts
-      });
-    }
-
-    // Observe Foxy DOM updates but avoid infinite feedback by debouncing
-    if(window.MutationObserver){
-      try{
-        var mo = new MutationObserver(function(){ scheduleUpdate(); });
-        mo.observe(root, { childList:true, subtree:true });
-      }catch(_){}
-    }
-
-    // Tax trigger when company field changes
-    function setupTaxTrigger(){
-      var companyFields = ['#billing_company', 'input[name="billing_company"]', 'input[data-fc-name="billing_company"]'];
-      companyFields.forEach(function(sel){
-        var el = document.querySelector(sel);
-        if(el){
-          el.addEventListener('input', function(){ 
-            console.log('COMPANY INPUT TRIGGERED:', el.value);
-            setTimeout(function(){
-              // Trigger Foxy tax calculation
-              if(window.FC && FC.cart) {
-                FC.cart.billing_company = el.value;
-                console.log('SET FC.cart.billing_company:', el.value);
-                // Trigger tax recalculation
-                if(window.FC.checkout && FC.checkout.shipping) {
-                  try { 
-                    console.log('CALLING get_shipping_and_handling()');
-                    FC.checkout.shipping.get_shipping_and_handling(); 
-                  } catch(e) {
-                    console.log('ERROR in get_shipping_and_handling:', e);
-                  }
-                }
-              }
-              console.log('SCHEDULING UPDATE');
-              scheduleUpdate();
-            }, 1000);
-          });
-          el.addEventListener('change', function(){ 
-            setTimeout(function(){
-              // Trigger Foxy tax calculation
-              if(window.FC && FC.cart) {
-                FC.cart.billing_company = el.value;
-                // Trigger tax recalculation
-                if(window.FC.checkout && FC.checkout.shipping) {
-                  try { FC.checkout.shipping.get_shipping_and_handling(); } catch(e) {}
-                }
-              }
-              scheduleUpdate();
-            }, 1000);
-          });
-        }
-      });
-    }
-
-    // Add Foxy cart event listeners for automatic updates
-    function updateSummary() {
-      console.log('FC CART EVENT TRIGGERED - updating summary');
-      scheduleUpdate();
-    }
-    
-    document.addEventListener('fc:cart:update', updateSummary);
-    document.addEventListener('fc:cart:change', updateSummary);
-
-    // Initial runs
-    function kick(){ scheduleUpdate(); setupTaxTrigger(); setTimeout(update,300); setTimeout(update,800); setTimeout(update,1500); }
-    document.addEventListener('DOMContentLoaded', kick);
-    if(document.readyState==='complete' || document.readyState==='interactive') kick();
-  }
-
-  function kick(){ scheduleUpdate(); setTimeout(update,300); setTimeout(update,800); setTimeout(update,1500); setupLivePriceUpdates(); }
+  function kick(){ scheduleUpdate(); setTimeout(update,300); setTimeout(update,800); setTimeout(update,1500); }
   document.addEventListener('DOMContentLoaded', kick);
   if(document.readyState==='complete' || document.readyState==='interactive') kick();
-
-  // updateTaxSummary() komplett entfernt - FoxyCart native Lösung
 })();
