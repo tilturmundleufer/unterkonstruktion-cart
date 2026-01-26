@@ -134,12 +134,22 @@
       if(totalEl){ totalEl.textContent = formatMoney(each * qty); }
     });
     
-    // Update NUR Subtotal - Tax und Total kommen vom Server!
+    // Update Subtotal
     var subEl = document.querySelector('[data-ukc-subtotal]');
     if(subEl) subEl.textContent = formatMoney(subtotal);
     
-    // Tax und Total NICHT überschreiben - die kommen aus der Server-Response
-    // Die werden in ajaxUpdate() nach der Server-Antwort gesetzt
+    // Im Cart-Kontext: Tax und Total auch clientseitig aktualisieren
+    // (Server-Response überschreibt diese später mit korrekten Werten)
+    var context = document.querySelector('#fc-cart')?.getAttribute('data-context');
+    if(context === 'cart') {
+      var taxEl = document.querySelector('[data-ukc-tax-total]');
+      var totalEl = document.querySelector('[data-ukc-total-order]');
+      
+      // Im Cart: Tax ist noch nicht berechenbar (keine Adresse bekannt)
+      // Daher: Tax = 0, Total = Subtotal
+      if(taxEl) taxEl.textContent = formatMoney(0);
+      if(totalEl) totalEl.textContent = formatMoney(subtotal);
+    }
   }
   // Tax Summary Updates werden komplett von FoxyCart's nativer Lösung übernommen
   // Keine Custom Tax-Berechnungen mehr nötig
@@ -1425,7 +1435,7 @@
 
   function update(){
     if(updating || window.__ukc_ajax_updating) return;
-    if(isCartContext()) return;
+    // Cart-Kontext NICHT mehr ausschließen - Tax/Total sollen auch hier aktualisiert werden
     var snap = readCart();
     if(!snap) return;
     var subEl = document.querySelector('[data-ukc-subtotal]');
