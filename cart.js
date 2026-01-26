@@ -860,37 +860,19 @@
   document.addEventListener('input', function(ev){
     var input = ev.target;
     if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
-      // Im Sidecart: FoxyCart über API anstoßen
-      if(isSidecartContext(input)){
-        var sideId = input.getAttribute('data-fc-item-id');
-        if(sideId){
-          var sideValue = parseInt(input.value || '1', 10) || 1;
-          if(sideValue < 1) sideValue = 1;
-          input.value = sideValue;
-          clearTimeout(qtyInputDebounce);
-          qtyInputDebounce = setTimeout(function(){
-            updateSidecartQuantity(sideId, sideValue, input);
-          }, 400);
-        }
-        return;
-      }
-      
-      // Nur im Fullpage Cart: Custom Logic
+      // Sidecart + Fullpage: FoxyCart-API anstoßen
       var id = input.getAttribute('data-fc-item-id');
       if(id){
         // Mindestwert sicherstellen
         var value = parseInt(input.value || '1', 10) || 1;
         if(value < 1) value = 1;
         input.value = value;
-        
-        // Sofortige UI-Aktualisierung
-        recalcSummary();
-        
-        // Debounced Update nach 800ms
+
+        // Debounced Update nach 400ms
         clearTimeout(qtyInputDebounce);
         qtyInputDebounce = setTimeout(function(){
-          requestUpdate();
-        }, 800);
+          updateCartQuantity(id, value, input);
+        }, 400);
       }
     }
   });
@@ -899,21 +881,14 @@
   document.addEventListener('blur', function(ev){
     var input = ev.target;
     if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
-      // Im Sidecart: FoxyCart übernimmt
-      if(isSidecartContext(input)){
-        var blurId = input.getAttribute('data-fc-item-id');
-        if(blurId){
-          var blurValue = parseInt(input.value || '1', 10) || 1;
-          if(blurValue < 1) blurValue = 1;
-          input.value = blurValue;
-          updateSidecartQuantity(blurId, blurValue, input);
-        }
-        return;
+      var blurId = input.getAttribute('data-fc-item-id');
+      if(blurId){
+        var blurValue = parseInt(input.value || '1', 10) || 1;
+        if(blurValue < 1) blurValue = 1;
+        input.value = blurValue;
+        clearTimeout(qtyInputDebounce);
+        updateCartQuantity(blurId, blurValue, input);
       }
-      
-      // Nur Fullpage Cart
-      clearTimeout(qtyInputDebounce);
-      requestUpdate();
     }
   }, true);
   
@@ -928,7 +903,7 @@
     return false;
   }
   
-  function updateSidecartQuantity(itemId, nextQty, input){
+  function updateCartQuantity(itemId, nextQty, input){
     var updated = false;
     try{
       if(window.FC && FC.cart){
@@ -955,35 +930,16 @@
       }catch(_){}
     }
     
-    // Fallback: FoxyCart-Update anstoßen, falls vorhanden
-    if(!updated && window.FC && FC.cart && typeof FC.cart.updateHash === 'function'){
-      try{ FC.cart.updateHash(); }catch(_){}
+    // Fallback: form submit / ajax update
+    if(!updated && form){
+      try{ requestUpdate(); }catch(_){}
     }
   }
   
   document.addEventListener('click', function(ev){
     var btn = ev.target.closest('.ukc-qty-btn');
     if(btn){
-      // Im Sidecart: FoxyCart übernimmt
-      if(isSidecartContext(btn)){
-        ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
-        
-        var sid = btn.getAttribute('data-fc-item-id');
-        var sinput = findQtyInput(sid);
-        if(!sinput) return;
-        
-        var scurrent = parseInt(sinput.value || '1', 10) || 1;
-        if(btn.classList.contains('ukc-qty-minus')){
-          scurrent = Math.max(1, scurrent - 1);
-        }else{
-          scurrent = scurrent + 1;
-        }
-        sinput.value = scurrent;
-        updateSidecartQuantity(sid, scurrent, sinput);
-        return;
-      }
-      
-      // Nur im Fullpage Cart: Custom Handler
+      // Sidecart + Fullpage: Custom Handler (FoxyCart API)
       ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
       
       var id = btn.getAttribute('data-fc-item-id');
@@ -997,8 +953,7 @@
         current = current + 1;
       }
       input.value = current;
-      recalcSummary();
-      requestUpdate();
+      updateCartQuantity(id, current, input);
       return;
     }
     var rm = ev.target.closest('.ukc-remove-btn');
