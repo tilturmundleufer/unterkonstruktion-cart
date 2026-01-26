@@ -930,10 +930,38 @@
       }catch(_){}
     }
     
+    if(updated){
+      try{ document.dispatchEvent(new Event('fc:cart:update')); }catch(_){}
+      try{ document.dispatchEvent(new Event('fc:cart:change')); }catch(_){}
+      setTimeout(refreshSummaryFromFC, 120);
+      setTimeout(refreshSummaryFromFC, 400);
+      setTimeout(refreshSummaryFromFC, 900);
+      return;
+    }
+    
     // Fallback: form submit / ajax update
     if(!updated && form){
       try{ requestUpdate(); }catch(_){}
     }
+  }
+  
+  function refreshSummaryFromFC(){
+    try{
+      if(!window.FC || !FC.cart) return;
+      var c = FC.cart;
+      var sub = Number(c.total_item_price || 0);
+      var tax = Number(c.total_tax || 0);
+      var ship = Number(c.total_shipping || c.total_future_shipping || 0);
+      var tot = Number(c.total_order || (sub + tax + ship));
+      var subEl = document.querySelector('[data-ukc-subtotal]');
+      var taxEl = document.querySelector('[data-ukc-tax-total]');
+      var shipEls = document.querySelectorAll('[data-ukc-shipping]');
+      var totalEl = document.querySelector('[data-ukc-total-order]');
+      if(subEl) subEl.textContent = formatMoney(sub);
+      if(taxEl) taxEl.textContent = formatMoney(tax);
+      if(shipEls && shipEls.forEach) shipEls.forEach(function(el){ el.textContent = formatMoney(ship); });
+      if(totalEl) totalEl.textContent = formatMoney(tot);
+    }catch(_){}
   }
   
   document.addEventListener('click', function(ev){
