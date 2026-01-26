@@ -859,8 +859,18 @@
   document.addEventListener('input', function(ev){
     var input = ev.target;
     if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
-      // Im Sidecart: FoxyCart übernimmt
+      // Im Sidecart: FoxyCart über API anstoßen
       if(isSidecartContext()){
+        var sideId = input.getAttribute('data-fc-item-id');
+        if(sideId){
+          var sideValue = parseInt(input.value || '1', 10) || 1;
+          if(sideValue < 1) sideValue = 1;
+          input.value = sideValue;
+          clearTimeout(qtyInputDebounce);
+          qtyInputDebounce = setTimeout(function(){
+            updateSidecartQuantity(sideId, sideValue, input);
+          }, 400);
+        }
         return;
       }
       
@@ -890,6 +900,13 @@
     if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
       // Im Sidecart: FoxyCart übernimmt
       if(isSidecartContext()){
+        var blurId = input.getAttribute('data-fc-item-id');
+        if(blurId){
+          var blurValue = parseInt(input.value || '1', 10) || 1;
+          if(blurValue < 1) blurValue = 1;
+          input.value = blurValue;
+          updateSidecartQuantity(blurId, blurValue, input);
+        }
         return;
       }
       
@@ -907,11 +924,58 @@
     return !!document.querySelector('[data-fc-sidecart], .fc-sidecart, .fc-sidecart__container, .fc-sidecart__panel');
   }
   
+  function updateSidecartQuantity(itemId, nextQty, input){
+    var updated = false;
+    try{
+      if(window.FC && FC.cart){
+        if(typeof FC.cart.updateItemQuantity === 'function'){
+          FC.cart.updateItemQuantity(itemId, nextQty);
+          updated = true;
+        } else if(typeof FC.cart.setItemQuantity === 'function'){
+          FC.cart.setItemQuantity(itemId, nextQty);
+          updated = true;
+        } else if(typeof FC.cart.updateItem === 'function'){
+          FC.cart.updateItem(itemId, { quantity: nextQty });
+          updated = true;
+        } else if(typeof FC.cart.update === 'function'){
+          FC.cart.update({ id: itemId, quantity: nextQty });
+          updated = true;
+        }
+      }
+    }catch(_){}
+    
+    if(!updated && input){
+      try{
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      }catch(_){}
+    }
+    
+    // Fallback: FoxyCart-Update anstoßen, falls vorhanden
+    if(!updated && window.FC && FC.cart && typeof FC.cart.updateHash === 'function'){
+      try{ FC.cart.updateHash(); }catch(_){}
+    }
+  }
+  
   document.addEventListener('click', function(ev){
     var btn = ev.target.closest('.ukc-qty-btn');
     if(btn){
       // Im Sidecart: FoxyCart übernimmt
       if(isSidecartContext()){
+        ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
+        
+        var sid = btn.getAttribute('data-fc-item-id');
+        var sinput = findQtyInput(sid);
+        if(!sinput) return;
+        
+        var scurrent = parseInt(sinput.value || '1', 10) || 1;
+        if(btn.classList.contains('ukc-qty-minus')){
+          scurrent = Math.max(1, scurrent - 1);
+        }else{
+          scurrent = scurrent + 1;
+        }
+        sinput.value = scurrent;
+        updateSidecartQuantity(sid, scurrent, sinput);
         return;
       }
       
