@@ -176,9 +176,14 @@
     
     var isSameOrigin = currentDomain === formDomain || formDomain.includes('foxycart.com') && currentDomain.includes('foxycart.com');
     var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
-    var allowCrossOrigin = currentContext === 'sidecart';
     
-    if(!isSameOrigin && !allowCrossOrigin){
+    // Im Sidecart keine eigene AJAX-Logik: FoxyCart übernimmt die Updates
+    if(currentContext === 'sidecart'){
+      updating = false;
+      return;
+    }
+    
+    if(!isSameOrigin){
       // Bei Cross-Origin: kein AJAX, da CORS-Fehler
       // Die Updates werden durch normale Page-Loads gemacht
       updating = false;
@@ -854,7 +859,12 @@
   document.addEventListener('input', function(ev){
     var input = ev.target;
     if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
-      // Fullpage Cart + Sidecart: Custom Logic
+      // Im Sidecart: FoxyCart übernimmt
+      if(isSidecartContext()){
+        return;
+      }
+      
+      // Nur im Fullpage Cart: Custom Logic
       var id = input.getAttribute('data-fc-item-id');
       if(id){
         // Mindestwert sicherstellen
@@ -878,30 +888,34 @@
   document.addEventListener('blur', function(ev){
     var input = ev.target;
     if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
-      // Fullpage Cart + Sidecart
+      // Im Sidecart: FoxyCart übernimmt
+      if(isSidecartContext()){
+        return;
+      }
+      
+      // Nur Fullpage Cart
       clearTimeout(qtyInputDebounce);
       requestUpdate();
     }
   }, true);
   
-  // Hilfsfunktion: liegt das Ziel im Sidecart?
-  function isInSidecart(node){
+  // Hilfsfunktion: Sidecart-Kontext erkennen
+  function isSidecartContext(){
     var root = document.querySelector('#fc-cart');
     var ctx = root ? root.getAttribute('data-context') : null;
     if(ctx === 'sidecart') return true;
-    return !!(node && node.closest && (
-      node.closest('[data-fc-sidecart]') ||
-      node.closest('.fc-sidecart') ||
-      node.closest('.fc-sidecart__container') ||
-      node.closest('.fc-sidecart__panel') ||
-      node.closest('.fc-sidecart-only-fixed')
-    ));
+    return !!document.querySelector('[data-fc-sidecart], .fc-sidecart, .fc-sidecart__container, .fc-sidecart__panel');
   }
   
   document.addEventListener('click', function(ev){
     var btn = ev.target.closest('.ukc-qty-btn');
     if(btn){
-      // Fullpage Cart + Sidecart: Custom Handler
+      // Im Sidecart: FoxyCart übernimmt
+      if(isSidecartContext()){
+        return;
+      }
+      
+      // Nur im Fullpage Cart: Custom Handler
       ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
       
       var id = btn.getAttribute('data-fc-item-id');
