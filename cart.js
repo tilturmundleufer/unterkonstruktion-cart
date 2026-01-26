@@ -175,8 +175,10 @@
     } catch(e) {}
     
     var isSameOrigin = currentDomain === formDomain || formDomain.includes('foxycart.com') && currentDomain.includes('foxycart.com');
+    var currentContext = document.querySelector('#fc-cart')?.getAttribute('data-context');
+    var allowCrossOrigin = currentContext === 'sidecart';
     
-    if(!isSameOrigin){
+    if(!isSameOrigin && !allowCrossOrigin){
       // Bei Cross-Origin: kein AJAX, da CORS-Fehler
       // Die Updates werden durch normale Page-Loads gemacht
       updating = false;
@@ -852,12 +854,7 @@
   document.addEventListener('input', function(ev){
     var input = ev.target;
     if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
-      // Im Sidecart: Lass FoxyCart's native Handler laufen - nicht eingreifen!
-      if(isInSidecart(input)){
-        return; // Exit, FoxyCart übernimmt
-      }
-      
-      // Nur im Fullpage Cart: Custom Logic
+      // Fullpage Cart + Sidecart: Custom Logic
       var id = input.getAttribute('data-fc-item-id');
       if(id){
         // Mindestwert sicherstellen
@@ -881,12 +878,7 @@
   document.addEventListener('blur', function(ev){
     var input = ev.target;
     if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
-      // Im Sidecart: FoxyCart übernimmt
-      if(isInSidecart(input)){
-        return;
-      }
-      
-      // Nur Fullpage Cart
+      // Fullpage Cart + Sidecart
       clearTimeout(qtyInputDebounce);
       requestUpdate();
     }
@@ -900,6 +892,8 @@
     return !!(node && node.closest && (
       node.closest('[data-fc-sidecart]') ||
       node.closest('.fc-sidecart') ||
+      node.closest('.fc-sidecart__container') ||
+      node.closest('.fc-sidecart__panel') ||
       node.closest('.fc-sidecart-only-fixed')
     ));
   }
@@ -907,13 +901,7 @@
   document.addEventListener('click', function(ev){
     var btn = ev.target.closest('.ukc-qty-btn');
     if(btn){
-      // Im Sidecart: Lass FoxyCart's native Handler (data-fc-id) laufen
-      if(isInSidecart(btn)){
-        // NICHT preventDefault! FoxyCart braucht das Event
-        return; // Exit, FoxyCart übernimmt
-      }
-      
-      // Nur im Fullpage Cart: Custom Handler
+      // Fullpage Cart + Sidecart: Custom Handler
       ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
       
       var id = btn.getAttribute('data-fc-item-id');
