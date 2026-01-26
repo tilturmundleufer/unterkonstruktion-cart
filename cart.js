@@ -185,9 +185,8 @@
     
     if(!isSameOrigin){
       // Bei Cross-Origin: kein AJAX, da CORS-Fehler
-      // Fallback: normales Formular-Submit auslösen
+      // Die Updates werden durch normale Page-Loads gemacht
       updating = false;
-      try{ form.submit(); }catch(_){}
       return;
     }
     
@@ -860,22 +859,37 @@
   document.addEventListener('input', function(ev){
     var input = ev.target;
     if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
-      // Nur im Sidecart: FoxyCart-API anstoßen
-      if(!isSidecartContext(input)){
+      // Im Sidecart: FoxyCart über API anstoßen
+      if(isSidecartContext()){
+        var sideId = input.getAttribute('data-fc-item-id');
+        if(sideId){
+          var sideValue = parseInt(input.value || '1', 10) || 1;
+          if(sideValue < 1) sideValue = 1;
+          input.value = sideValue;
+          clearTimeout(qtyInputDebounce);
+          qtyInputDebounce = setTimeout(function(){
+            updateSidecartQuantity(sideId, sideValue, input);
+          }, 400);
+        }
         return;
       }
+      
+      // Nur im Fullpage Cart: Custom Logic
       var id = input.getAttribute('data-fc-item-id');
       if(id){
         // Mindestwert sicherstellen
         var value = parseInt(input.value || '1', 10) || 1;
         if(value < 1) value = 1;
         input.value = value;
-
-        // Debounced Update nach 400ms
+        
+        // Sofortige UI-Aktualisierung
+        recalcSummary();
+        
+        // Debounced Update nach 800ms
         clearTimeout(qtyInputDebounce);
         qtyInputDebounce = setTimeout(function(){
-          updateCartQuantity(id, value, input);
-        }, 400);
+          requestUpdate();
+        }, 800);
       }
     }
   });
@@ -884,32 +898,33 @@
   document.addEventListener('blur', function(ev){
     var input = ev.target;
     if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
-      var blurId = input.getAttribute('data-fc-item-id');
-      if(!isSidecartContext(input)){
+      // Im Sidecart: FoxyCart übernimmt
+      if(isSidecartContext()){
+        var blurId = input.getAttribute('data-fc-item-id');
+        if(blurId){
+          var blurValue = parseInt(input.value || '1', 10) || 1;
+          if(blurValue < 1) blurValue = 1;
+          input.value = blurValue;
+          updateSidecartQuantity(blurId, blurValue, input);
+        }
         return;
       }
-      if(blurId){
-        var blurValue = parseInt(input.value || '1', 10) || 1;
-        if(blurValue < 1) blurValue = 1;
-        input.value = blurValue;
-        clearTimeout(qtyInputDebounce);
-        updateCartQuantity(blurId, blurValue, input);
-      }
+      
+      // Nur Fullpage Cart
+      clearTimeout(qtyInputDebounce);
+      requestUpdate();
     }
   }, true);
   
   // Hilfsfunktion: Sidecart-Kontext erkennen
-  function isSidecartContext(node){
+  function isSidecartContext(){
     var root = document.querySelector('#fc-cart');
     var ctx = root ? root.getAttribute('data-context') : null;
     if(ctx === 'sidecart') return true;
-    if(node && node.closest){
-      return !!node.closest('[data-fc-sidecart], .fc-sidecart, .fc-sidecart__container, .fc-sidecart__panel');
-    }
-    return false;
+    return !!document.querySelector('[data-fc-sidecart], .fc-sidecart, .fc-sidecart__container, .fc-sidecart__panel');
   }
   
-  function updateCartQuantity(itemId, nextQty, input){
+  function updateSidecartQuantity(itemId, nextQty, input){
     var updated = false;
     try{
       if(window.FC && FC.cart){
@@ -936,49 +951,35 @@
       }catch(_){}
     }
     
-    if(updated){
-      try{ document.dispatchEvent(new Event('fc:cart:update')); }catch(_){}
-      try{ document.dispatchEvent(new Event('fc:cart:change')); }catch(_){}
-      setTimeout(refreshSummaryFromFC, 120);
-      setTimeout(refreshSummaryFromFC, 400);
-      setTimeout(refreshSummaryFromFC, 900);
-      return;
+    // Fallback: FoxyCart-Update anstoßen, falls vorhanden
+    if(!updated && window.FC && FC.cart && typeof FC.cart.updateHash === 'function'){
+      try{ FC.cart.updateHash(); }catch(_){}
     }
-    
-    // Fallback: form submit / ajax update
-    if(!updated && form){
-      try{ requestUpdate(); }catch(_){}
-    }
-  }
-  
-  function refreshSummaryFromFC(){
-    try{
-      if(!window.FC || !FC.cart) return;
-      var c = FC.cart;
-      var sub = Number(c.total_item_price || 0);
-      var tax = Number(c.total_tax || 0);
-      var ship = Number(c.total_shipping || c.total_future_shipping || 0);
-      var tot = Number(c.total_order || (sub + tax + ship));
-      var subEl = document.querySelector('[data-ukc-subtotal]');
-      var taxEl = document.querySelector('[data-ukc-tax-total]');
-      var shipEls = document.querySelectorAll('[data-ukc-shipping]');
-      var totalEl = document.querySelector('[data-ukc-total-order]');
-      if(subEl) subEl.textContent = formatMoney(sub);
-      if(taxEl) taxEl.textContent = formatMoney(tax);
-      if(shipEls && shipEls.forEach) shipEls.forEach(function(el){ el.textContent = formatMoney(ship); });
-      if(totalEl) totalEl.textContent = formatMoney(tot);
-    }catch(_){}
   }
   
   document.addEventListener('click', function(ev){
     var btn = ev.target.closest('.ukc-qty-btn');
     if(btn){
-      // Fullpage: FoxyCart übernimmt
-      if(!isSidecartContext(btn)){
+      // Im Sidecart: FoxyCart übernimmt
+      if(isSidecartContext()){
+        ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
+        
+        var sid = btn.getAttribute('data-fc-item-id');
+        var sinput = findQtyInput(sid);
+        if(!sinput) return;
+        
+        var scurrent = parseInt(sinput.value || '1', 10) || 1;
+        if(btn.classList.contains('ukc-qty-minus')){
+          scurrent = Math.max(1, scurrent - 1);
+        }else{
+          scurrent = scurrent + 1;
+        }
+        sinput.value = scurrent;
+        updateSidecartQuantity(sid, scurrent, sinput);
         return;
       }
       
-      // Sidecart: Custom Handler (FoxyCart API)
+      // Nur im Fullpage Cart: Custom Handler
       ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
       
       var id = btn.getAttribute('data-fc-item-id');
@@ -992,7 +993,8 @@
         current = current + 1;
       }
       input.value = current;
-      updateCartQuantity(id, current, input);
+      recalcSummary();
+      requestUpdate();
       return;
     }
     var rm = ev.target.closest('.ukc-remove-btn');
@@ -1417,8 +1419,13 @@
   }
 
   function nearlyEqual(a,b){ return Math.abs(Number(a)-Number(b)) < 0.005; }
+  function isCartContext(){
+    return root.getAttribute('data-context') === 'cart';
+  }
+
   function update(){
     if(updating || window.__ukc_ajax_updating) return;
+    if(isCartContext()) return;
     var snap = readCart();
     if(!snap) return;
     var subEl = document.querySelector('[data-ukc-subtotal]');
