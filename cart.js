@@ -185,8 +185,9 @@
     
     if(!isSameOrigin){
       // Bei Cross-Origin: kein AJAX, da CORS-Fehler
-      // Die Updates werden durch normale Page-Loads gemacht
+      // Fallback: normales Formular-Submit auslösen
       updating = false;
+      try{ form.submit(); }catch(_){}
       return;
     }
     
