@@ -1419,13 +1419,8 @@
   }
 
   function nearlyEqual(a,b){ return Math.abs(Number(a)-Number(b)) < 0.005; }
-  function isCartContext(){
-    return root.getAttribute('data-context') === 'cart';
-  }
-
   function update(){
     if(updating || window.__ukc_ajax_updating) return;
-    if(isCartContext()) return;
     var snap = readCart();
     if(!snap) return;
     var subEl = document.querySelector('[data-ukc-subtotal]');
