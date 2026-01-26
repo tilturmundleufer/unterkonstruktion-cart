@@ -894,7 +894,14 @@
   
   // Hilfsfunktion: liegt das Ziel im Sidecart?
   function isInSidecart(node){
-    return !!(node && node.closest && node.closest('[data-fc-sidecart]'));
+    var root = document.querySelector('#fc-cart');
+    var ctx = root ? root.getAttribute('data-context') : null;
+    if(ctx === 'sidecart') return true;
+    return !!(node && node.closest && (
+      node.closest('[data-fc-sidecart]') ||
+      node.closest('.fc-sidecart') ||
+      node.closest('.fc-sidecart-only-fixed')
+    ));
   }
   
   document.addEventListener('click', function(ev){
