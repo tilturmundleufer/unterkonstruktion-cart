@@ -487,9 +487,9 @@
 
             <table class="ukc-summary-table" data-ukc-summary-table>
                 <tbody>
-                    <tr>
-                        <td class="ukc-summary-label">Zwischensumme</td>
-                        <td class="ukc-summary-value" data-ukc-subtotal>{{ total_item_price|money_format }}</td>
+                    <tr class="ukc-summary-subtotalrow">
+                        <td class="ukc-summary-label ukc-bold">Zwischensumme</td>
+                        <td class="ukc-summary-value ukc-bold" data-ukc-subtotal>{{ total_item_price|money_format }}</td>
                     </tr>
                     <tr>
                         <td class="ukc-summary-label">Mehrwertsteuer</td>
@@ -518,8 +518,8 @@
                     {% endfor %}
                     {% endif %}
                     <tr class="ukc-summary-totalrow">
-                        <td class="ukc-summary-label ukc-bold">Gesamtpreis inkl. MwSt.</td>
-                        <td class="ukc-summary-value ukc-bold" data-ukc-total-order>{{ total_order|money_format }}</td>
+                        <td class="ukc-summary-label">Gesamtpreis inkl. MwSt.</td>
+                        <td class="ukc-summary-value" data-ukc-total-order>{{ total_order|money_format }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -859,9 +859,9 @@
             <h3 class="fc-transaction__header" data-fc-id="ukc-order-summary-header"><span>Bestellübersicht</span></h3>
             <table class="ukc-summary-table" data-ukc-summary-table>
                 <tbody>
-                    <tr>
-                        <td class="ukc-summary-label">Zwischensumme</td>
-                        <td class="ukc-summary-value" data-ukc-subtotal>{{ total_item_price|money_format }}</td>
+                    <tr class="ukc-summary-subtotalrow">
+                        <td class="ukc-summary-label ukc-bold">Zwischensumme</td>
+                        <td class="ukc-summary-value ukc-bold" data-ukc-subtotal>{{ total_item_price|money_format }}</td>
                     </tr>
                     <tr>
                         <td class="ukc-summary-label">Mehrwertsteuer</td>
@@ -870,8 +870,8 @@
                         </td>
                     </tr>
                     <tr class="ukc-summary-totalrow">
-                        <td class="ukc-summary-label ukc-bold">Gesamtpreis inkl. MwSt.</td>
-                        <td class="ukc-summary-value ukc-bold" data-ukc-total-order>{{ total_order|money_format }}</td>
+                        <td class="ukc-summary-label">Gesamtpreis inkl. MwSt.</td>
+                        <td class="ukc-summary-value" data-ukc-total-order>{{ total_order|money_format }}</td>
                     </tr>
                 </tbody>
             </table>
