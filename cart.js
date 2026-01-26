@@ -861,7 +861,7 @@
     var input = ev.target;
     if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
       // Im Sidecart: FoxyCart über API anstoßen
-      if(isSidecartContext()){
+      if(isSidecartContext(input)){
         var sideId = input.getAttribute('data-fc-item-id');
         if(sideId){
           var sideValue = parseInt(input.value || '1', 10) || 1;
@@ -900,7 +900,7 @@
     var input = ev.target;
     if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
       // Im Sidecart: FoxyCart übernimmt
-      if(isSidecartContext()){
+      if(isSidecartContext(input)){
         var blurId = input.getAttribute('data-fc-item-id');
         if(blurId){
           var blurValue = parseInt(input.value || '1', 10) || 1;
@@ -918,11 +918,14 @@
   }, true);
   
   // Hilfsfunktion: Sidecart-Kontext erkennen
-  function isSidecartContext(){
+  function isSidecartContext(node){
     var root = document.querySelector('#fc-cart');
     var ctx = root ? root.getAttribute('data-context') : null;
     if(ctx === 'sidecart') return true;
-    return !!document.querySelector('[data-fc-sidecart], .fc-sidecart, .fc-sidecart__container, .fc-sidecart__panel');
+    if(node && node.closest){
+      return !!node.closest('[data-fc-sidecart], .fc-sidecart, .fc-sidecart__container, .fc-sidecart__panel');
+    }
+    return false;
   }
   
   function updateSidecartQuantity(itemId, nextQty, input){
@@ -962,7 +965,7 @@
     var btn = ev.target.closest('.ukc-qty-btn');
     if(btn){
       // Im Sidecart: FoxyCart übernimmt
-      if(isSidecartContext()){
+      if(isSidecartContext(btn)){
         ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
         
         var sid = btn.getAttribute('data-fc-item-id');
