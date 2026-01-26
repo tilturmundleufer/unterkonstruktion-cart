@@ -145,10 +145,12 @@
       var taxEl = document.querySelector('[data-ukc-tax-total]');
       var totalEl = document.querySelector('[data-ukc-total-order]');
       
-      // Im Cart: Tax ist noch nicht berechenbar (keine Adresse bekannt)
-      // Daher: Tax = 0, Total = Subtotal
-      if(taxEl) taxEl.textContent = formatMoney(0);
-      if(totalEl) totalEl.textContent = formatMoney(subtotal);
+      // Steuer immer 19% - Subtotal ist Netto, Tax = 19%, Total = Brutto
+      var tax = subtotal * 0.19;
+      var total = subtotal + tax;
+      
+      if(taxEl) taxEl.textContent = formatMoney(tax);
+      if(totalEl) totalEl.textContent = formatMoney(total);
     }
   }
   // Tax Summary Updates werden komplett von FoxyCart's nativer Lösung übernommen
