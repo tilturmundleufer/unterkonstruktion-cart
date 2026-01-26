@@ -860,7 +860,10 @@
   document.addEventListener('input', function(ev){
     var input = ev.target;
     if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
-      // Sidecart + Fullpage: FoxyCart-API anstoßen
+      // Nur im Sidecart: FoxyCart-API anstoßen
+      if(!isSidecartContext(input)){
+        return;
+      }
       var id = input.getAttribute('data-fc-item-id');
       if(id){
         // Mindestwert sicherstellen
@@ -882,6 +885,9 @@
     var input = ev.target;
     if(input && input.getAttribute('data-fc-id') === 'item-quantity-input'){
       var blurId = input.getAttribute('data-fc-item-id');
+      if(!isSidecartContext(input)){
+        return;
+      }
       if(blurId){
         var blurValue = parseInt(input.value || '1', 10) || 1;
         if(blurValue < 1) blurValue = 1;
@@ -967,7 +973,12 @@
   document.addEventListener('click', function(ev){
     var btn = ev.target.closest('.ukc-qty-btn');
     if(btn){
-      // Sidecart + Fullpage: Custom Handler (FoxyCart API)
+      // Fullpage: FoxyCart übernimmt
+      if(!isSidecartContext(btn)){
+        return;
+      }
+      
+      // Sidecart: Custom Handler (FoxyCart API)
       ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
       
       var id = btn.getAttribute('data-fc-item-id');
